@@ -6,7 +6,20 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "selfcheck": "npm run selfcheck:core && npm run selfcheck:actions && npm run selfcheck:import && npm run selfcheck:gate",
+    "selfcheck:core": "esbuild scripts/selfcheck.ts --bundle --platform=node --format=cjs --outfile=.tmp/selfcheck.cjs && node .tmp/selfcheck.cjs",
+    "selfcheck:actions": "esbuild scripts/selfcheck-actions.ts --bundle --platform=node --format=cjs --outfile=.tmp/selfcheck-actions.cjs && node .tmp/selfcheck-actions.cjs",
+    "selfcheck:import": "esbuild scripts/selfcheck-import.ts --bundle --platform=node --format=cjs --outfile=.tmp/selfcheck-import.cjs && node .tmp/selfcheck-import.cjs",
+    "selfcheck:gate": "esbuild scripts/gate.ts --bundle --platform=node --format=cjs --outfile=.tmp/gate.cjs && node .tmp/gate.cjs",
+    "selfcheck:render": "esbuild scripts/smoke-render.ts --bundle --platform=node --format=cjs --outfile=.tmp/smoke-render.cjs && node .tmp/smoke-render.cjs"
   },
   "dependencies": {
     "framer-motion": "^11.11.17",
@@ -16,13 +29,21 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
+    "eslint": "10.14.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
     "postcss": "^8.4.49",
+    "prettier": "3.9.10",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.6.3",
-    "vite": "^5.4.10"
+    "typescript-eslint": "8.72.1",
+    "vite": "^5.4.10",
+    "vitest": "3.2.7"
   }
 }
