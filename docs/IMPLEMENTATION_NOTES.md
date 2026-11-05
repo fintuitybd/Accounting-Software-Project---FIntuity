@@ -55,6 +55,6 @@ CI provider, etc.>
 
 ## Phase record index
 
-| Phase | Title                             | Status   | Evidence                                       |
-| ----- | --------------------------------- | -------- | ---------------------------------------------- |
-| 0     | Repository readiness and baseline | COMPLETE | `docs/BASELINE.md`, `.github/workflows/ci.yml` |
+| Phase | Title                             | Status                                            | Evidence                                       |
+| ----- | --------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| 0     | Repository readiness and baseline | PARTIAL — local gates pass; hosted CI run pending | `docs/BASELINE.md`, `.github/workflows/ci.yml` |

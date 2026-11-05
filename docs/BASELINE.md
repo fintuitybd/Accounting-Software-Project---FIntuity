@@ -113,6 +113,13 @@ or generated file is required to install, test or build the committed repository
 `npm run preview -- --host 127.0.0.1 --port 4173` served `GET /` with HTTP 200 and the expected
 `<div id="root"></div>` mount point. The preview process was stopped after the check.
 
+### CI workflow verification
+
+`.github/workflows/ci.yml` was added and parsed successfully by Prettier. The workflow itself was
+**not executed** because this folder has no Git remote or hosted CI runner configured. Its exact
+command sequence was run locally in the working tree and in the clean clone above, with exit 0 for
+every step. A hosted run remains an external setup action; see the Phase 0 completion report.
+
 ### Vitest coverage
 
 The Vitest suite added in Phase 0 covers:
