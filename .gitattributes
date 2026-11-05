@@ -1,0 +1,9 @@
+# Keep source line endings consistent across Windows and CI.
+* text=auto eol=lf
+
+# Binary generated or exported files
+*.xlsx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary

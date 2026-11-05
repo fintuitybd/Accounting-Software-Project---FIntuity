@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+coverage/
+.tmp/
+.vite/
+.vitest/
+*.tsbuildinfo
+
+# Local vault exports and generated audit/import artifacts (may contain financial data)
+*.vault.json
+/*.xlsx
+/scripts/*.xlsx
+/*.csv
+/scripts/*.csv
+/scripts/*.cjs
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
