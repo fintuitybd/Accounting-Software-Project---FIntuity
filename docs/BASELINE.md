@@ -2,9 +2,10 @@
 
 Recorded: 2026-11-06
 Repository: `C:\Fintuity\Accounting Software Project - Copy`
-Baseline source commit: `22441fe` (`chore: initial repository baseline`)
+Pre-Phase-0 source commit: `22441fe` (`chore: initial repository baseline`)
+Phase 0 tooling commit: `416d814` (`chore(phase-0): add reproducible engineering baseline`)
 
-This file records what the repository actually did before Phase 0 tooling was added. It is evidence,
+This file records pre-Phase-0 behaviour and post-Phase-0 verification separately. It is evidence,
 not a claim that the prototype is production-ready. No result below was inferred or fabricated.
 
 ## Environment
@@ -87,7 +88,10 @@ Result: **exit 0**
 - 9-tab audit pack written (161 KB).
 - Final line: `ALL CHECKS PASSED`.
 
-## Test and static-check baseline
+## Post-Phase-0 verification (new tooling)
+
+These commands did not exist before Phase 0. They were run after the tooling and test suite were
+added.
 
 | Command                | Result | Notes                                                                                                  |
 | ---------------------- | ------ | ------------------------------------------------------------------------------------------------------ |
@@ -95,7 +99,21 @@ Result: **exit 0**
 | `npm test`             | exit 0 | 4 test files, 23 tests passed                                                                          |
 | `npm run lint`         | exit 0 | 0 errors, 47 pre-existing warnings (unused locals and hook dependencies)                               |
 | `npm run format:check` | exit 0 | Scoped to tests, tooling, CI and documentation; existing `src/` and `scripts/` are excluded in Phase 0 |
-| `npm run build`        | exit 0 | Same build evidence as above                                                                           |
+| `npm run build`        | exit 0 | Same bundle sizes as the pre-Phase-0 build above                                                       |
+
+### Clean-clone verification
+
+A local `git clone` of the Phase 0 commit was installed with `npm ci` in an empty temporary
+directory. The clone then passed `npm run typecheck`, `npm run lint`, `npm run format:check`,
+`npm test`, `npm run selfcheck` and `npm run build`, each with exit 0. This proves that no ignored
+or generated file is required to install, test or build the committed repository.
+
+### App start verification
+
+`npm run preview -- --host 127.0.0.1 --port 4173` served `GET /` with HTTP 200 and the expected
+`<div id="root"></div>` mount point. The preview process was stopped after the check.
+
+### Vitest coverage
 
 The Vitest suite added in Phase 0 covers:
 
@@ -129,11 +147,15 @@ twelve workspaces.
 The legacy script and its assertions were deliberately left unchanged in Phase 0. It is not part of
 the CI gate. It should be repaired or retired in a later test-focused change.
 
-## Dependency audit baseline
+## Dependency audit (after Phase 0 tooling)
 
 Command: `npm audit`
 
 Result: **exit 1 — 16 vulnerabilities (12 moderate, 2 high, 2 critical)**
+
+This audit includes the development/test tooling added in Phase 0. The production dependency
+`xlsx` already had known advisories; the tooling-related findings are also recorded rather than
+hidden. No audit gate is enabled in CI while these are open.
 
 | Package                                    | Severity | Scope                   | Status                                                                                                                             |
 | ------------------------------------------ | -------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
