@@ -15,7 +15,7 @@
 //
 // All citations are marked [VERIFY] because the pack is pending tax-counsel sign-off.
 
-import type { RulePack, TaxCategory, TaxDomain, TaxRule, TdsNature } from '../types';
+import type { RulePack, TaxCategory, TaxDomain, TaxRule, TdsNature } from '../types.ts';
 
 export const RULE_PACK_VERSION = 'bd-2026-v1';
 

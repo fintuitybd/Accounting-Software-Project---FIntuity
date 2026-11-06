@@ -6,7 +6,16 @@ import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '.tmp/**', 'scripts/*.cjs', 'scripts/*.xlsx', '*.xlsx'],
+    ignores: [
+      'dist/**',
+      'server/dist/**',
+      'node_modules/**',
+      'coverage/**',
+      '.tmp/**',
+      'scripts/*.cjs',
+      'scripts/*.xlsx',
+      '*.xlsx',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -27,7 +36,15 @@ export default tseslint.config(
     },
   },
   {
-    files: ['scripts/**/*.ts', 'tests/**/*.ts', '*.config.{js,ts}', 'vite.config.ts', 'vitest.config.ts'],
+    files: [
+      'scripts/**/*.ts',
+      'scripts/**/*.mjs',
+      'tests/**/*.ts',
+      'server/**/*.ts',
+      '*.config.{js,ts}',
+      'vite.config.ts',
+      'vitest.config.ts',
+    ],
     languageOptions: {
       globals: globals.node,
     },

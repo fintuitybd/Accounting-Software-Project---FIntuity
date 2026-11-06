@@ -1,4 +1,4 @@
-// LedgerVault — Phase 2 mass `.xlsx` / `.csv` import studio + 9-tab audit pack.
+// Fintuity Accounting Suite — Phase 2 mass `.xlsx` / `.csv` import studio + 9-tab audit pack.
 //
 // Four pipelines (bulk journal, sales & purchase, opening balance, bank/MFS) share one simulated
 // dry-run contract: nothing is written to the ledger until the user commits, every commercial row is
@@ -33,9 +33,10 @@ import type {
   TenantEntity,
 } from '../types';
 import {
+  allocateMushak63Serial,
   buildCommercialDoc,
-  isPeriodLocked,
   journalTotals,
+  periodStatusFor,
   type AuditChainResult,
   type JournalDraft,
   type JournalLineDraft,
@@ -112,7 +113,7 @@ const TDS_NATURES: TdsNature[] = [
   'CONTRACTOR_OR_SUBCONTRACTOR',
 ];
 const PAYMENT_METHODS: PaymentMethod[] = ['BANK', 'MFS', 'CASH', 'CHEQUE', 'CREDIT_CARD'];
-const DOC_TYPES: CommercialDocType[] = ['SALES_INVOICE', 'CREDIT_NOTE', 'PURCHASE_BILL', 'EXPENSE_VOUCHER', 'IMPORTED_SERVICE'];
+
 
 function asString(row: ImportSheetRow, key: string): string {
   const value = row[key];
@@ -449,8 +450,15 @@ function validateCommon(row: ImportRow, state: ImportState): boolean {
     mark(row, 'INVALID_DATE', `Date "${date || '(blank)'}" is not a valid YYYY-MM-DD posting date.`);
     return false;
   }
-  if (isPeriodLocked(state.periods, date)) {
-    mark(row, 'PERIOD_CLOSED', `The accounting period for ${date} is LOCKED and cannot accept imported postings.`);
+  const periodStatus = periodStatusFor(state.periods, date);
+  if (periodStatus !== 'OPEN') {
+    mark(
+      row,
+      'PERIOD_CLOSED',
+      periodStatus === 'UNKNOWN'
+        ? `No accounting period is configured for ${date}. Imported postings require an explicit OPEN period.`
+        : `The accounting period for ${date} is ${periodStatus} and cannot accept imported postings.`,
+    );
     return false;
   }
   return true;
@@ -535,8 +543,6 @@ function simulateRow(raw: ImportSheetRow, rowNumber: number, pipeline: ImportPip
 }
 
 function simulateCommercialRow(row: SimulatedRow, context: RowContext): SimulatedRow {
-  const docTypeText = (asString(row.raw, 'doc_type') || 'SALES_INVOICE').toUpperCase();
-  const docType = (DOC_TYPES.includes(docTypeText as CommercialDocType) ? docTypeText : 'SALES_INVOICE') as CommercialDocType;
   const docNumber = asString(row.raw, 'doc_no');
   const base = asPoisha(row.raw, 'base_amount');
   const partyBin = asString(row.raw, 'party_bin');
@@ -639,7 +645,6 @@ function commercialSpecFromRow(raw: ImportSheetRow, state: ImportState, binUnitI
     is_active: true,
   };
   const isService = docType === 'EXPENSE_VOUCHER' || docType === 'IMPORTED_SERVICE';
-  const isSale = docType === 'SALES_INVOICE' || docType === 'CREDIT_NOTE';
   return {
     doc_type: docType,
     doc_number: asString(raw, 'doc_no'),
@@ -667,8 +672,9 @@ function commercialSpecFromRow(raw: ImportSheetRow, state: ImportState, binUnitI
     reverse_charge: taxCategory === 'REVERSE_CHARGE',
     // VDS is withheld on services and rent, not on a straight supply of goods.
     vds_applicable: isService,
-    // Imported bills carry the statutory Mushak 6.3 evidence; a bad BIN still blocks the rebate.
-    mushak_serial: isSale ? undefined : `M63-IMP-${asString(raw, 'doc_no')}`,
+    // A commercial import carries no supplier Mushak 6.3 evidence column. Never fabricate one: the
+    // purchase line records the input-VAT consequence of the evidence that actually exists.
+    mushak_serial: undefined,
     tenant_is_withholding_entity: state.tenant.is_withholding_entity,
     cost_account_code: docType === 'PURCHASE_BILL' ? '1310' : undefined,
     book_type: 'STATUTORY_BD' as BookType,
@@ -942,6 +948,15 @@ export function buildJournalsFromSimulation(simulation: ImportSimulation, contex
     const date = asString(row.raw, 'date');
     const spec = commercialSpecFromRow(row.raw, context.state, binUnitId);
     const built = buildCommercialDoc(spec);
+    if (spec.doc_type === 'SALES_INVOICE') {
+      // Imported sales invoices must still consume the statutory 6.3 series in posting order; a
+      // credit note has its own CN document series and never touches this allocator.
+      built.doc.mushak_serial = allocateMushak63Serial(
+        binUnitId,
+        [...context.state.commercialDocs, ...docs],
+        spec.doc_date.slice(0, 4),
+      );
+    }
     const hasSettlement =
       built.settlement_lines.length >= 2 && journalTotals(built.settlement_lines).debit_poisha > 0n;
     if (hasSettlement) {
@@ -998,7 +1013,7 @@ export function downloadSampleTemplateXlsx(pipelineType: ImportPipeline): void {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, 'Template');
   const notes = XLSX.utils.aoa_to_sheet([
-    ['LedgerVault import template'],
+    ['Fintuity Accounting Suite import template'],
     ['Pipeline', pipelineType],
     ['Description', PIPELINE_LABEL[pipelineType].description_en],
     ['Rules', 'Dates must be YYYY-MM-DD. Amounts are in BDT (not poisha). Every journal group must balance to the poisha.'],
@@ -1006,7 +1021,7 @@ export function downloadSampleTemplateXlsx(pipelineType: ImportPipeline): void {
     ['Rules', 'Rows that fail validation are reported in the dry run and are never posted.'],
   ]);
   XLSX.utils.book_append_sheet(workbook, notes, 'Read me');
-  XLSX.writeFile(workbook, `LedgerVault-${pipelineType.toLowerCase()}-template.xlsx`);
+  XLSX.writeFile(workbook, `Fintuity Accounting Suite-${pipelineType.toLowerCase()}-template.xlsx`);
 }
 
 export function exportSimulationCsv(simulation: ImportSimulation): void {
@@ -1023,7 +1038,7 @@ export function exportSimulationCsv(simulation: ImportSimulation): void {
   const sheet = XLSX.utils.json_to_sheet(rows);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, 'Dry run');
-  XLSX.writeFile(workbook, `LedgerVault-dry-run-${simulation.pipeline.toLowerCase()}.csv`, { bookType: 'csv' });
+  XLSX.writeFile(workbook, `Fintuity Accounting Suite-dry-run-${simulation.pipeline.toLowerCase()}.csv`, { bookType: 'csv' });
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1333,17 +1348,26 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
   }
   XLSX.utils.book_append_sheet(workbook, sheetFromAoa(gl), 'Immutable GL');
 
-  XLSX.writeFile(workbook, `LedgerVault-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`);
+  XLSX.writeFile(workbook, `Fintuity Accounting Suite-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`);
 }
+
+const MAX_DEMO_IMPORT_BYTES = 1_000_000;
+const MAX_DEMO_IMPORT_ROWS = 5_000;
 
 /** Read an uploaded `.xlsx` / `.csv` file into plain rows (SheetJS handles both). */
 export async function parseImportFile(file: File): Promise<ImportSheetRow[]> {
+  if (file.size > MAX_DEMO_IMPORT_BYTES) {
+    throw new Error(`The import file is larger than ${Math.round(MAX_DEMO_IMPORT_BYTES / 1000)} KB.`);
+  }
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: false });
   const sheetName = workbook.SheetNames[0];
   if (!sheetName) return [];
   const sheet = workbook.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json<ImportSheetRow>(sheet, { defval: '', raw: true });
+  if (rows.length > MAX_DEMO_IMPORT_ROWS) {
+    throw new Error(`The worksheet has more than ${MAX_DEMO_IMPORT_ROWS} rows.`);
+  }
   return rows;
 }
 

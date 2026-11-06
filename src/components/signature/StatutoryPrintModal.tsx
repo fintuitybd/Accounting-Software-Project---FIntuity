@@ -7,9 +7,9 @@
 //                     destination and the Taka-in-words line in English and Bangla.
 //   (b) Mushak 6.6  — ভ্যাট উৎসে কর্তন সনদ / VDS Withholding Certificate with the treasury challan,
 //                     economic code and the 4.5% withholding computation.
-//   (c) Mushak 9.1  — Monthly VAT Return summary across all twelve parts plus the GL-vs-return
-//                     reconciliation proof.
-//   (d) IAS 1 / IFRS 18 — audited financial statements pack: audit opinion, Statement of Financial
+//   (c) VAT 9.1     — internal draft workbook across the management parts plus the GL-vs-return
+//                     reconciliation proof. Never a filed return or a government receipt.
+//   (d) IAS 1 / IFRS 18 — management-accounts pack (unaudited): Statement of Financial
 //                     Position, Statement of Profit or Loss (IFRS 18 categories + MPM EBITDA),
 //                     Statement of Changes in Equity, IAS 7 Cash Flows, Notes and the Trial Balance.
 //
@@ -24,7 +24,6 @@ import {
   Building2,
   CalendarDays,
   FileCheck2,
-  Landmark,
   Printer,
   ReceiptText,
   ScrollText,
@@ -32,7 +31,7 @@ import {
   X,
 } from 'lucide-react';
 import { useVault } from '../../context/VaultContext';
-import { addDays, takaInWords } from '../../core/money';
+import { takaInWords } from '../../core/money';
 import { accountBalance } from '../../core/ledger/ledgerEngine';
 import { JamdaniWatermarkSvg } from '../svg/VaultVisuals';
 import type {
@@ -122,15 +121,6 @@ function vatOn(value: bigint, bps: number): bigint {
   if (bps <= 0) return 0n;
   const scaled = value * BigInt(bps);
   return (scaled + 5000n) / 10000n;
-}
-
-function periodEndOf(period: string): string {
-  const parts = period.split('-');
-  const year = Number(parts[0]);
-  const month = Number(parts[1]);
-  if (!Number.isFinite(year) || !Number.isFinite(month)) return new Date().toISOString().slice(0, 10);
-  const end = new Date(Date.UTC(year, month, 0));
-  return end.toISOString().slice(0, 10);
 }
 
 function timeOf(iso: string): string {
@@ -416,13 +406,11 @@ function PrintSheet({ children }: { children: ReactNode }) {
 function NationalHeader({ sub }: { sub: string }) {
   return (
     <div className="border-b-[3px] border-double border-black pb-2 text-center">
-      <p className="font-bangla text-[10pt] font-bold leading-tight">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</p>
-      <p className="text-[8pt] font-semibold leading-tight">Government of the People&apos;s Republic of Bangladesh</p>
-      <div className="mt-0.5 flex items-center justify-center gap-1.5">
-        <Landmark size={11} />
-        <p className="font-bangla text-[8.5pt] font-bold leading-tight">জাতীয় রাজস্ব বোর্ড, ঢাকা</p>
-      </div>
-      <p className="text-[6.5pt] uppercase tracking-[0.22em] leading-tight">National Board of Revenue, Dhaka</p>
+      <p className="font-bangla text-[10pt] font-bold leading-tight">অভ্যন্তরীণ হিসাবরক্ষণ নথি</p>
+      <p className="text-[8pt] font-semibold leading-tight">Internal accounting document</p>
+      <p className="text-[6.5pt] uppercase tracking-[0.22em] leading-tight">
+        Not a government form · Not a filing acknowledgement
+      </p>
       <p className="mt-1 border-t border-black/30 pt-1 font-bangla text-[7pt] uppercase tracking-[0.1em] text-black/70">
         {sub}
       </p>
@@ -438,7 +426,7 @@ function FormCodeBadge({ bn, en }: { bn: string; en: string }) {
       </span>
       <div>
         <p className="text-[8pt] font-bold uppercase tracking-[0.12em]"> {en}</p>
-        <p className="text-[6.5pt] text-black/55">National Board of Revenue · prescribed form</p>
+        <p className="text-[6.5pt] text-black/55">Internal format · not a prescribed government form</p>
       </div>
     </div>
   );
@@ -944,8 +932,8 @@ function Mushak66Sheet({
           <p className="font-bangla text-[8pt] font-semibold leading-snug">{takaInWords(vdsPoisha, 'bn-BD')}</p>
           <p className="mt-1.5 text-[6.5pt] leading-snug text-black/60">
             {label(
-              'I certify that VAT shown above has been withheld from the supplier and deposited to the government treasury, and that this certificate has been issued to the supplier for their input credit claim.',
-              'আমি প্রত্যয়ন করছি যে উপরোক্ত ভ্যাট সরবরাহকারীর নিকট হতে উৎসে কর্তন করে সরকারি কোষাগারে জমা দেওয়া হয়েছে এবং ইনপুট রিবেট দাবির জন্য সরবরাহকারীকে এই সনদ ইস্যু করা হয়েছে।',
+              'This draft records the withholding and the linked treasury evidence held in the system. It is not a final statutory certificate, a government receipt or a filing acknowledgement. A final certificate requires the approved statutory format and an authorised signatory.',
+              'এই খসড়াটি সিস্টেমে সংরক্ষিত কর্তন ও সংশ্লিষ্ট কোষাগার প্রমাণ লিপিবদ্ধ করে। এটি চূড়ান্ত সংবিধিবদ্ধ সনদ, সরকারি রসিদ বা দাখিল স্বীকৃতি নয়। চূড়ান্ত সনদের জন্য অনুমোদিত সংবিধিবদ্ধ ফরম্যাট ও অনুমোদিত স্বাক্ষরকারী প্রয়োজন।',
             )}
           </p>
         </div>
@@ -986,7 +974,7 @@ function Mushak91Sheets({
 }) {
   const { money, label, isBn, tenant, binUnit } = ctx;
 
-  const inPeriod = docs.filter((entry) => entry.doc_date.startsWith(period));
+  const inPeriod = docs.filter((entry) => entry.doc_date.startsWith(period) && entry.status === 'POSTED');
   const sales = inPeriod.filter(
     (entry) => entry.doc_type === 'SALES_INVOICE' || entry.doc_type === 'CREDIT_NOTE',
   );
@@ -1024,13 +1012,19 @@ function Mushak91Sheets({
   );
   const vdsTotal = sumPoisha(purchases, (entry) => entry.vds_poisha);
   const tdsTotal = sumPoisha(purchases, (entry) => entry.tds_poisha);
+  const creditNoteVat = sales
+    .filter((entry) => entry.doc_type === 'CREDIT_NOTE')
+    .reduce((total, entry) => total - entry.vat_poisha, 0n);
+  const reverseChargeVat = sumPoisha(
+    purchases.filter((entry) => entry.reverse_charge),
+    (entry) => entry.vat_poisha,
+  );
 
   const receivedCertificates = certificates.filter(
     (certificate) => certificate.direction === 'RECEIVED' && (certificate.status === 'RECEIVED' || certificate.status === 'VERIFIED'),
   );
   const decreasing = receivedCertificates.reduce((total, certificate) => total + certificate.vds_poisha, 0n);
-  const increasing = 0n;
-  const netPayable = outputVat - claimable + increasing - decreasing;
+  const netPayable = outputVat - claimable - decreasing;
   const closingBalance = netPayable < 0n ? -netPayable : 0n;
 
   // GL proof comes from the immutable journals for this period, not from a display KPI. The
@@ -1046,8 +1040,7 @@ function Mushak91Sheets({
   const glInput = accountBalance(periodJournals, '1140');
   const glDifference = (outputVat - glOutput) - (claimable - glInput);
 
-  const periodEnd = periodEndOf(period);
-  const dueDate = addDays(periodEnd, 15);
+  const dueDate = label('Not verified', 'যাচাইকৃত নয়');
   const periodRecord = tenant.fiscal_year_label;
 
   const parts: Mushak91Part[] = [
@@ -1096,10 +1089,7 @@ function Mushak91Sheets({
         {
           label_en: 'Imported services (reverse charge)',
           label_bn: 'আমদানি সেবা (রিভার্স চার্জ)',
-          amount_poisha: sumPoisha(
-            purchases.filter((entry) => entry.reverse_charge),
-            (entry) => entry.vat_poisha,
-          ),
+          amount_poisha: reverseChargeVat,
         },
       ],
     },
@@ -1109,15 +1099,19 @@ function Mushak91Sheets({
       title_bn: 'উৎসে কর্তিত মূসক',
       total_poisha: vdsTotal,
       rows: [
-        { label_en: 'VDS withheld from suppliers', label_bn: 'সরবরাহকারীদের নিকট হতে কর্তিত ভিডিএস', amount_poisha: vdsTotal },
-        { label_en: 'Deposited with treasury challan', label_bn: 'ট্রেজারি চালানে জমাকৃত', amount_poisha: vdsTotal },
+        {
+          label_en: 'VDS withheld from suppliers (deposit evidence is in the treasury challan register)',
+          label_bn: 'সরবরাহকারীদের নিকট হতে কর্তিত ভিডিএস (জমার প্রমাণ কোষাগার চালান রেজিস্টারে)',
+          amount_poisha: vdsTotal,
+          note: label('Not a deposit acknowledgement', 'জমার স্বীকৃতি নয়'),
+        },
       ],
     },
     {
       part: 6,
       title_en: 'Part 6 — Decreasing adjustment (customer Mushak 6.6 received)',
       title_bn: 'অংশ ৬ — হ্রাস সমন্বয় (প্রাপ্ত গ্রাহক মূসক ৬.৬)',
-      total_poisha: decreasing,
+      total_poisha: decreasing + creditNoteVat,
       rows: [
         {
           label_en: `Customer Mushak 6.6 certificates received (${receivedCertificates.length})`,
@@ -1125,7 +1119,12 @@ function Mushak91Sheets({
           amount_poisha: decreasing,
           note: receivedCertificates.length ? undefined : label('No certificates received yet', 'এখনো কোনো সনদ প্রাপ্ত হয়নি'),
         },
-        { label_en: 'Credit notes & bad debt relief', label_bn: 'ক্রেডিট নোট ও কু-ঋণ রিলিফ', amount_poisha: 0n },
+        {
+          label_en: 'Credit notes included as negative output lines',
+          label_bn: 'ঋণাত্মক আউটপুট লাইন হিসেবে অন্তর্ভুক্ত ক্রেডিট নোট',
+          amount_poisha: creditNoteVat,
+          note: label('No separate bad-debt relief is claimed', 'আলাদা কু-ঋণ রিলিফ দাবি করা হয় না'),
+        },
       ],
     },
     {
@@ -1135,12 +1134,11 @@ function Mushak91Sheets({
       total_poisha: disallowed,
       rows: [
         {
-          label_en: 'Cash payment above the s.46 threshold',
-          label_bn: 'ধারা ৪৬ সীমার উপরে নগদ প্রদান',
+          label_en: 'Input VAT disallowed by the purchase decision',
+          label_bn: 'ক্রয় সিদ্ধান্ত দ্বারা বাতিল ইনপুট ভ্যাট',
           amount_poisha: disallowed,
           note: disallowed > 0n ? label('Excluded from Part 8', 'অংশ ৮ থেকে বাদ') : undefined,
         },
-        { label_en: 'Debit notes & late purchases', label_bn: 'ডেবিট নোট ও বিলম্বিত ক্রয়', amount_poisha: increasing },
       ],
     },
     {
@@ -1150,7 +1148,6 @@ function Mushak91Sheets({
       total_poisha: claimable,
       rows: [
         { label_en: 'Input VAT on eligible local purchases', label_bn: 'যোগ্য স্থানীয় ক্রয়ের ইনপুট ভ্যাট', amount_poisha: claimable },
-        { label_en: 'Imported services under reverse charge', label_bn: 'রিভার্স চার্জে আমদানি সেবা', amount_poisha: 0n },
       ],
     },
     {
@@ -1175,16 +1172,15 @@ function Mushak91Sheets({
     },
     {
       part: 11,
-      title_en: 'TDS & deposit reconciliation',
-      title_bn: 'টিডিএস ও জমা মিলকরণ',
+      title_en: 'TDS withheld (internal register)',
+      title_bn: 'কর্তিত টিডিএস (অভ্যন্তরীণ রেজিস্টার)',
       total_poisha: tdsTotal,
       rows: [
-        { label_en: 'TDS withheld under s.89–109', label_bn: 'ধারা ৮৯–১০৯ অনুযায়ী কর্তিত টিডিএস', amount_poisha: tdsTotal },
         {
-          label_en: 'VAT deposited by challan',
-          label_bn: 'চালানে জমাকৃত মূসক',
-          amount_poisha: netPayable > 0n ? netPayable : 0n,
-          note: netPayable > 0n ? undefined : label('Refund / credit carried forward', 'ফেরত / ক্রেডিট বহন'),
+          label_en: 'TDS withheld from suppliers (deposit evidence is in the treasury challan register)',
+          label_bn: 'সরবরাহকারীদের নিকট হতে কর্তিত টিডিএস (জমার প্রমাণ কোষাগার চালান রেজিস্টারে)',
+          amount_poisha: tdsTotal,
+          note: label('Not a deposit acknowledgement', 'জমার স্বীকৃতি নয়'),
         },
       ],
     },
@@ -1208,20 +1204,20 @@ function Mushak91Sheets({
 
   return (
     <PrintSheet>
-      <NationalHeader sub="মাসিক মূসক রিটার্ন · Monthly VAT Return under the VAT & SD Act, 2012" />
+      <NationalHeader sub="অভ্যন্তরীণ ভ্যাট ওয়ার্কবুক · Internal VAT workbook — draft, not filed" />
 
       <div className="mt-3 flex items-start justify-between gap-4">
         <div>
-          <FormCodeBadge bn="৯.১" en="Mushak 9.1 — Monthly VAT Return" />
-          <p className="mt-1.5 font-bangla text-[10pt] font-bold leading-tight">মাসিক মূসক রিটার্ন</p>
-          <p className="text-[7pt] text-black/60">
-            {label('Ordinance No. 38 of 2026 filing window · 15 days after period end', 'অধ্যাদেশ নং ৩৮/২০২৬ ফাইলিং সময়সীমা · সময়কাল শেষের ১৫ দিন পর')}
+          <FormCodeBadge bn="খসড়া" en="Internal VAT workbook — draft" />
+          <p className="mt-1.5 font-bangla text-[10pt] font-bold leading-tight">অভ্যন্তরীণ ভ্যাট ওয়ার্কবুক</p>
+          <p className="text-[7pt] font-bold text-rose-800">
+            {label('DRAFT — NOT FILED. Statutory template and line labels await professional review.', 'খসড়া — দাখিল হয়নি। সংবিধিবদ্ধ টেমপ্লেট ও লাইন লেবেল পেশাদার পর্যালোচনার অপেক্ষায়।')}
           </p>
         </div>
         <div className="border border-black px-2.5 py-1.5 text-right">
-          <p className="text-[6.5pt] uppercase tracking-[0.12em] text-black/60">Return period</p>
+          <p className="text-[6.5pt] uppercase tracking-[0.12em] text-black/60">Report period</p>
           <p className="font-mono text-[10pt] font-bold leading-tight">{period}</p>
-          <p className="font-mono text-[7pt] text-black/60">{label('due', 'জমা')} {dueDate}</p>
+          <p className="font-mono text-[7pt] text-black/60">{label('Filing deadline', 'দাখিলের সময়সীমা')}: {dueDate}</p>
         </div>
       </div>
 
@@ -1387,10 +1383,9 @@ function Mushak91Sheets({
 
       <div className="mt-2 flex items-end justify-between border-t border-black/30 pt-1 text-[6.5pt] text-black/50">
         <span>
-          {label('Filing window', 'ফাইলিং সময়সীমা')} {dueDate} ·{' '}
-          {label('15 days after period end (Ordinance 38/2026)', 'সময়কাল শেষের ১৫ দিন পর (অধ্যাদেশ ৩৮/২০২৬)')}
+          {label('Internal draft — no filing acknowledgement or government receipt', 'অভ্যন্তরীণ খসড়া — কোনো দাখিল স্বীকৃতি বা সরকারি রসিদ নেই')}
         </span>
-        <span className="font-mono">{isBn ? 'মূসক ৯.১' : 'Mushak 9.1'}</span>
+        <span className="font-mono">{isBn ? 'খসড়া · দাখিল হয়নি' : 'DRAFT · NOT FILED'}</span>
       </div>
     </PrintSheet>
   );
@@ -1409,18 +1404,18 @@ function IfrsSheets({ ctx, statements }: { ctx: SheetContext; statements: Financ
 
   return (
     <>
-      {/* Cover + audit opinion */}
+      {/* Management-accounts cover. No auditor's report, opinion or signature is generated. */}
       <PrintSheet>
-        <NationalHeader sub="FRC Bangladesh · Financial Reporting Act, 2015" />
+        <NationalHeader sub="Management accounts · unaudited" />
         <div className="mt-10 text-center">
           <p className="text-[7pt] uppercase tracking-[0.24em] text-black/50">
-            {label('Audited financial statements', 'নিরীক্ষিত আর্থিক বিবরণী')}
+            {label('Management accounts — unaudited', 'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়')}
           </p>
           <h1 className="mt-2 text-[17pt] font-bold leading-tight">{tenant.name_en}</h1>
           <p className="font-bangla text-[11pt]">{tenant.name_bn}</p>
           <p className="mt-1 text-[8pt] text-black/60">{tenant.address_en}</p>
           <p className="mt-4 inline-block border border-black px-4 py-1.5 font-mono text-[8pt]">
-            {label('For the year ended', 'সমাপ্ত বছরের জন্য')} {fs.period.end}
+            {label('For the period ended', 'সমাপ্ত সময়কালের জন্য')} {fs.period.end}
           </p>
           <p className="mt-3 text-[8pt]">
             {label('Reporting framework', 'প্রতিবেদন কাঠামো')}:{' '}
@@ -1434,43 +1429,26 @@ function IfrsSheets({ ctx, statements }: { ctx: SheetContext; statements: Financ
 
         <div className="mt-10 border-t border-black/40 pt-3">
           <p className="text-[9pt] font-bold">
-            {label("Independent Auditor's Report", 'স্বাধীন নিরীক্ষকের প্রতিবেদন')}
+            {label('Management representation', 'ব্যবস্থাপনা বিবৃতি')}
           </p>
           <p className="mt-1 text-[7.5pt] leading-relaxed">
-            <span className="font-semibold">{label('Opinion.', 'মতামত।')}</span>{' '}
             {label(
-              `In our opinion, the accompanying financial statements give a true and fair view of the financial position of ${tenant.name_en} as at ${fs.period.end}, and of its financial performance and its cash flows for the year then ended in accordance with International Financial Reporting Standards as adopted by the Financial Reporting Council of Bangladesh.`,
-              `আমাদের মতামতে, সংযুক্ত আর্থিক বিবরণীসমূহ ${fs.period.end} তারিখে প্রতিষ্ঠানের আর্থিক অবস্থান এবং ঐ বছর সমাপ্তকালের আর্থিক ফলাফল ও নগদ প্রবাহের যথাযথ ও ন্যায্য চিত্র উপস্থাপন করে, যা ফাইন্যান্সিয়াল রিপোর্টিং কাউন্সিল বাংলাদেশ কর্তৃক গৃহীত আন্তর্জাতিক আর্থিক প্রতিবেদন মান অনুসারে প্রস্তুত।`,
+              `These management accounts have been prepared from the posted journals and posted documents of ${tenant.name_en} for the period ended ${fs.period.end}. They are unaudited, have not been reviewed by an independent auditor, and no audit opinion is expressed or implied. They are not a statutory filing, a government receipt or a filing acknowledgement.`,
+              `এই ব্যবস্থাপনা হিসাব ${fs.period.end} তারিখে সমাপ্ত সময়কালের জন্য প্রতিষ্ঠানের পোস্টকৃত জার্নাল ও ডকুমেন্ট থেকে প্রস্তুত। এগুলো নিরীক্ষিত নয়, স্বাধীন নিরীক্ষক কর্তৃক পর্যালোচিত নয়, এবং কোনো নিরীক্ষা মতামত প্রকাশ বা ইঙ্গিত করা হয় না। এগুলো সংবিধিবদ্ধ দাখিল, সরকারি রসিদ বা দাখিল স্বীকৃতি নয়।`,
             )}
           </p>
-          <p className="mt-1.5 text-[7.5pt] leading-relaxed">
-            <span className="font-semibold">{label('Basis for opinion.', 'মতামতের ভিত্তি।')}</span>{' '}
+          <p className="mt-2 text-[7.5pt] leading-relaxed">
             {label(
-              'We conducted our audit in accordance with International Standards on Auditing. We are independent of the entity in accordance with the Code of Ethics for Professional Accountants issued by ICAB, and we have fulfilled our other ethical responsibilities.',
-              'আমরা আন্তর্জাতিক নিরীক্ষা মান অনুযায়ী নিরীক্ষা পরিচালনা করেছি এবং আইসিএবি কর্তৃক জারিকৃত নৈতিক আচরণবিধি অনুযায়ী প্রতিষ্ঠান থেকে স্বাধীন।',
+              'Report definitions and statutory line labels remain subject to the company accountant/tax counsel review. Reversals remain visible in the general ledger and are excluded from active VAT registers as documented.',
+              'রিপোর্টের সংজ্ঞা ও সংবিধিবদ্ধ লাইন লেবেল কোম্পানির হিসাবরক্ষক/কর পরামর্শকের পর্যালোচনার অধীন। রিভার্সাল সাধারণ খাতায় দৃশ্যমান থাকে এবং নথিভুক্ত নিয়ম অনুযায়ী সক্রিয় ভ্যাট রেজিস্টার থেকে বাদ দেওয়া হয়।',
             )}
           </p>
-          <p className="mt-1.5 text-[7.5pt] leading-relaxed">
-            <span className="font-semibold">{label('Key audit matters.', 'মূল নিরীক্ষা বিষয়।')}</span>{' '}
-            {label(
-              'Revenue cut-off around the VAT tax-point dates, the completeness of output tax against Mushak 9.1, and the recoverability of trade receivables under the expected credit loss matrix.',
-              'ভ্যাট কর-পয়েন্ট তারিখের আশপাশে রাজস্ব কাট-অফ, মুশক ৯.১-এর বিপরীতে আউটপুট করের সম্পূর্ণতা এবং প্রত্যাশিত ঋণক্ষতি ম্যাট্রিক্স অনুযায়ী প্রাপ্য হিসাবের আদায়যোগ্যতা।',
-            )}
-          </p>
-          <div className="mt-5 flex items-end justify-between">
-            <div className="text-[7.5pt]">
-              <div className="h-9 w-[55mm] border-b border-black" />
-              <p className="mt-1 font-semibold">Rafiq &amp; Associates</p>
-              <p className="text-black/60">{label('Chartered Accountants, Dhaka', 'চার্টার্ড অ্যাকাউন্ট্যান্টস, ঢাকা')}</p>
-            </div>
-            <p className="font-mono text-[7pt] text-black/60">{ctx.today}</p>
-          </div>
         </div>
 
         <div className="mt-4 border-t border-black/20 pt-1 text-[6pt] text-black/40">
           {label(
-            'Demonstration pack generated from the live ledger — not a signed statutory filing.',
-            'লাইভ লেজার থেকে তৈরি ডেমো প্যাক — স্বাক্ষরিত সংবিধিবদ্ধ দাখিল নয়।',
+            'Generated from the posted ledger. No independent auditor’s report, audit opinion, government receipt or filing acknowledgement is included.',
+            'পোস্টকৃত খাতা থেকে তৈরি। কোনো স্বাধীন নিরীক্ষকের প্রতিবেদন, নিরীক্ষা মতামত, সরকারি রসিদ বা দাখিল স্বীকৃতি অন্তর্ভুক্ত নেই।',
           )}
         </div>
       </PrintSheet>
@@ -1555,7 +1533,7 @@ function IfrsSheets({ ctx, statements }: { ctx: SheetContext; statements: Financ
         <StatementHeading
           title="Statement of Profit or Loss"
           titleBn="লাভ-ক্ষতির বিবরণী"
-          line={`IFRS 18 · ${label('for the year ended', 'সমাপ্ত বছরের জন্য')} ${fs.period.end}`}
+          line={`IFRS 18 · ${label('for the period ended', 'সমাপ্ত সময়কালের জন্য')} ${fs.period.end}`}
           ctx={ctx}
         />
         <div className="mt-2 grid grid-cols-[1fr_28mm_28mm] items-baseline gap-x-2 border-b border-black pb-1 text-[7pt] font-semibold">
@@ -1658,7 +1636,7 @@ function IfrsSheets({ ctx, statements }: { ctx: SheetContext; statements: Financ
         <StatementHeading
           title="Statement of Changes in Equity"
           titleBn="ইক্যুইটির পরিবর্তনের বিবরণী"
-          line={`IAS 1 · ${label('for the year ended', 'সমাপ্ত বছরের জন্য')} ${fs.period.end}`}
+          line={`IAS 1 · ${label('for the period ended', 'সমাপ্ত সময়কালের জন্য')} ${fs.period.end}`}
           ctx={ctx}
         />
         <table className="mt-3 w-full border-collapse text-[7pt]">
@@ -1693,7 +1671,7 @@ function IfrsSheets({ ctx, statements }: { ctx: SheetContext; statements: Financ
         <StatementHeading
           title="Statement of Cash Flows"
           titleBn="নগদ প্রবাহের বিবরণী"
-          line={`IAS 7 · ${label('indirect method · for the year ended', 'পরোক্ষ পদ্ধতি · সমাপ্ত বছরের জন্য')} ${fs.period.end}`}
+          line={`IAS 7 · ${label('indirect method · for the period ended', 'পরোক্ষ পদ্ধতি · সমাপ্ত সময়কালের জন্য')} ${fs.period.end}`}
           ctx={ctx}
         />
         <div className="mt-2 grid grid-cols-[1fr_28mm_28mm] items-baseline gap-x-2 border-b border-black pb-1 text-[7pt] font-semibold">
@@ -1761,7 +1739,7 @@ function IfrsSheets({ ctx, statements }: { ctx: SheetContext; statements: Financ
         <StatementHeading
           title="Notes to the Financial Statements"
           titleBn="আর্থিক বিবরণীর নোট"
-          line={`${label('for the year ended', 'সমাপ্ত বছরের জন্য')} ${fs.period.end}`}
+          line={`${label('for the period ended', 'সমাপ্ত সময়কালের জন্য')} ${fs.period.end}`}
           ctx={ctx}
         />
         <div className="mt-3 space-y-2">

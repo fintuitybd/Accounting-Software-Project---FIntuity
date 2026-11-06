@@ -5,21 +5,33 @@
 // rail (persisted by the shell); on mobile it becomes a full-height drawer. Every row keeps its
 // keyboard jump, bilingual label and live queue badge.
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  BookOpen,
+  Boxes,
   ChevronDown,
+  ClipboardCheck,
+  Database,
+  FileBarChart,
+  Landmark,
   PanelLeftClose,
   PanelLeftOpen,
+  Receipt,
   Search,
+  Settings2,
+  ShoppingCart,
   ShieldCheck,
   Sparkles,
+  UserCog,
   X,
 } from 'lucide-react';
 
 import { localized } from '../../core/i18n';
 import { RULE_PACK_VERSION } from '../../core/tax-engine/rulePack';
 import { useVault } from '../../context/VaultContext';
+import { useAuth } from '../../auth/AuthContext';
 import { BrandMark } from '../brand/BrandMark';
 import {
   WORKSPACE_GROUPS,
@@ -83,9 +95,11 @@ export function Sidebar({
   onNavigate,
 }: SidebarProps) {
   const vault = useVault();
+  const auth = useAuth();
+  const location = useLocation();
   const { tenant, locale, motionTier } = vault;
   const isBn = locale === 'bn-BD';
-  const L = (en: string, bn: string): string => localized(locale, en, bn);
+  const L = useCallback((en: string, bn: string): string => localized(locale, en, bn), [locale]);
   const [collapsed, setCollapsed] = useState<Partial<Record<WorkspaceGroupKey, boolean>>>(readCollapsed);
 
   const badges = useMemo<Partial<Record<WorkspaceKey, SidebarBadge>>>(() => {
@@ -149,16 +163,17 @@ export function Sidebar({
         rail ? 'lg:w-[84px]' : 'lg:w-[288px]'
       } ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
     >
+      <div className="h-1 w-full shrink-0 ql-brand-gradient" aria-hidden="true" />
       {/* A single soft aurora wash, not a pattern — keeps the rail calm. */}
       <div
         aria-hidden
         className="pointer-events-none absolute -left-24 top-[-120px] h-[320px] w-[320px] rounded-full opacity-60 blur-3xl dark:opacity-40"
-        style={{ background: 'radial-gradient(circle, rgba(99,102,241,.16), transparent 68%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(0,176,160,.18), transparent 68%)' }}
       />
       <div
         aria-hidden
         className="pointer-events-none absolute -right-28 bottom-[-140px] h-[300px] w-[300px] rounded-full opacity-50 blur-3xl dark:opacity-30"
-        style={{ background: 'radial-gradient(circle, rgba(168,85,247,.14), transparent 68%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(0,45,96,.16), transparent 68%)' }}
       />
 
       {/* Identity ------------------------------------------------------------------------- */}
@@ -169,15 +184,15 @@ export function Sidebar({
       >
         <BrandMark size={40} />
         <div className={`min-w-0 flex-1 ${rail ? 'lg:hidden' : ''}`}>
-          <p className="text-[15.5px] font-semibold leading-tight tracking-[-0.03em] text-ink-900">
-            LedgerVault
+          <p className="truncate text-[14px] font-semibold leading-tight tracking-[-0.03em] text-ink-900">
+            Fintuity Accounting Suite
           </p>
-          <p className="mt-0.5 text-[8.5px] font-bold uppercase tracking-[0.2em] text-ink-400">
+          <p className="mt-0.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-400">
             {L('Finance & tax OS', 'ফিন্যান্স ও ট্যাক্স ওএস')}
           </p>
         </div>
         <span
-          className={`rounded-full border border-line bg-surface-2/80 px-1.5 py-0.5 font-mono text-[8px] font-semibold text-ink-400 ${
+          className={`rounded-full border border-line bg-surface-2/80 px-1.5 py-0.5 font-mono text-[12px] font-semibold text-ink-400 ${
             rail ? 'lg:hidden' : ''
           }`}
         >
@@ -238,10 +253,10 @@ export function Sidebar({
         </div>
         <div className="relative mt-2.5 flex items-center gap-1.5">
           <span className="truncate rounded-md bg-white/[0.06] px-1.5 py-1 font-mono text-[7.5px] uppercase tracking-[0.06em] text-white/55 ring-1 ring-inset ring-white/[0.06]">
-            TIN {tenant.tin_number}
+            TIN {tenant.tin_number || '—'}
           </span>
           <span className="rounded-md bg-emerald-400/[0.12] px-1.5 py-1 font-mono text-[7.5px] font-semibold uppercase tracking-[0.06em] text-emerald-300 ring-1 ring-inset ring-emerald-400/20">
-            VAT
+            {auth.demoMode ? 'DEMO' : 'SERVER'}
           </span>
         </div>
       </div>
@@ -277,7 +292,244 @@ export function Sidebar({
 
       {/* Navigation ----------------------------------------------------------------------- */}
       <nav className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 pb-4 no-scrollbar">
-        {WORKSPACE_GROUPS.map((group, groupIndex) => {
+        {!auth.demoMode ? (
+          <section className="mb-2" aria-label={L('Server workspace', 'সার্ভার ওয়ার্কস্পেস')}>
+            <p className="px-2 pb-1.5 text-[12px] font-bold uppercase tracking-[0.18em] text-ink-400">
+              {L('Accounting', 'হিসাবরক্ষণ')}
+            </p>
+            <div className="space-y-0.5">
+              <Link
+                to="/app/ledger"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/ledger') ? 'page' : undefined}
+                title={L('General ledger', 'সাধারণ লেজার')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/ledger')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <BookOpen size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('General ledger', 'সাধারণ লেজার')}</span>
+              </Link>
+              <Link
+                to="/app/reports"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/reports') ? 'page' : undefined}
+                title={L('Reports & statements', 'রিপোর্ট ও বিবরণী')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/reports')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <FileBarChart size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Reports & statements', 'রিপোর্ট ও বিবরণী')}</span>
+              </Link>
+              {auth.hasCompanyPermission('VIEW_REPORTS') ? (
+                <Link
+                  to="/app/close"
+                  onClick={onClose}
+                  aria-current={location.pathname.startsWith('/app/close') ? 'page' : undefined}
+                  title={L('Close & controls', 'সমাপনী ও নিয়ন্ত্রণ')}
+                  className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                    rail ? 'lg:justify-center lg:px-0' : ''
+                  } ${
+                    location.pathname.startsWith('/app/close')
+                      ? 'bg-ink-900 text-white dark:bg-white/10'
+                      : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                    <ClipboardCheck size={14} />
+                  </span>
+                  <span className={rail ? 'lg:hidden' : ''}>{L('Close & controls', 'সমাপনী ও নিয়ন্ত্রণ')}</span>
+                </Link>
+              ) : null}
+              {auth.hasCompanyPermission('VIEW_REPORTS') ? (
+                <Link
+                  to="/app/audit"
+                  onClick={onClose}
+                  aria-current={location.pathname.startsWith('/app/audit') ? 'page' : undefined}
+                  title={L('Audit log', 'অডিট লগ')}
+                  className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                    rail ? 'lg:justify-center lg:px-0' : ''
+                  } ${
+                    location.pathname.startsWith('/app/audit')
+                      ? 'bg-ink-900 text-white dark:bg-white/10'
+                      : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                    <ShieldCheck size={14} />
+                  </span>
+                  <span className={rail ? 'lg:hidden' : ''}>{L('Audit log', 'অডিট লগ')}</span>
+                </Link>
+              ) : null}
+              <Link
+                to="/app/sales"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/sales') ? 'page' : undefined}
+                title={L('Sales & receivables', 'বিক্রয় ও প্রাপ্য')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/sales')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <Receipt size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Sales & receivables', 'বিক্রয় ও প্রাপ্য')}</span>
+              </Link>
+              <Link
+                to="/app/purchases"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/purchases') ? 'page' : undefined}
+                title={L('Purchases & payables', 'ক্রয় ও প্রদেয়')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/purchases')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <ShoppingCart size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Purchases & payables', 'ক্রয় ও প্রদেয়')}</span>
+              </Link>
+              <Link
+                to="/app/treasury"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/treasury') ? 'page' : undefined}
+                title={L('Treasury & certificates', 'ট্রেজারি ও প্রত্যয়নপত্র')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/treasury')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <Landmark size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Treasury & certificates', 'ট্রেজারি ও প্রত্যয়নপত্র')}</span>
+              </Link>
+              <Link
+                to="/app/banking"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/banking') ? 'page' : undefined}
+                title={L('Banking & reconciliation', 'ব্যাংকিং ও মিলকরণ')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/banking')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <Landmark size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Banking & reconciliation', 'ব্যাংকিং ও মিলকরণ')}</span>
+              </Link>
+              <Link
+                to="/app/masters"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/masters') ? 'page' : undefined}
+                title={L('Master data', 'মাস্টার ডেটা')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/masters')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <Database size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Master data', 'মাস্টার ডেটা')}</span>
+              </Link>
+              <Link
+                to="/app/inventory"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/inventory') ? 'page' : undefined}
+                title={L('Inventory', 'ইনভেন্টরি')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/inventory')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <Boxes size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Inventory', 'ইনভেন্টরি')}</span>
+              </Link>
+              <Link
+                to="/app/setup"
+                onClick={onClose}
+                aria-current={location.pathname.startsWith('/app/setup') ? 'page' : undefined}
+                title={L('Company setup', 'কোম্পানি সেটআপ')}
+                className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                  rail ? 'lg:justify-center lg:px-0' : ''
+                } ${
+                  location.pathname.startsWith('/app/setup')
+                    ? 'bg-ink-900 text-white dark:bg-white/10'
+                    : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                  <Settings2 size={14} />
+                </span>
+                <span className={rail ? 'lg:hidden' : ''}>{L('Company setup', 'কোম্পানি সেটআপ')}</span>
+              </Link>
+              {auth.hasOrganisationPermission('MANAGE_USERS_AND_ORG') ? (
+                <Link
+                  to="/app/team"
+                  onClick={onClose}
+                  aria-current={location.pathname.startsWith('/app/team') ? 'page' : undefined}
+                  title={L('Team & access', 'টিম ও প্রবেশাধিকার')}
+                  className={`flex items-center gap-2.5 rounded-xl px-2 py-[7px] text-[12px] font-semibold transition ${
+                    rail ? 'lg:justify-center lg:px-0' : ''
+                  } ${
+                    location.pathname.startsWith('/app/team')
+                      ? 'bg-ink-900 text-white dark:bg-white/10'
+                      : 'text-ink-700 hover:bg-ink-100/60 dark:hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-ink-100/70 text-ink-500 dark:bg-white/[0.04]">
+                    <UserCog size={14} />
+                  </span>
+                  <span className={rail ? 'lg:hidden' : ''}>{L('Team & access', 'টিম ও প্রবেশাধিকার')}</span>
+                </Link>
+              ) : null}
+            </div>
+            <p className={`mt-3 px-2 text-[12px] leading-relaxed text-ink-400 ${rail ? 'lg:hidden' : ''}`}>
+              {L(
+                'Banking, payroll, VAT returns, close and the remaining reports stay in the clearly labelled demo until their server phases are complete.',
+                'ব্যাংকিং, পে-রোল, ভ্যাট রিটার্ন, ক্লোজ ও বাকি রিপোর্ট তাদের সার্ভার ধাপ শেষ না হওয়া পর্যন্ত স্পষ্টভাবে চিহ্নিত ডেমোতে থাকবে।',
+              )}
+            </p>
+          </section>
+        ) : (
+          WORKSPACE_GROUPS.map((group, groupIndex) => {
           const items = workspacesInGroup(group.key);
           if (items.length === 0) return null;
           const isCollapsed = !rail && Boolean(collapsed[group.key]);
@@ -406,7 +658,8 @@ export function Sidebar({
               </AnimatePresence>
             </section>
           );
-        })}
+          })
+        )}
       </nav>
 
       {/* Footer -------------------------------------------------------------------------- */}
@@ -415,28 +668,34 @@ export function Sidebar({
           <span className="flex items-center gap-2 text-[9.5px] font-semibold text-ink-600">
             <span
               className={`inline-flex h-1.5 w-1.5 rounded-full ${
-                vault.auditChain.valid
-                  ? 'bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]'
-                  : 'bg-rose-500 shadow-[0_0_0_3px_rgba(244,63,94,.12)]'
+                auth.demoMode
+                  ? vault.auditChain.valid
+                    ? 'bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]'
+                    : 'bg-rose-500 shadow-[0_0_0_3px_rgba(244,63,94,.12)]'
+                  : 'bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]'
               }`}
             />
-            {vault.auditChain.valid
-              ? L('Audit chain intact', 'অডিট চেইন অটুট')
-              : L('Audit chain broken', 'অডিট চেইন ভাঙা')}
+            {auth.demoMode
+              ? vault.auditChain.valid
+                ? L('Audit chain intact', 'অডিট চেইন অটুট')
+                : L('Audit chain broken', 'অডিট চেইন ভাঙা')
+              : L('Server identity active', 'সার্ভার পরিচয় সক্রিয়')}
           </span>
           <span className="font-mono text-[8.5px] tabular-nums text-ink-400">
-            {vault.auditChain.checkedCount} {L('sealed', 'সিল')}
+            {auth.demoMode ? `${vault.auditChain.checkedCount} ${L('sealed', 'সিল')}` : L('Phase 9', 'ফেজ ৯')}
           </span>
         </div>
         <div className="mt-2 flex items-center justify-between gap-2">
           <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-ink-400">
-            Rule pack {RULE_PACK_VERSION}
+            {auth.demoMode ? `Rule pack ${RULE_PACK_VERSION}` : L('Server session', 'সার্ভার সেশন')}
           </span>
           <span className="inline-flex items-center gap-1 rounded-full border border-line/80 bg-surface-2/70 px-1.5 py-0.5 text-[8px] font-semibold text-ink-500">
             <Sparkles size={8} className="text-saffron" />
-            {pendingChallans > 0
-              ? L(`${pendingChallans} treasury`, `${pendingChallans} কোষাগার`)
-              : L('All clear', 'সব পরিষ্কার')}
+            {auth.demoMode
+              ? pendingChallans > 0
+                ? L(`${pendingChallans} treasury`, `${pendingChallans} কোষাগার`)
+                : L('All clear', 'সব পরিষ্কার')
+              : L('CSRF protected', 'সিএসআরএফ সুরক্ষিত')}
           </span>
         </div>
       </div>
@@ -445,17 +704,15 @@ export function Sidebar({
       <div className={`hidden border-t border-line/70 py-3 ${rail ? 'lg:flex lg:flex-col lg:items-center lg:gap-2' : ''}`}>
         <span
           title={
-            vault.auditChain.valid
-              ? L('Audit chain intact', 'অডিট চেইন অটুট')
-              : L('Audit chain broken', 'অডিট চেইন ভাঙা')
+            auth.demoMode
+              ? vault.auditChain.valid
+                ? L('Audit chain intact', 'অডিট চেইন অটুট')
+                : L('Audit chain broken', 'অডিট চেইন ভাঙা')
+              : L('Server identity active', 'সার্ভার পরিচয় সক্রিয়')
           }
-          className={`inline-flex h-2 w-2 rounded-full ${
-            vault.auditChain.valid
-              ? 'bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]'
-              : 'bg-rose-500 shadow-[0_0_0_3px_rgba(244,63,94,.12)]'
-          }`}
+          className={`inline-flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]`}
         />
-        <span className="grid h-7 w-7 place-items-center rounded-lg border border-line bg-surface-2/60 text-ink-400" title={`Rule pack ${RULE_PACK_VERSION}`}>
+        <span className="grid h-7 w-7 place-items-center rounded-lg border border-line bg-surface-2/60 text-ink-400" title={auth.demoMode ? `Rule pack ${RULE_PACK_VERSION}` : L('Server session', 'সার্ভার সেশন')}>
           <ShieldCheck size={12} />
         </span>
       </div>

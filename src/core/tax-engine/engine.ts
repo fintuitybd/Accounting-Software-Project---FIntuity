@@ -32,11 +32,13 @@ import { applyRateBps, bpsToPercent, formatPoisha, isoNow, toLatinDigits } from 
 import type {
   Account,
   DecisionState,
+  DocumentLineTax,
   FilingDecision,
   InputCreditOutcome,
   InventoryItem,
   PaymentMethod,
   RulePack,
+  StockMovement,
   TaxAdvisorSnapshot,
   TaxCategory,
   TaxCondition,
@@ -79,6 +81,51 @@ export interface TaxDecisionDetail extends TaxDecision {
   reverse_charge_vat_poisha: bigint;
   withheld_total_poisha: bigint;
   cash_limit_poisha: bigint;
+}
+
+export interface DocumentTaxLineInput {
+  id?: string;
+  sku?: string;
+  quantity: number;
+  unit_price_poisha: bigint;
+  tax_category: TaxCategory;
+}
+
+export interface DocumentTaxLineDecision extends DocumentLineTax {
+  decision: TaxDecisionDetail;
+}
+
+export interface DocumentTaxSummary {
+  decision: TaxDecisionDetail;
+  lines: DocumentTaxLineDecision[];
+  mixed_tax_categories: boolean;
+}
+
+/**
+ * The document-level facts shared by every line. Base and category are deliberately absent: the
+ * only authoritative source is each line's quantity, price and tax category.
+ */
+export interface DocumentTaxRequest extends Omit<TaxEvaluationInput, 'base_poisha' | 'tax_category'> {
+  lines: readonly DocumentTaxLineInput[];
+  /** Header category retained for display; never used to compute a mixed-rate line. */
+  fallback_tax_category?: TaxCategory;
+}
+
+/** Quantities are carried to two decimal places so money stays in integer poisha. */
+export const QUANTITY_SCALE = 100n;
+
+/** Line taxable value using the same quantity scaling as COGS and stock movements. */
+export function lineTaxBasePoisha(
+  line: Pick<DocumentTaxLineInput, 'quantity' | 'unit_price_poisha'>,
+): bigint {
+  if (!Number.isFinite(line.quantity) || line.quantity < 0) {
+    throw new Error('A line quantity must be a non-negative finite number.');
+  }
+  if (line.unit_price_poisha < 0n) {
+    throw new Error('A line unit price cannot be negative.');
+  }
+  const quantityScaled = BigInt(Math.round(line.quantity * 100));
+  return (quantityScaled * line.unit_price_poisha) / QUANTITY_SCALE;
 }
 
 export type TaxJournalGroupId = 'DOCUMENT' | 'SETTLEMENT';
@@ -939,6 +986,175 @@ export function evaluateTaxDecision(
   };
 }
 
+const DECISION_PRIORITY: Record<DecisionState, number> = {
+  SUPPORTED: 0,
+  SUPPORTED_WITH_CONDITIONS: 1,
+  MANUAL_REVIEW: 2,
+  SOURCE_DISPUTED_OR_EXPIRED: 3,
+  NOT_SUPPORTED: 4,
+};
+
+function worstDecision(states: readonly DecisionState[]): DecisionState {
+  return states.reduce<DecisionState>(
+    (worst, state) => (DECISION_PRIORITY[state] > DECISION_PRIORITY[worst] ? state : worst),
+    'SUPPORTED',
+  );
+}
+
+function commonRate(values: readonly number[]): number {
+  if (values.length === 0) return 0;
+  return values.every((value) => value === values[0]) ? values[0] : 0;
+}
+
+function uniqueConditions(conditions: readonly TaxCondition[]): TaxCondition[] {
+  const seen = new Set<string>();
+  const result: TaxCondition[] = [];
+  for (const condition of conditions) {
+    const key = `${condition.code}|${condition.severity}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(condition);
+  }
+  return result;
+}
+
+/**
+ * Evaluate every line on its own `tax_category`, then aggregate into one document summary.
+ *
+ * This is the posting-critical rule: a mixed-rate invoice can never be taxed by silently applying
+ * one header rate to the grand total. Line rounding is authoritative; the document totals are the
+ * exact sum of the line decisions, so they foot without a hidden rounding plug.
+ */
+export function evaluateDocumentTax(
+  request: DocumentTaxRequest,
+  options: TaxEngineOptions = {},
+): DocumentTaxSummary {
+  const { lines, fallback_tax_category, ...documentInput } = request;
+  const evaluatedAt = options.evaluatedAt ?? isoNow();
+  const lineOptions = { ...options, evaluatedAt };
+  const decisions: DocumentTaxLineDecision[] = [];
+
+  for (const [index, line] of lines.entries()) {
+    const basePoisha = lineTaxBasePoisha(line);
+    if (basePoisha === 0n) continue;
+    const input: TaxEvaluationInput = {
+      ...documentInput,
+      base_poisha: basePoisha,
+      tax_category: line.tax_category,
+    };
+    const decision = evaluateTaxDecision(input, lineOptions);
+    decisions.push({
+      line_id: line.id ?? `L${index + 1}`,
+      sku: line.sku ?? '',
+      tax_category: line.tax_category,
+      base_poisha: decision.base_poisha,
+      sd_poisha: decision.sd_poisha,
+      vat_poisha: decision.vat_poisha,
+      gross_poisha: decision.gross_poisha,
+      vds_poisha: decision.vds_poisha,
+      tds_poisha: decision.tds_poisha,
+      net_payable_poisha: decision.net_payable_poisha,
+      claimable_poisha: decision.input_credit.claimable_poisha,
+      disallowed_poisha: decision.input_credit.disallowed_poisha,
+      decision_state: decision.decision,
+      trace_id: decision.trace_id,
+      decision,
+    });
+  }
+
+  if (decisions.length === 0) {
+    throw new Error('A document needs at least one priced line with a positive taxable value.');
+  }
+
+  const sum = (selector: (line: DocumentTaxLineDecision) => bigint): bigint =>
+    decisions.reduce((total, line) => total + selector(line), 0n);
+  const categories = decisions.map((line) => line.tax_category);
+  const mixedTaxCategories = new Set(categories).size > 1;
+  const category = mixedTaxCategories
+    ? (fallback_tax_category ?? decisions[0].tax_category)
+    : decisions[0].tax_category;
+  const first = decisions[0].decision;
+
+  const basePoisha = sum((line) => line.base_poisha);
+  const sdPoisha = sum((line) => line.sd_poisha);
+  const vatPoisha = sum((line) => line.vat_poisha);
+  const grossPoisha = sum((line) => line.gross_poisha);
+  const vdsPoisha = sum((line) => line.vds_poisha);
+  const tdsPoisha = sum((line) => line.tds_poisha);
+  const netPayablePoisha = sum((line) => line.net_payable_poisha);
+  const treasuryPoisha = decisions.reduce((total, line) => total + line.decision.treasury_payable_poisha, 0n);
+  const claimablePoisha = sum((line) => line.claimable_poisha);
+  const disallowedPoisha = sum((line) => line.disallowed_poisha);
+  const reverseChargeVatPoisha = decisions.reduce(
+    (total, line) => total + line.decision.reverse_charge_vat_poisha,
+    0n,
+  );
+  const reasonCodes = Array.from(new Set(decisions.flatMap((line) => line.decision.input_credit.reasons)));
+  const reasonLabelsEn = Array.from(
+    new Set(decisions.flatMap((line) => line.decision.input_credit.reason_labels_en)),
+  );
+  const reasonLabelsBn = Array.from(
+    new Set(decisions.flatMap((line) => line.decision.input_credit.reason_labels_bn)),
+  );
+  const creditRuleIds = Array.from(
+    new Set(decisions.flatMap((line) => line.decision.input_credit.rule_ids)),
+  );
+  const ruleIds = Array.from(new Set(decisions.flatMap((line) => line.decision.rule_ids)));
+  const citations = Array.from(new Set(decisions.flatMap((line) => line.decision.citations)));
+  const conditions = uniqueConditions(decisions.flatMap((line) => line.decision.conditions));
+  const explanationsEn = Array.from(new Set(decisions.flatMap((line) => line.decision.explanations_en)));
+  const explanationsBn = Array.from(new Set(decisions.flatMap((line) => line.decision.explanations_bn)));
+  const filing = decisions.find((line) => line.decision.filing)?.decision.filing;
+  const decisionState = worstDecision(decisions.map((line) => line.decision_state));
+
+  const inputCredit: InputCreditOutcome = {
+    eligible: claimablePoisha !== 0n,
+    claimable_poisha: claimablePoisha,
+    disallowed_poisha: disallowedPoisha,
+    reasons: reasonCodes,
+    reason_labels_en: reasonLabelsEn,
+    reason_labels_bn: reasonLabelsBn,
+    rule_ids: creditRuleIds,
+  };
+
+  const aggregate: TaxDecisionDetail = {
+    trace_id: `TAX-${fnv1a64Hex(decisions.map((line) => line.trace_id).join('|'))}`,
+    decision: decisionState,
+    direction: request.direction,
+    base_poisha: basePoisha,
+    sd_bps: commonRate(decisions.map((line) => line.decision.sd_bps)),
+    sd_poisha: sdPoisha,
+    vat_bps: commonRate(decisions.map((line) => line.decision.vat_bps)),
+    vat_poisha: vatPoisha,
+    gross_poisha: grossPoisha,
+    vds_bps: commonRate(decisions.map((line) => line.decision.vds_bps)),
+    vds_poisha: vdsPoisha,
+    tds_bps: commonRate(decisions.map((line) => line.decision.tds_bps)),
+    tds_poisha: tdsPoisha,
+    net_payable_poisha: netPayablePoisha,
+    treasury_payable_poisha: treasuryPoisha,
+    input_credit: inputCredit,
+    conditions,
+    rule_ids: ruleIds,
+    citations,
+    explanations_en: explanationsEn,
+    explanations_bn: explanationsBn,
+    rule_pack_version: first.rule_pack_version,
+    evaluated_at: evaluatedAt,
+    ...(filing ? { filing } : {}),
+    category,
+    effective_category: mixedTaxCategories ? category : first.effective_category,
+    is_reverse_charge: decisions.some((line) => line.decision.is_reverse_charge),
+    bin_valid: decisions.every((line) => line.decision.bin_valid),
+    tin_valid: decisions.every((line) => line.decision.tin_valid),
+    reverse_charge_vat_poisha: reverseChargeVatPoisha,
+    withheld_total_poisha: vdsPoisha + tdsPoisha,
+    cash_limit_poisha: first.cash_limit_poisha,
+  };
+
+  return { decision: aggregate, lines: decisions, mixed_tax_categories: mixedTaxCategories };
+}
+
 /**
  * Decision precedence, in one place so the golden suite and the UI cannot disagree:
  * invalid base → NOT_SUPPORTED, disputed rule pack → SOURCE_DISPUTED_OR_EXPIRED,
@@ -1094,11 +1310,18 @@ export function weightedAverageCost(input: WeightedAverageCostInput): WeightedAv
   return { qty_on_hand: newTotalQty, unit_cost_poisha: newAvgCost };
 }
 
-export interface ReceiveInventoryOptions {
+export interface StockMovementContext {
+  movement_date?: string;
+  source_doc_id?: string;
+  source_doc_ref?: string;
+}
+
+export interface ReceiveInventoryOptions extends StockMovementContext {
   /** Document base value, used to apportion disallowed input VAT by line value. */
   basePoisha?: bigint;
   /** Input VAT that s.46 disallows — capitalised into the weighted-average cost. */
   disallowedVatPoisha?: bigint;
+  movement_type?: 'RECEIPT' | 'RETURN_IN';
 }
 
 export interface ReceiveInventoryResult<T extends InventoryItem> {
@@ -1106,6 +1329,50 @@ export interface ReceiveInventoryResult<T extends InventoryItem> {
   received_qty_by_sku: Record<string, number>;
   total_received_qty: number;
   total_value_poisha: bigint;
+  movements: StockMovement[];
+}
+
+export interface StockShortage {
+  sku: string;
+  requested: number;
+  available: number;
+}
+
+export class InsufficientStockError extends Error {
+  readonly shortages: StockShortage[];
+
+  constructor(shortages: StockShortage[]) {
+    super(
+      `Insufficient stock: ${shortages
+        .map((shortage) => `${shortage.sku} requested ${shortage.requested} but ${shortage.available} on hand`)
+        .join('; ')}.`,
+    );
+    this.name = 'InsufficientStockError';
+    this.shortages = shortages;
+  }
+}
+
+function stockMovement(
+  type: StockMovement['movement_type'],
+  sku: string,
+  quantity: number,
+  unitCostPoisha: bigint,
+  context: StockMovementContext,
+  negativeOverride = false,
+): StockMovement {
+  const quantityScaled = BigInt(Math.round(quantity * 100));
+  return {
+    id: `${context.source_doc_ref ?? context.source_doc_id ?? 'STOCK'}:${type}:${sku}`,
+    movement_type: type,
+    sku,
+    quantity,
+    unit_cost_poisha: unitCostPoisha,
+    value_poisha: (quantityScaled * unitCostPoisha) / QUANTITY_SCALE,
+    movement_date: context.movement_date,
+    source_doc_id: context.source_doc_id,
+    source_doc_ref: context.source_doc_ref,
+    ...(negativeOverride ? { negative_stock_override: true } : {}),
+  };
 }
 
 /**
@@ -1121,10 +1388,12 @@ export function receiveInventoryStock<T extends InventoryItem>(
   const updated = [...items];
   const indexBySku = new Map(updated.map((item, index) => [item.sku, index]));
   const receivedBySku: Record<string, number> = {};
+  const movements: StockMovement[] = [];
   let totalReceivedQty = 0;
   let totalValuePoisha = 0n;
   const disallowedVat = options.disallowedVatPoisha ?? 0n;
   const base = options.basePoisha ?? 0n;
+  const movementType = options.movement_type ?? 'RECEIPT';
 
   for (const line of lines) {
     const index = indexBySku.get(line.sku);
@@ -1134,11 +1403,11 @@ export function receiveInventoryStock<T extends InventoryItem>(
     const qty = Math.max(0, line.quantity);
     if (qty <= 0) continue;
     const qtyScaled = BigInt(Math.round(qty * 100));
-    const lineValuePoisha = (qtyScaled * line.unit_cost_poisha) / 100n;
+    const lineValuePoisha = (qtyScaled * line.unit_cost_poisha) / QUANTITY_SCALE;
     let unitCostPoisha = line.unit_cost_poisha;
     if (disallowedVat > 0n && base > 0n) {
       const lineDisallowedVat = (disallowedVat * lineValuePoisha) / base;
-      unitCostPoisha += (lineDisallowedVat * 100n) / qtyScaled;
+      unitCostPoisha += (lineDisallowedVat * QUANTITY_SCALE) / qtyScaled;
     }
     const averaged = weightedAverageCost({
       oldQty: item.qty_on_hand ?? 0,
@@ -1154,6 +1423,13 @@ export function receiveInventoryStock<T extends InventoryItem>(
     receivedBySku[line.sku] = (receivedBySku[line.sku] ?? 0) + qty;
     totalReceivedQty += qty;
     totalValuePoisha += lineValuePoisha;
+    movements.push(
+      stockMovement(movementType, line.sku, qty, unitCostPoisha, {
+        movement_date: options.movement_date,
+        source_doc_id: options.source_doc_id,
+        source_doc_ref: options.source_doc_ref,
+      }),
+    );
   }
 
   return {
@@ -1161,26 +1437,60 @@ export function receiveInventoryStock<T extends InventoryItem>(
     received_qty_by_sku: receivedBySku,
     total_received_qty: totalReceivedQty,
     total_value_poisha: totalValuePoisha,
+    movements,
   };
+}
+
+export interface IssueInventoryOptions extends StockMovementContext {
+  /**
+   * Only an explicit override may take stock below zero. The default is to reject the whole issue
+   * so a sale can never silently create a negative inventory balance.
+   */
+  allow_negative_stock?: boolean;
 }
 
 export interface IssueInventoryResult<T extends InventoryItem> {
   items: T[];
   issued_qty_by_sku: Record<string, number>;
   total_issued_qty: number;
+  movements: StockMovement[];
+  shortages: StockShortage[];
+  negative_stock_override: boolean;
 }
 
 /** Posting a sales invoice relieves `qty_on_hand` by the sold quantity of each stock item. */
 export function issueInventoryStock<T extends InventoryItem>(
   items: readonly T[],
   lines: readonly StockMovementLine[],
+  options: IssueInventoryOptions = {},
 ): IssueInventoryResult<T> {
   const quantities = stockQuantitiesBySku(lines);
+  const shortages: StockShortage[] = [];
+  const allowNegative = options.allow_negative_stock === true;
+
+  if (!allowNegative) {
+    for (const [sku, qty] of Object.entries(quantities)) {
+      const item = items.find((entry) => entry.sku === sku);
+      if (!item || item.is_stock_item === false) continue;
+      const available = item.qty_on_hand ?? 0;
+      if (qty > available) shortages.push({ sku, requested: qty, available });
+    }
+  }
+  if (shortages.length > 0) throw new InsufficientStockError(shortages);
+
   let totalIssuedQty = 0;
+  const movements: StockMovement[] = [];
   const updated = items.map((item) => {
     const qty = quantities[item.sku];
     if (!qty || item.is_stock_item === false) return item;
     totalIssuedQty += qty;
+    movements.push(
+      stockMovement('ISSUE', item.sku, qty, defaultInventoryUnitCost(item), {
+        movement_date: options.movement_date,
+        source_doc_id: options.source_doc_id,
+        source_doc_ref: options.source_doc_ref,
+      }),
+    );
     return {
       ...item,
       qty_on_hand: (item.qty_on_hand ?? 0) - qty,
@@ -1191,7 +1501,58 @@ export function issueInventoryStock<T extends InventoryItem>(
     const item = items.find((entry) => entry.sku === sku);
     if (item && item.is_stock_item !== false) issuedBySku[sku] = qty;
   }
-  return { items: updated, issued_qty_by_sku: issuedBySku, total_issued_qty: totalIssuedQty };
+  const negativeOverride = allowNegative && updated.some((item) => (item.qty_on_hand ?? 0) < 0);
+  return {
+    items: updated,
+    issued_qty_by_sku: issuedBySku,
+    total_issued_qty: totalIssuedQty,
+    movements: negativeOverride
+      ? movements.map((movement) => ({ ...movement, negative_stock_override: true }))
+      : movements,
+    shortages: [],
+    negative_stock_override: negativeOverride,
+  };
+}
+
+export interface ReturnInventoryResult<T extends InventoryItem> {
+  items: T[];
+  returned_qty_by_sku: Record<string, number>;
+  total_returned_qty: number;
+  cogs_reversed_poisha: bigint;
+  movements: StockMovement[];
+}
+
+/**
+ * A sales return restores the returned units at their weighted-average cost and reverses the COGS
+ * pair (Dr Inventory / Cr COGS). It never posts a purchase receipt, because no new liability arises.
+ */
+export function returnInventoryStock<T extends InventoryItem>(
+  items: readonly T[],
+  lines: readonly StockMovementLine[],
+  options: StockMovementContext = {},
+): ReturnInventoryResult<T> {
+  const receiptLines: StockReceiptLine[] = lines
+    .map((line) => {
+      const item = items.find((entry) => entry.sku === line.sku);
+      if (!item || item.is_stock_item === false) return null;
+      return {
+        sku: line.sku,
+        quantity: Math.max(0, line.quantity),
+        unit_cost_poisha: defaultInventoryUnitCost(item),
+      };
+    })
+    .filter((line): line is StockReceiptLine => line !== null);
+  const received = receiveInventoryStock(items, receiptLines, {
+    ...options,
+    movement_type: 'RETURN_IN',
+  });
+  return {
+    items: received.items,
+    returned_qty_by_sku: received.received_qty_by_sku,
+    total_returned_qty: received.total_received_qty,
+    cogs_reversed_poisha: received.total_value_poisha,
+    movements: received.movements,
+  };
 }
 
 export interface CogsJournalLine {
@@ -1231,6 +1592,38 @@ export function buildCogsJournalLines(
       debit_poisha: 0n,
       credit_poisha: totalCogsPoisha,
       memo: `${reference} — merchandise inventory relief`,
+    },
+  ];
+}
+
+/**
+ * The mirror image of the COGS pair for a sales return:
+ * Debit 1310 Merchandise Inventory / Credit 5100 Cost of Goods Sold.
+ */
+export function buildReturnCogsJournalLines(
+  totalCogsPoisha: bigint,
+  accounts?: readonly Pick<Account, 'code' | 'name_en' | 'name_bn'>[],
+  reference = 'Sales return',
+): CogsJournalLine[] {
+  if (totalCogsPoisha <= 0n) return [];
+  const cogs = accounts?.find((account) => account.code === COGS_ACCOUNT_CODE);
+  const inventory = accounts?.find((account) => account.code === MERCHANDISE_INVENTORY_ACCOUNT_CODE);
+  return [
+    {
+      account_code: MERCHANDISE_INVENTORY_ACCOUNT_CODE,
+      account_name_en: inventory?.name_en ?? 'Merchandise Inventory',
+      account_name_bn: inventory?.name_bn ?? 'পণ্যসামগ্রী মজুদ',
+      debit_poisha: totalCogsPoisha,
+      credit_poisha: 0n,
+      memo: `${reference} — inventory restored on return`,
+    },
+    {
+      account_code: COGS_ACCOUNT_CODE,
+      account_name_en: cogs?.name_en ?? 'Cost of Goods Sold',
+      account_name_bn: cogs?.name_bn ?? 'বিক্রীত পণ্যের ব্যয়',
+      debit_poisha: 0n,
+      credit_poisha: totalCogsPoisha,
+      memo: `${reference} — COGS reversed on return`,
     },
   ];
 }

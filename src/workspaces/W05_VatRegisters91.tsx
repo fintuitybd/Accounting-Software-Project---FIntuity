@@ -1,4 +1,4 @@
-// LedgerVault — W05 VAT registers & Mushak 9.1.
+// Fintuity Accounting Suite — W05 internal VAT registers and draft VAT workbook.
 //
 // Four statutory views on one ledger:
 //   • Mushak 6.1 — purchase register
@@ -37,12 +37,8 @@ import { StatutoryPrintModal } from '../components/signature/StatutoryPrintModal
 import { accountBalance } from '../core/ledger/ledgerEngine';
 import type { TaxAnnotatedDoc } from '../core/ledger/ledgerEngine';
 import { formatDate, poishaToBdtNumber } from '../core/money';
-import { filingDecisionFor } from '../core/tax-engine/engine';
 import { useVault } from '../context/VaultContext';
 import type { Mushak91Part, Mushak91Return, MushakRegisterRow } from '../core/types';
-
-const PERIOD_CODE = '2026-10';
-const PERIOD_END = '2026-10-31';
 
 type Tab = 'PURCHASE' | 'SALES' | 'NOTE18' | 'RETURN';
 
@@ -166,7 +162,7 @@ function RegisterTable({
 }
 
 export default function W05_VatRegisters91() {
-  const { locale, money, tenant, commercialDocs, journals, reconciliation, vdsCertificates, challans } = useVault();
+  const { locale, money, tenant, commercialDocs, journals, reconciliation, vdsCertificates, challans, periods, statementPeriodCode, setStatementPeriodCode } = useVault();
   const isBn = locale === 'bn-BD';
   const L = (en: string, bn: string): string => (isBn ? bn : en);
 
@@ -176,10 +172,22 @@ export default function W05_VatRegisters91() {
   const [printOpen, setPrintOpen] = useState(false);
   const [exportedAt, setExportedAt] = useState<string | null>(null);
 
-  const filing = useMemo(() => filingDecisionFor({ periodEndDate: PERIOD_END }), []);
+  const periodCode = statementPeriodCode;
+  const periodRecord = periods.find((period) => period.code === periodCode) ?? periods[0];
+  const periodEnd = periodRecord?.end_date ?? '';
+  const filing = {
+    due_date: '—',
+    days_after_period: 0,
+    period_label: periodCode,
+    rule_id: 'NOT_VERIFIED',
+    citation: L('Filing deadline and statutory template not verified', 'দাখিলের সময়সীমা ও সংবিধিবদ্ধ টেমপ্লেট যাচাইকৃত নয়'),
+    holiday_adjusted: false,
+    explanation_en: 'No verified filing deadline is configured. This is an internal draft for professional review, not a filing.',
+    explanation_bn: 'কোনো যাচাইকৃত দাখিলের সময়সীমা কনফিগার করা নেই। এটি পেশাদার পর্যালোচনার জন্য অভ্যন্তরীণ খসড়া, দাখিল নয়।',
+  };
 
   const books = useMemo(() => {
-    const periodDocs = commercialDocs.filter((doc) => doc.doc_date.slice(0, 7) === PERIOD_CODE);
+    const periodDocs = commercialDocs.filter((doc) => doc.doc_date.slice(0, 7) === periodCode && doc.status === 'POSTED');
     const salesDocs = periodDocs.filter((doc) => doc.doc_type === 'SALES_INVOICE' || doc.doc_type === 'CREDIT_NOTE');
     const purchaseDocs = periodDocs.filter(
       (doc) => doc.doc_type === 'PURCHASE_BILL' || doc.doc_type === 'EXPENSE_VOUCHER' || doc.doc_type === 'IMPORTED_SERVICE',
@@ -225,7 +233,7 @@ export default function W05_VatRegisters91() {
 
     const periodJournals = journals.filter(
       (journal) =>
-        journal.period_code === PERIOD_CODE &&
+        journal.period_code === periodCode &&
         journal.source_module !== 'OPENING_BALANCE' &&
         !(journal.source_doc_ref ?? '').startsWith('MUSHAK-9.1'),
     );
@@ -245,6 +253,18 @@ export default function W05_VatRegisters91() {
     const purchaseBase = purchaseDocs.reduce((total, doc) => total + doc.base_poisha, 0n);
     const vdsTotal = purchaseDocs.reduce((total, doc) => total + doc.vds_poisha, 0n);
     const tdsTotal = purchaseDocs.reduce((total, doc) => total + doc.tds_poisha, 0n);
+    const creditNoteVat = salesDocs
+      .filter((doc) => doc.doc_type === 'CREDIT_NOTE')
+      .reduce((total, doc) => total - doc.vat_poisha, 0n);
+    const reverseChargeVat = purchaseDocs
+      .filter((doc) => doc.reverse_charge)
+      .reduce((total, doc) => total + doc.vat_poisha, 0n);
+    const depositedVat = challans
+      .filter((challan) => challan.period_code === periodCode && challan.status === 'DEPOSITED' && challan.type === 'VAT')
+      .reduce((total, challan) => total + challan.amount_poisha, 0n);
+    const depositedVds = challans
+      .filter((challan) => challan.period_code === periodCode && challan.status === 'DEPOSITED' && challan.type === 'VDS')
+      .reduce((total, challan) => total + challan.amount_poisha, 0n);
 
     const parts: Mushak91Part[] = [
       {
@@ -255,8 +275,8 @@ export default function W05_VatRegisters91() {
         rows: [
           { label_en: 'BIN', label_bn: 'বিআইএন', amount_poisha: 0n, note: tenant.bin_units[0]?.bin_number ?? tenant.tin_number },
           { label_en: 'Legal name', label_bn: 'নিবন্ধিত নাম', amount_poisha: 0n, note: tenant.name_en },
-          { label_en: 'Return period', label_bn: 'রিটার্ন সময়কাল', amount_poisha: 0n, note: PERIOD_CODE },
-          { label_en: 'Filing due date', label_bn: 'জমার শেষ তারিখ', amount_poisha: 0n, note: filing.due_date },
+          { label_en: 'Return period', label_bn: 'রিটার্ন সময়কাল', amount_poisha: 0n, note: periodCode },
+          { label_en: 'Filing status', label_bn: 'দাখিলের অবস্থা', amount_poisha: 0n, note: L('Draft — not filed; deadline unverified', 'খসড়া — দাখিল হয়নি; সময়সীমা যাচাইকৃত নয়') },
         ],
       },
       {
@@ -288,7 +308,7 @@ export default function W05_VatRegisters91() {
         rows: [
           { label_en: 'Local taxable purchases', label_bn: 'স্থানীয় করযোগ্য ক্রয়', amount_poisha: purchaseBase },
           { label_en: 'Input VAT on purchases', label_bn: 'ক্রয়ের ইনপুট মূসক', amount_poisha: purchaseVat },
-          { label_en: 'Imported services (reverse charge)', label_bn: 'আমদানি সেবা (রিভার্স চার্জ)', amount_poisha: purchaseDocs.filter((doc) => doc.reverse_charge).reduce((total, doc) => total + doc.vat_poisha, 0n) },
+          { label_en: 'Imported services (reverse charge)', label_bn: 'আমদানি সেবা (রিভার্স চার্জ)', amount_poisha: reverseChargeVat },
         ],
       },
       {
@@ -298,14 +318,14 @@ export default function W05_VatRegisters91() {
         total_poisha: vdsTotal,
         rows: [
           { label_en: 'VDS withheld from suppliers', label_bn: 'সরবরাহকারীদের নিকট হতে কর্তিত ভিডিএস', amount_poisha: vdsTotal },
-          { label_en: 'Deposited with treasury challan', label_bn: 'ট্রেজারি চালানে জমাকৃত', amount_poisha: vdsTotal, note: `${challans.filter((challan) => challan.status === 'DEPOSITED').length} challans` },
+          { label_en: 'VDS deposited with treasury challan', label_bn: 'ট্রেজারি চালানে জমাকৃত ভিডিএস', amount_poisha: depositedVds, note: `${challans.filter((challan) => challan.period_code === periodCode && challan.status === 'DEPOSITED' && challan.type === 'VDS').length} challans` },
         ],
       },
       {
         part: 6,
         title_en: 'Decreasing adjustment — customer Mushak 6.6 received',
         title_bn: 'হ্রাস সমন্বয় — প্রাপ্ত গ্রাহক মূসক ৬.৬',
-        total_poisha: decreasing,
+        total_poisha: decreasing + creditNoteVat,
         rows: [
           {
             label_en: `Customer Mushak 6.6 certificates received (${receivedCertificates.length})`,
@@ -313,7 +333,12 @@ export default function W05_VatRegisters91() {
             amount_poisha: decreasing,
             note: receivedCertificates.length ? undefined : 'None received',
           },
-          { label_en: 'Credit notes & bad debt relief', label_bn: 'ক্রেডিট নোট ও কু-ঋণ রিলিফ', amount_poisha: 0n },
+          {
+            label_en: 'Credit notes included as negative output lines',
+            label_bn: 'ঋণাত্মক আউটপুট লাইন হিসেবে অন্তর্ভুক্ত ক্রেডিট নোট',
+            amount_poisha: creditNoteVat,
+            note: 'No separate bad-debt relief is claimed.',
+          },
         ],
       },
       {
@@ -322,8 +347,7 @@ export default function W05_VatRegisters91() {
         title_bn: 'বৃদ্ধি সমন্বয় — অগ্রহণযোগ্য ইনপুট',
         total_poisha: disallowed,
         rows: [
-          { label_en: 'Cash payment above the s.46 threshold', label_bn: 'ধারা ৪৬ সীমার উপরে নগদ প্রদান', amount_poisha: disallowed },
-          { label_en: 'Debit notes & late purchases', label_bn: 'ডেবিট নোট ও বিলম্বিত ক্রয়', amount_poisha: 0n },
+          { label_en: 'Input VAT disallowed by the purchase decision', label_bn: 'ক্রয় সিদ্ধান্ত দ্বারা বাতিল ইনপুট ভ্যাট', amount_poisha: disallowed },
         ],
       },
       {
@@ -333,7 +357,7 @@ export default function W05_VatRegisters91() {
         total_poisha: rebate,
         rows: [
           { label_en: 'Input VAT on eligible local purchases', label_bn: 'যোগ্য স্থানীয় ক্রয়ের ইনপুট ভ্যাট', amount_poisha: rebate },
-          { label_en: 'Imported services under reverse charge', label_bn: 'রিভার্স চার্জে আমদানি সেবা', amount_poisha: 0n },
+          { label_en: 'Imported services under reverse charge', label_bn: 'রিভার্স চার্জে আমদানি সেবা', amount_poisha: reverseChargeVat },
         ],
       },
       {
@@ -358,10 +382,10 @@ export default function W05_VatRegisters91() {
         part: 11,
         title_en: 'TDS & deposit reconciliation',
         title_bn: 'টিডিএস ও জমা মিলকরণ',
-        total_poisha: tdsTotal,
+        total_poisha: tdsTotal + depositedVat,
         rows: [
-          { label_en: 'TDS withheld under s.89–109', label_bn: 'ধারা ৮৯–১০৯ অনুযায়ী কর্তিত টিডিএস', amount_poisha: tdsTotal },
-          { label_en: 'VAT deposited by challan', label_bn: 'চালানে জমাকৃত মূসক', amount_poisha: net > 0n ? net : 0n },
+          { label_en: 'TDS withheld (internal register)', label_bn: 'কর্তিত টিডিএস (অভ্যন্তরীণ রেজিস্টার)', amount_poisha: tdsTotal },
+          { label_en: 'VAT deposited by challan in the period', label_bn: 'সময়কালে চালানে জমাকৃত মূসক', amount_poisha: depositedVat, note: `${challans.filter((challan) => challan.period_code === periodCode && challan.status === 'DEPOSITED' && challan.type === 'VAT').length} challans` },
         ],
       },
       {
@@ -378,7 +402,7 @@ export default function W05_VatRegisters91() {
     ];
 
     const return91: Mushak91Return = {
-      period_code: PERIOD_CODE,
+      period_code: periodCode,
       period_label: filing.period_label,
       bin: tenant.bin_units[0]?.bin_number ?? tenant.tin_number,
       legal_name: tenant.name_en,
@@ -400,7 +424,7 @@ export default function W05_VatRegisters91() {
     };
 
     return { salesRows, purchaseRows, return91, coreVariance, reconciled, glOutput, glInput, decreasing, receivedCertificates };
-  }, [commercialDocs, journals, vdsCertificates, filing, tenant, isBn, challans]);
+  }, [commercialDocs, journals, vdsCertificates, filing, tenant, isBn, challans, periodCode]);
 
   const return91 = books.return91;
   const vatRow = reconciliation.rows.find((row) => row.key === 'VAT_CURRENT_ACCOUNT');
@@ -411,11 +435,12 @@ export default function W05_VatRegisters91() {
     const workbook = XLSX.utils.book_new();
 
     const summary = XLSX.utils.aoa_to_sheet([
-      ['LedgerVault — Mushak 9.1 monthly VAT return'],
+      ['Fintuity Accounting Suite — internal VAT workbook (DRAFT — NOT FILED)'],
       ['Legal name', tenant.name_en],
       ['BIN', return91.bin],
-      ['Return period', PERIOD_CODE],
-      ['Filing due date', return91.due_date],
+      ['Report period', periodCode],
+      ['Filing status', 'DRAFT — NOT FILED; deadline unverified'],
+      ['Filing due date', 'Not verified'],
       ['Rule pack', 'bd-2026-v1'],
       [],
       ['Part', 'Title', 'Amount (BDT)'],
@@ -469,7 +494,7 @@ export default function W05_VatRegisters91() {
     ]);
     XLSX.utils.book_append_sheet(workbook, note, 'Note 18');
 
-    XLSX.writeFile(workbook, `LedgerVault-Mushak-9.1-${PERIOD_CODE}.xlsx`);
+    XLSX.writeFile(workbook, `Fintuity Accounting Suite-VAT-internal-draft-${periodCode}.xlsx`);
     setExportedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
   };
 
@@ -490,19 +515,40 @@ export default function W05_VatRegisters91() {
         }
         actions={
           <>
+            <label className="text-[12px] font-semibold text-ink-600">
+              <span className="sr-only">{L('VAT period', 'ভ্যাট সময়কাল')}</span>
+              <select
+                value={periodCode}
+                onChange={(event) => setStatementPeriodCode(event.target.value)}
+                className="lv-select min-h-9 text-[12px]"
+              >
+                {periods.map((period) => (
+                  <option key={period.code} value={period.code}>{period.code} — {period.status}</option>
+                ))}
+              </select>
+            </label>
             <button type="button" className="lv-btn lv-btn-secondary !py-1.5" onClick={exportWorkbook}><Download size={14} /> {L('Export .xlsx', 'এক্সপোর্ট .xlsx')}</button>
-            <button type="button" className="lv-btn lv-btn-primary !py-1.5" onClick={() => setPrintOpen(true)}><Printer size={14} /> {L('Print A4 9.1', 'এ৪ ৯.১ প্রিন্ট')}</button>
+            <button type="button" className="lv-btn lv-btn-primary !py-1.5" onClick={() => setPrintOpen(true)}><Printer size={14} /> {L('Print internal draft', 'অভ্যন্তরীণ খসড়া প্রিন্ট')}</button>
           </>
         }
       />
 
       <main className="space-y-5">
+        <section className="rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/60 p-4 text-rose-900">
+          <p className="text-[13px] font-bold uppercase tracking-[0.12em]">{L('DRAFT — NOT FILED', 'খসড়া — দাখিল হয়নি')}</p>
+          <p className="mt-1 text-[12px] leading-relaxed">
+            {L(
+              'This is an internal VAT workbook, not a filed return or a government receipt. The statutory template, line labels and filing deadline are pending tax-counsel review. Do not rely on it for filing until that review is recorded.',
+              'এটি অভ্যন্তরীণ ভ্যাট ওয়ার্কবুক, দাখিলকৃত রিটার্ন বা সরকারি রসিদ নয়। সংবিধিবদ্ধ টেমপ্লেট, লাইন লেবেল ও দাখিলের সময়সীমা কর পরামর্শকের পর্যালোচনার অপেক্ষায়। সেই পর্যালোচনা নথিভুক্ত না হওয়া পর্যন্ত দাখিলের জন্য এর উপর নির্ভর করবেন না।',
+            )}
+          </p>
+        </section>
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { label: L('Output VAT', 'আউটপুট ভ্যাট'), value: return91.output_tax_poisha, hint: L('Mushak 6.2 register', 'মূসক ৬.২ রেজিস্টার'), tone: 'text-indigo-700', iconTone: 'bg-indigo-50 text-indigo-700 ring-indigo-500/15', bar: 'from-indigo-500 via-indigo-400/40', icon: <Landmark size={14} /> },
             { label: L('Input rebate', 'ইনপুট রিবেট'), value: return91.input_rebate_poisha, hint: L('Mushak 6.1 register', 'মূসক ৬.১ রেজিস্টার'), tone: 'text-vault-800', iconTone: 'bg-vault-50 text-vault-700 ring-vault-500/15', bar: 'from-vault-500 via-vault-400/40', icon: <BadgeCheck size={14} /> },
             { label: L('Customer 6.6 received', 'গ্রাহক ৬.৬ প্রাপ্ত'), value: books.decreasing, hint: L('9.1 Part 6 decreasing adjustment', '৯.১ অংশ ৬ হ্রাস সমন্বয়'), tone: 'text-violet-700', iconTone: 'bg-violet-50 text-violet-700 ring-violet-500/15', bar: 'from-violet-500 via-violet-400/40', icon: <FileSpreadsheet size={14} /> },
-            { label: L('Net VAT payable', 'নিট ভ্যাট প্রদেয়'), value: return91.net_payable_poisha, hint: `${L('Due', 'জমা')} ${formatDate(return91.due_date, locale)}`, tone: 'text-gold-700', iconTone: 'bg-gold-50 text-gold-600 ring-gold-500/15', bar: 'from-gold-500 via-gold-400/40', icon: <Calculator size={14} /> },
+            { label: L('Net VAT payable', 'নিট ভ্যাট প্রদেয়'), value: return91.net_payable_poisha, hint: L('Deadline not verified', 'সময়সীমা যাচাইকৃত নয়'), tone: 'text-gold-700', iconTone: 'bg-gold-50 text-gold-600 ring-gold-500/15', bar: 'from-gold-500 via-gold-400/40', icon: <Calculator size={14} /> },
           ].map((card) => (
             <article key={card.label} className="lv-card lv-card-interactive relative overflow-hidden p-4">
               <span aria-hidden className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r to-transparent ${card.bar}`} />
@@ -689,7 +735,7 @@ export default function W05_VatRegisters91() {
                     </h2>
                     <p className="text-[10.5px] text-ink-500">
                       {books.reconciled
-                        ? L('The 2120 output VAT and 1140 input VAT control accounts tie exactly to the return. Safe to file.', '২১২০ আউটপুট ভ্যাট ও ১১৪০ ইনপুট ভ্যাট নিয়ন্ত্রণ হিসাব রিটার্নের সাথে হুবহু মিলেছে। ফাইলিং নিরাপদ।')
+                        ? L('The 2120 output VAT and 1140 input VAT control accounts tie exactly to the internal draft. This is not a filing approval.', '২১২০ আউটপুট ভ্যাট ও ১১৪০ ইনপুট ভ্যাট নিয়ন্ত্রণ হিসাব অভ্যন্তরীণ খসড়ার সাথে হুবহু মিলেছে। এটি দাখিলের অনুমোদন নয়।')
                         : L('Investigate the variance before filing — the ledger and the return disagree.', 'ফাইলিংয়ের আগে পার্থক্য তদন্ত করুন — খতিয়ান ও রিটার্ন মিলছে না।')}
                     </p>
                   </div>
@@ -714,7 +760,7 @@ export default function W05_VatRegisters91() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-200/60 px-5 py-2.5">
-                <span className="flex items-center gap-1.5 text-[10px] text-ink-500"><ShieldCheck size={12} /> {L('Rule pack bd-2026-v1 · filing window Ordinance 38/2026', 'রুল প্যাক bd-2026-v1 · ফাইলিং অর্ডিন্যান্স ৩৮/২০২৬')}</span>
+                <span className="flex items-center gap-1.5 text-[10px] text-ink-500"><ShieldCheck size={12} /> {L('Rule pack bd-2026-v1 · pending tax-counsel review · no filing deadline asserted', 'রুল প্যাক bd-2026-v1 · কর পরামর্শকের পর্যালোচনার অপেক্ষায় · কোনো দাখিলের সময়সীমা দাবি করা হয় না')}</span>
                 <div className="flex items-center gap-2">
                   <button type="button" className="lv-btn lv-btn-secondary !py-1.5" onClick={exportWorkbook}><Download size={13} /> {L('Export .xlsx', 'এক্সপোর্ট .xlsx')}</button>
                   <button type="button" className="lv-btn lv-btn-primary !py-1.5" onClick={() => setPrintOpen(true)}><Printer size={13} /> {L('Print A4', 'এ৪ প্রিন্ট')}</button>
@@ -729,7 +775,7 @@ export default function W05_VatRegisters91() {
                     <p className="lv-kicker flex items-center gap-1.5"><FileText size={12} /> {L('Return assembly', 'রিটার্ন সংকলন')}</p>
                     <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Mushak 9.1 — 12-part computation', 'মূসক ৯.১ — ১২ অংশের হিসাব')}</h2>
                   </div>
-                  <span className="lv-chip lv-chip-gold">{L('Due', 'জমা')} {formatDate(return91.due_date, locale)}</span>
+                  <span className="lv-chip lv-chip-gold">{L('Draft — deadline not verified', 'খসড়া — সময়সীমা যাচাইকৃত নয়')}</span>
                 </div>
                 <div className="grid gap-px bg-ink-100 sm:grid-cols-2">
                   {return91.parts.map((part) => (
@@ -778,21 +824,21 @@ export default function W05_VatRegisters91() {
                 </section>
 
                 <section className="lv-card lv-card-pad">
-                  <p className="lv-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Filing rule', 'ফাইলিং বিধি')}</p>
+                  <p className="lv-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Template review status', 'টেমপ্লেট পর্যালোচনা অবস্থা')}</p>
                   <p className="mt-2 text-[10.5px] font-semibold text-ink-900">{L(filing.explanation_en, filing.explanation_bn)}</p>
                   <p className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-vault-700">{filing.citation}</p>
                   <dl className="mt-3 space-y-1.5 text-[10.5px]">
-                    <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Period end', 'সময়কাল শেষ')}</dt><dd className="font-semibold">{formatDate(PERIOD_END, locale)}</dd></div>
-                    <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Deadline', 'সময়সীমা')}</dt><dd className="font-semibold">{formatDate(filing.due_date, locale)}</dd></div>
-                    <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Days after period', 'সময়কালের পরে দিন')}</dt><dd className="font-semibold">{filing.days_after_period}</dd></div>
+                    <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Period end', 'সময়কাল শেষ')}</dt><dd className="font-semibold">{formatDate(periodEnd, locale)}</dd></div>
+                    <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Deadline', 'সময়সীমা')}</dt><dd className="font-semibold">{L('Not verified', 'যাচাইকৃত নয়')}</dd></div>
+                    <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Filing status', 'দাখিলের অবস্থা')}</dt><dd className="font-semibold">{L('Draft — not filed', 'খসড়া — দাখিল হয়নি')}</dd></div>
                   </dl>
-                  <button type="button" className="lv-btn lv-btn-secondary mt-3 w-full" onClick={exportWorkbook}><FileSpreadsheet size={14} /> {L('Download return workbook', 'রিটার্ন ওয়ার্কবুক ডাউনলোড')}</button>
+                  <button type="button" className="lv-btn lv-btn-secondary mt-3 w-full" onClick={exportWorkbook}><FileSpreadsheet size={14} /> {L('Download internal workbook', 'অভ্যন্তরীণ ওয়ার্কবুক ডাউনলোড')}</button>
                 </section>
 
                 <section className="lv-card lv-card-pad">
                   <p className="lv-kicker flex items-center gap-1.5"><ArrowRight size={12} /> {L('Next step', 'পরবর্তী ধাপ')}</p>
                   <p className="mt-2 text-[10.5px] leading-relaxed text-ink-600">
-                    {L('File the return, then settle the net payable through W04 treasury challans. The GL proof must stay at 0.00 BDT after every adjustment.', 'রিটার্ন দাখিল করুন, তারপর W04 কোষাগার চালানের মাধ্যমে নিট প্রদেয় নিষ্পত্তি করুন। প্রতিটি সমন্বয়ের পরে জিএল প্রমাণ ০.০০ টাকায় থাকতে হবে।')}
+                    {L('Do not file from this screen. Have tax counsel review the register mapping, GL proof and exceptions, then file through the approved external process. This workbook is not a filing acknowledgement or a government receipt.', 'এই স্ক্রিন থেকে দাখিল করবেন না। কর পরামর্শককে রেজিস্টার ম্যাপিং, জিএল প্রমাণ ও ব্যতিক্রম পর্যালোচনা করতে দিন, তারপর অনুমোদিত বাহ্যিক প্রক্রিয়ায় দাখিল করুন। এই ওয়ার্কবুক দাখিল স্বীকৃতি বা সরকারি রসিদ নয়।')}
                   </p>
                 </section>
               </div>
@@ -801,7 +847,7 @@ export default function W05_VatRegisters91() {
         ) : null}
       </main>
 
-      <StatutoryPrintModal open={printOpen} onClose={() => setPrintOpen(false)} mode="MUSHAK_9_1" periodCode={PERIOD_CODE} />
+      <StatutoryPrintModal open={printOpen} onClose={() => setPrintOpen(false)} mode="MUSHAK_9_1" periodCode={periodCode} />
     </>
   );
 }

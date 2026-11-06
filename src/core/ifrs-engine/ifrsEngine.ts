@@ -414,7 +414,7 @@ function emptyResult(window: PeriodWindow, comparative: PeriodWindow): Financial
  * Derive the complete reporting pack. Every figure below is a function of the live ledger.
  */
 export function buildFinancialStatements(input: FinancialStatementsInput): FinancialStatements {
-  const periodCode = input.periodCode ?? '2026-10';
+  const periodCode = input.periodCode ?? new Date().toISOString().slice(0, 7);
   const comparativeCode = input.comparativeCode ?? previousPeriodCode(periodCode);
   const window = periodWindow(periodCode);
   const comparativeWindow = periodWindow(comparativeCode);
@@ -882,27 +882,8 @@ export function buildFinancialStatements(input: FinancialStatementsInput): Finan
     investingSection.comparative_total_poisha +
     financingSection.comparative_total_poisha;
   const difference = openingCash + netChange - closingCash;
-  const differenceComp = openingCashComp + netChangeComp - closingCashComp;
-
-  if (difference !== 0n) {
-    // Disclosed, never hidden: the plug keeps the printed statement footing while `reconciles`
-    // stays false and the control dashboard raises the difference.
-    const plugLabel = { en: 'Net movement in other working capital and provisions', bn: 'অন্যান্য কার্যকরী মূলধন ও সঞ্চিতিতে নিট পরিবর্তন' };
-    operatingSection.lines.push(
-      sectionLine('CF.OP.PLUG', plugLabel.en, plugLabel.bn, -difference, differenceComp === 0n ? 0n : -differenceComp, {
-        indent: 2,
-      }),
-    );
-    operatingSection.total_poisha -= difference;
-    operatingSection.comparative_total_poisha -= differenceComp;
-  }
-
-  const finalNetChange = operatingSection.total_poisha + investingSection.total_poisha + financingSection.total_poisha;
-  const finalNetChangeComp =
-    operatingSection.comparative_total_poisha +
-    investingSection.comparative_total_poisha +
-    financingSection.comparative_total_poisha;
-
+  // No silent plug. If the indirect statement cannot reconcile to the ledger cash accounts it
+  // remains visibly out of balance (`reconciles: false`) and the close process must block on it.
   statements.cash_flow = {
     operating: operatingSection,
     operating_total_poisha: operatingSection.total_poisha,
@@ -913,13 +894,13 @@ export function buildFinancialStatements(input: FinancialStatementsInput): Finan
     financing: financingSection,
     financing_total_poisha: financingSection.total_poisha,
     financing_total_comparative_poisha: financingSection.comparative_total_poisha,
-    net_change_poisha: finalNetChange,
-    net_change_comparative_poisha: finalNetChangeComp,
+    net_change_poisha: netChange,
+    net_change_comparative_poisha: netChangeComp,
     opening_cash_poisha: openingCash,
     opening_cash_comparative_poisha: openingCashComp,
     closing_cash_poisha: closingCash,
     closing_cash_comparative_poisha: closingCashComp,
-    reconciles: difference === 0n && openingCash + finalNetChange === closingCash,
+    reconciles: difference === 0n && openingCash + netChange === closingCash,
     difference_poisha: difference,
   };
 
@@ -1110,8 +1091,8 @@ function buildNotes(input: NotesInput): FinancialStatements['notes'] {
     '10',
     'VAT current account and Mushak 9.1 reconciliation',
     'ভ্যাট চলতি হিসাব ও মূসক ৯.১ সমন্বয়',
-    `Mushak 6.2 sales register output VAT reconciles to the output VAT posted in the ledger, and the Mushak 6.1 purchase register reconciles to the s.46-eligible input rebate. Under Ordinance No. 38 of 2026 the Mushak 9.1 return is due within 15 days after the tax period.`,
-    `মূসক ৬.২ বিক্রয় রেজিস্টারের আউটপুট ভ্যাট খাতায় পোস্টকৃত আউটপুট ভ্যাটের সাথে এবং মূসক ৬.১ ক্রয় রেজিস্টার ধারা ৪৬-যোগ্য ইনপুট রিবেটের সাথে মিলে যায়। অর্ডিন্যান্স নং ৩৮/২০২৬ অনুযায়ী করমেয়াদ শেষের ১৫ দিনের মধ্যে মূসক ৯.১ রিটার্ন দাখিল করতে হয়।`,
+    `Mushak 6.2 sales register output VAT reconciles to the output VAT posted in the ledger, and the Mushak 6.1 purchase register reconciles to the eligible input rebate. The filing rule and deadline are not asserted here; the rule pack and statutory template are pending tax-counsel review.`,
+    `মূসক ৬.২ বিক্রয় রেজিস্টারের আউটপুট ভ্যাট খাতায় পোস্টকৃত আউটপুট ভ্যাটের সাথে এবং মূসক ৬.১ ক্রয় রেজিস্টার যোগ্য ইনপুট রিবেটের সাথে মিলে যায়। এখানে ফাইলিং বিধি বা সময়সীমা দাবি করা হয় না; রুল প্যাক ও সংবিধিবদ্ধ টেমপ্লেট কর পরামর্শকের পর্যালোচনার অপেক্ষায়।`,
     [
       noteRow('Output VAT per Mushak 6.2 sales register', 'মূসক ৬.২ বিক্রয় রেজিস্টার অনুযায়ী আউটপুট ভ্যাট', registerOutputVat, 0n),
       noteRow('Output VAT per general ledger (period)', 'সাধারণ খাতা অনুযায়ী আউটপুট ভ্যাট (মেয়াদ)', glOutputVat, 0n),

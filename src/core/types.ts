@@ -96,6 +96,10 @@ export interface Account {
   ifrs18_category: Ifrs18Category;
   ifrs_statement_line_id: string;
   control_subledger: ControlSubledger;
+  /**
+   * Legacy display-only fields. A posted opening balance comes from an OpeningBalanceBatch journal,
+   * never from these mutable master-data values; the reporting engine ignores them.
+   */
   opening_debit_poisha: bigint;
   opening_credit_poisha: bigint;
   is_active: boolean;
@@ -240,6 +244,26 @@ export interface InventoryItem {
 /** Backwards-compatible alias retained for engines that already import `Item`. */
 export type Item = InventoryItem;
 
+export type StockMovementType = 'RECEIPT' | 'ISSUE' | 'RETURN_IN' | 'RETURN_OUT' | 'ADJUSTMENT';
+
+/**
+ * Explicit stock ledger entry. Quantities are in item units; `value_poisha` is the movement value
+ * at the weighted-average unit cost. A movement is never inferred from an item balance alone.
+ */
+export interface StockMovement {
+  id: string;
+  movement_type: StockMovementType;
+  sku: string;
+  quantity: number;
+  unit_cost_poisha: bigint;
+  value_poisha: bigint;
+  movement_date?: string;
+  source_doc_id?: string;
+  source_doc_ref?: string;
+  /** True only when the caller explicitly overrode the default no-negative-stock policy. */
+  negative_stock_override?: boolean;
+}
+
 /**
  * Connected lifecycle stage for a commercial document. Sales and purchase documents share the
  * union so a single `CommercialDoc` can be advanced through either workflow.
@@ -282,6 +306,27 @@ export interface DocLine {
   cost_center?: string;
 }
 
+/**
+ * Per-line tax result calculated BEFORE document totals. The document keeps one aggregate summary
+ * (base/VAT/etc.) while this array proves that each line was taxed on its own category.
+ */
+export interface DocumentLineTax {
+  line_id: string;
+  sku: string;
+  tax_category: TaxCategory;
+  base_poisha: bigint;
+  sd_poisha: bigint;
+  vat_poisha: bigint;
+  gross_poisha: bigint;
+  vds_poisha: bigint;
+  tds_poisha: bigint;
+  net_payable_poisha: bigint;
+  claimable_poisha: bigint;
+  disallowed_poisha: bigint;
+  decision_state: DecisionState;
+  trace_id: string;
+}
+
 export interface CommercialDoc {
   id: string;
   doc_type: CommercialDocType;
@@ -296,6 +341,10 @@ export interface CommercialDoc {
   party_tin?: string;
   bin_unit_id: string;
   lines: DocLine[];
+  /** Per-line tax evidence. Optional for snapshots created before Phase 1 (recomputed on read). */
+  line_tax?: DocumentLineTax[];
+  /** Every distinct tax category present on the lines, so a mixed-rate document is explicit. */
+  tax_categories?: TaxCategory[];
   base_poisha: bigint;
   sd_poisha: bigint;
   vat_poisha: bigint;
@@ -304,6 +353,9 @@ export interface CommercialDoc {
   gross_poisha: bigint;
   net_payable_poisha: bigint;
   tax_category: TaxCategory;
+  /** Distinct Mushak 6.7 documents carry their own CN series and link to the original invoice. */
+  original_doc_id?: string;
+  original_doc_number?: string;
   tds_nature: TdsNature;
   payment_method: PaymentMethod;
   status: DocumentLifecycleStatus;
@@ -363,6 +415,9 @@ export interface CreateDocInput {
   vehicle_no?: string;
   destination?: string;
   payment_channel?: string;
+  /** A Mushak 6.7 credit note must identify the invoice it corrects. */
+  original_doc_id?: string;
+  original_doc_number?: string;
 }
 
 export type DecisionState =
@@ -498,6 +553,37 @@ export interface TaxAdvisorSnapshot {
 }
 
 export type PeriodStatus = 'OPEN' | 'CLOSED' | 'LOCKED';
+
+/**
+ * Result of resolving a posting date against the configured accounting periods. `UNKNOWN` is not a
+ * period status: it means no configured period covers the date (or no periods were supplied), and
+ * the posting engine must reject it rather than inventing an open period.
+ */
+export type PeriodResolution = PeriodStatus | 'UNKNOWN';
+
+/** A balanced opening-balance batch is a posted journal, never a mutable account-master field. */
+export interface OpeningBalanceLine {
+  id?: string;
+  account_code: string;
+  debit_poisha: bigint;
+  credit_poisha: bigint;
+  party_id?: string;
+  memo?: string;
+}
+
+export interface OpeningBalanceBatch {
+  id: string;
+  batch_date: string;
+  book_type: BookType;
+  bin_unit_id: string;
+  lines: OpeningBalanceLine[];
+  total_debit_poisha: bigint;
+  total_credit_poisha: bigint;
+  balanced: boolean;
+  status: 'DRAFT' | 'POSTED' | 'REVERSED';
+  journal_id?: string;
+  created_by: string;
+}
 
 export interface AccountingPeriod {
   code: string;
@@ -960,19 +1046,24 @@ export interface ToastMessage {
 // RBAC & onboarding contracts (WORKFLOW_BLUEPRINT.md §3)
 // ---------------------------------------------------------------------------------------------
 
-export type UserRole = 'ADMIN' | 'CONTROLLER' | 'ACCOUNTANT' | 'OPERATOR' | 'AUDITOR';
+export type UserRole = 'OWNER' | 'ADMIN' | 'CONTROLLER' | 'ACCOUNTANT' | 'OPERATOR' | 'AUDITOR';
 
 export type PermissionAction =
-  | 'CREATE_COMMERCIAL_DRAFT' // ADMIN, CONTROLLER, ACCOUNTANT, OPERATOR
-  | 'DISPATCH_OR_RECEIVE_STOCK' // ADMIN, CONTROLLER, ACCOUNTANT, OPERATOR
-  | 'POST_TO_GL' // ADMIN, CONTROLLER, ACCOUNTANT
-  | 'APPROVE_HIGH_VALUE' // ADMIN, CONTROLLER (Required when Gross > BDT 5,00,000)
-  | 'OVERRIDE_3WAY_VARIANCE' // ADMIN, CONTROLLER
-  | 'REVERSE_POSTED_JOURNAL' // ADMIN, CONTROLLER
-  | 'SUBMIT_CLOSE_MAKER' // ADMIN, CONTROLLER, ACCOUNTANT
-  | 'APPROVE_CLOSE_CHECKER' // ADMIN, CONTROLLER (Must be different user than Maker!)
-  | 'MANAGE_MASTERS_AND_COA' // ADMIN, CONTROLLER, ACCOUNTANT
-  | 'MANAGE_USERS_AND_ORG'; // ADMIN
+  | 'MANAGE_COMPANY_SETTINGS'
+  | 'CREATE_COMMERCIAL_DRAFT'
+  | 'DISPATCH_OR_RECEIVE_STOCK'
+  | 'POST_TO_GL'
+  | 'APPROVE_HIGH_VALUE'
+  | 'OVERRIDE_3WAY_VARIANCE'
+  | 'REVERSE_POSTED_JOURNAL'
+  | 'SUBMIT_CLOSE_MAKER'
+  | 'APPROVE_CLOSE_CHECKER'
+  | 'MANAGE_MASTERS_AND_COA'
+  | 'MANAGE_USERS_AND_ORG'
+  | 'VIEW_REPORTS'
+  | 'VIEW_LIMITED_REPORTS'
+  | 'EXPORT_DATA'
+  | 'OVERRIDE_NEGATIVE_STOCK';
 
 export interface UserAccount {
   id: string;

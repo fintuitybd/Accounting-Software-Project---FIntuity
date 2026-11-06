@@ -1,5 +1,7 @@
 node_modules
 dist
+server/dist
+server/migrations
 coverage
 .tmp
 package-lock.json
@@ -16,8 +18,8 @@ WORKFLOW_BLUEPRINT.md
 # Existing application source and legacy scripts are intentionally excluded from the Phase 0
 # format gate. Reformatting them would create a large, unrelated diff. Remove these entries in a
 # dedicated formatting-only change, then widen format:check to the whole repository.
-src
-scripts
+/src
+/scripts
 index.html
 postcss.config.js
 tailwind.config.js

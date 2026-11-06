@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Authenticated application routes. Crawlers are welcome on the public site only.
+Disallow: /app
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /accept-invitation
+Disallow: /verify-email
+Disallow: /session-expired
+Disallow: /design

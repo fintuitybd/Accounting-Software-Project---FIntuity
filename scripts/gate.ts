@@ -50,6 +50,7 @@ check(fs.profit_or_loss.mpm.adjusted_ebitda_poisha === fs.profit_or_loss.mpm.ope
 check(fs.notes.length >= 5, `${fs.notes.length} notes to the financial statements built`);
 check(golden.failed === 0 && golden.total === 25, `25 golden tax vectors still pass (${golden.passed}/${golden.total})`);
 
+const openPeriods = dataset.periods.map((period) => ({ ...period, status: 'OPEN' as const }));
 const state: ImportState = {
   tenant: dataset.tenant,
   accounts: dataset.accounts,
@@ -60,13 +61,16 @@ const state: ImportState = {
   bankAccounts: dataset.bankAccounts,
 };
 for (const pipeline of ['SALES_PURCHASE', 'BULK_JOURNAL', 'OPENING_BALANCE', 'BANK_MFS'] as const) {
-  const simulation = applyBatchBalanceRules(parseAndSimulateImport(generateDemoImportBatch(pipeline), state, { pipeline }));
+  const pipelineState: ImportState =
+    pipeline === 'OPENING_BALANCE' ? { ...state, periods: openPeriods } : state;
+  const simulation = applyBatchBalanceRules(parseAndSimulateImport(generateDemoImportBatch(pipeline), pipelineState, { pipeline }));
   check(simulation.rows.length === 25, `${pipeline}: exactly 25 demo rows`);
   check(simulation.valid_rows > 0 && simulation.invalid_rows > 0, `${pipeline}: dry run separates valid from rejected rows`);
-  const result = buildJournalsFromSimulation(simulation, { state, batchId: `B-${pipeline}`, committedBy: 'gate' });
+  const result = buildJournalsFromSimulation(simulation, { state: pipelineState, batchId: `B-${pipeline}`, committedBy: 'gate' });
   const scratch = [...dataset.journals];
+  const postingPeriods = pipeline === 'OPENING_BALANCE' ? openPeriods : dataset.periods;
   for (const draft of result.drafts) {
-    scratch.push(postJournal(draft, { journals: scratch, periods: dataset.periods, accounts: dataset.accounts, actor: 'gate' }));
+    scratch.push(postJournal(draft, { journals: scratch, periods: postingPeriods, accounts: dataset.accounts, actor: 'gate' }));
   }
   check(verifyAuditChain(scratch).valid, `${pipeline}: chain survives commit`);
   const after = buildFinancialStatements({

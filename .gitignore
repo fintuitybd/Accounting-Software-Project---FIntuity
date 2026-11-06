@@ -3,11 +3,18 @@ node_modules/
 
 # Build and test output
 dist/
+server/dist/
 coverage/
 .tmp/
 .vite/
 .vitest/
 *.tsbuildinfo
+
+# Local PostgreSQL data and dumps (never commit database state)
+pgdata/
+.pgdata/
+*.dump
+*.backup
 
 # Local vault exports and generated audit/import artifacts (may contain financial data)
 *.vault.json

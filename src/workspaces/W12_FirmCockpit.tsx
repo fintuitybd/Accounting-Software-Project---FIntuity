@@ -418,8 +418,10 @@ export function RuleImpactSimulator() {
   const [prepCost, setPrepCost] = useState(4_500);
   const [discountBps, setDiscountBps] = useState(950);
 
-  const currentReturns = 12; // Ordinance No. 38 of 2026 — monthly filing, 15-day window
-  const priorReturns = 4; // superseded quarterly-filing proposal in the 2025 draft
+  // Illustrative scenario only. The statutory filing cycle and deadlines are pending tax-counsel
+  // verification; this screen must not be used as evidence of a legal rule.
+  const currentReturns = 12;
+  const priorReturns = 4;
   const extraReturns = Math.max(0, currentReturns - priorReturns) * clients;
   const extraFilingCost = BigInt(Math.round(extraReturns * prepCost)) * 100n;
   const annualVat = BigInt(Math.round(monthlyVat * clients)) * 100n;
@@ -460,11 +462,11 @@ export function RuleImpactSimulator() {
       domain: 'FILING',
       title_en: 'Quarterly → monthly Mushak 9.1',
       title_bn: 'ত্রৈমাসিক → মাসিক মূসক ৯.১',
-      prior_en: '2025 draft: 4 returns a year, 20-day window after the quarter.',
-      prior_bn: '২০২৫ খসড়া: বছরে ৪টি রিটার্ন, ত্রৈমাসিক শেষে ২০ দিনের সময়।',
-      now_en: 'Ordinance No. 38 of 2026: 12 returns a year, 15 days after each tax period (20 for banks, government and nil filers).',
-      now_bn: 'অধ্যাদেশ নং ৩৮/২০২৬: বছরে ১২টি রিটার্ন, প্রতি করমেয়াদের ১৫ দিনের মধ্যে (ব্যাংক, সরকারি ও শূন্য দাখিলকারীর জন্য ২০ দিন)।',
-      citation: 'VAT & SD (Amendment) Ordinance, 2026, s.64',
+      prior_en: 'Illustrative prior scenario only. No statutory filing cycle or deadline is asserted.',
+      prior_bn: 'শুধুমাত্র দৃষ্টান্তমূলক পূর্ববর্তী দৃশ্যপট। কোনো সংবিধিবদ্ধ ফাইলিং চক্র বা সময়সীমা দাবি করা হয় না।',
+      now_en: 'Illustrative scenario only: 12 returns a year. The statutory filing cycle and deadline are not verified and must be confirmed by tax counsel before use.',
+      now_bn: 'শুধুমাত্র দৃষ্টান্তমূলক দৃশ্যপট: বছরে ১২টি রিটার্ন। সংবিধিবদ্ধ ফাইলিং চক্র ও সময়সীমা যাচাইকৃত নয় এবং ব্যবহারের আগে কর পরামর্শক দ্বারা নিশ্চিত করতে হবে।',
+      citation: 'Pending tax-counsel verification — not a legal citation',
     },
     {
       domain: 'FILING',

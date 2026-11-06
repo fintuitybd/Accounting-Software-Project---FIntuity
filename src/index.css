@@ -1,10 +1,10 @@
 /* ============================================================================================
- * LedgerVault — "Lumen" design system.
+ * Fintuity Accounting Suite — Quiet Ledger design system.
  *
- * A calm, contemporary finance OS: cool porcelain in light, deep space in dark, electric indigo
- * for action, orchid for treasury, mint for certainty. One token layer drives every surface,
- * hairline, glow and shadow, so the twelve workspaces inherit the theme without a single
- * duplicated colour literal. Money always renders with tabular lining figures.
+ * A calm, contemporary finance OS: cool mist in light, deep ocean in dark, logo navy for identity
+ * and action, logo teal for accent and certainty. One token layer drives every surface, hairline,
+ * glow and shadow, so every workspace inherits the theme without a single duplicated colour literal.
+ * Money always renders with tabular lining figures.
  * ========================================================================================== */
 
 @tailwind base;
@@ -12,109 +12,276 @@
 @tailwind utilities;
 
 /* ------------------------------------------------------------------------------------------
- * 1. Tokens
+ * 0. Self-hosted typefaces
+ *
+ * Fonts are part of the product, not a third-party request. Inter and Noto Sans Bengali are
+ * licensed under the SIL Open Font License (see public/fonts). No stylesheet blocks first paint;
+ * the system stack remains the fallback while the variable font downloads.
  * ---------------------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/inter-latin-400-700.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/noto-sans-bengali-bengali-400-700.woff2') format('woff2');
+  unicode-range:
+    U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA,
+    U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1, U+11DF0-11DF1;
+}
+
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/noto-sans-bengali-latin-400-700.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ------------------------------------------------------------------------------------------
+ * 0b. Quiet Ledger tokens
+ *
+ * Forward design system for public, authentication and internal design surfaces. The legacy
+ * `lv-*` tokens above remain in place while the twelve workspaces are migrated in Phase 14.
+ * Components must use semantic names (`ql-brand`, `ql-ink-muted`) rather than raw hex values.
+ * ---------------------------------------------------------------------------------------- */
+
+@layer base {
+  :root {
+    --ql-paper: 246 249 250;
+    --ql-surface: 255 255 255;
+    --ql-surface-muted: 237 244 246;
+    --ql-surface-raised: 255 255 255;
+
+    --ql-ink: 10 30 48;
+    --ql-ink-muted: 62 82 99;
+    --ql-ink-subtle: 88 108 123;
+    --ql-ink-inverse: 255 255 255;
+
+    --ql-border: 219 232 235;
+    --ql-border-strong: 191 214 220;
+
+    /* Logo navy is the action/identity colour; logo teal is the accessible accent. */
+    --ql-brand: 0 45 96;
+    --ql-brand-hover: 0 59 122;
+    --ql-brand-soft: 230 246 248;
+    --ql-brand-ink: 255 255 255;
+
+    --ql-accent: 0 122 112;
+    --ql-accent-soft: 222 247 243;
+
+    --ql-success: 6 118 71;
+    --ql-success-soft: 236 253 243;
+    --ql-warning: 181 71 8;
+    --ql-warning-soft: 255 250 235;
+    --ql-danger: 180 35 24;
+    --ql-danger-soft: 254 242 242;
+    --ql-info: 23 92 211;
+    --ql-info-soft: 239 248 255;
+
+    --ql-focus: 29 78 216;
+
+    --ql-radius-control: 6px;
+    --ql-radius-card: 8px;
+    --ql-radius-modal: 10px;
+
+    --ql-shadow-card: 0 1px 2px rgb(10 30 48 / 0.04), 0 3px 10px -4px rgb(10 30 48 / 0.08);
+    --ql-shadow-popover: 0 18px 45px -18px rgb(10 30 48 / 0.28), 0 2px 8px rgb(10 30 48 / 0.08);
+    --ql-shadow-brand: 0 0 0 1px rgb(0 176 160 / 0.18), 0 22px 55px -28px rgb(0 45 96 / 0.5);
+
+    --ql-space-1: 4px;
+    --ql-space-2: 8px;
+    --ql-space-3: 12px;
+    --ql-space-4: 16px;
+    --ql-space-6: 24px;
+    --ql-space-8: 32px;
+    --ql-space-10: 40px;
+    --ql-space-12: 48px;
+    --ql-space-16: 64px;
+
+    --ql-motion-fast: 120ms;
+    --ql-motion-base: 180ms;
+    --ql-motion-slow: 220ms;
+  }
+
+  /* Authentication pages and the authenticated shell honour the saved theme preference. */
+  .dark .ql-auth,
+  .dark .ql-design,
+  .dark .ql-theme {
+    --ql-paper: 6 17 27;
+    --ql-surface: 10 25 37;
+    --ql-surface-muted: 15 35 49;
+    --ql-surface-raised: 12 29 42;
+
+    --ql-ink: 232 246 247;
+    --ql-ink-muted: 177 201 205;
+    --ql-ink-subtle: 140 170 177;
+    --ql-ink-inverse: 3 24 28;
+
+    --ql-border: 35 60 73;
+    --ql-border-strong: 52 82 96;
+
+    --ql-brand: 64 224 208;
+    --ql-brand-hover: 121 239 226;
+    --ql-brand-soft: 10 53 58;
+    --ql-brand-ink: 3 24 28;
+
+    --ql-accent: 94 234 212;
+    --ql-accent-soft: 12 59 61;
+
+    --ql-success: 110 231 183;
+    --ql-success-soft: 17 48 38;
+    --ql-warning: 253 186 116;
+    --ql-warning-soft: 61 38 18;
+    --ql-danger: 253 164 175;
+    --ql-danger-soft: 60 24 30;
+    --ql-info: 147 197 253;
+    --ql-info-soft: 19 41 64;
+
+    --ql-focus: 147 197 253;
+
+    --ql-shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 8px 24px -16px rgb(0 0 0 / 0.8);
+    --ql-shadow-popover: 0 24px 60px -20px rgb(0 0 0 / 0.9), inset 0 1px 0 rgb(255 255 255 / 0.06);
+    --ql-shadow-brand: 0 0 0 1px rgb(64 224 208 / 0.2), 0 24px 60px -24px rgb(0 0 0 / 0.9);
+  }
+
+  .hc .ql-auth,
+  .hc .ql-design,
+  .hc .ql-theme {
+    --ql-paper: 255 255 255;
+    --ql-surface: 255 255 255;
+    --ql-surface-muted: 245 245 245;
+    --ql-ink: 0 0 0;
+    --ql-ink-muted: 24 24 24;
+    --ql-ink-subtle: 40 40 40;
+    --ql-border: 8 8 8;
+    --ql-border-strong: 0 0 0;
+    --ql-brand: 0 0 0;
+    --ql-brand-hover: 0 0 0;
+    --ql-brand-soft: 236 236 236;
+    --ql-brand-ink: 255 255 255;
+    --ql-accent: 0 90 84;
+    --ql-accent-soft: 232 247 244;
+    --ql-focus: 0 0 0;
+    --ql-shadow-card: 3px 3px 0 0 rgb(0 0 0 / 0.92);
+    --ql-shadow-popover: 5px 5px 0 0 rgb(0 0 0 / 0.92);
+  }
+}
 
 @layer base {
   :root {
     color-scheme: light;
 
     /* Canvas & surfaces */
-    --lv-canvas: 247 247 250;
+    --lv-canvas: 246 249 250;
     --lv-surface: 255 255 255;
-    --lv-surface-2: 250 250 252;
-    --lv-surface-3: 243 243 247;
-    --lv-line: 233 233 240;
-    --lv-line-strong: 217 217 228;
+    --lv-surface-2: 250 253 253;
+    --lv-surface-3: 237 244 246;
+    --lv-line: 219 232 235;
+    --lv-line-strong: 191 214 220;
 
     /* Ink */
-    --lv-ink: 11 11 19;
-    --lv-muted: 102 102 122;
-    --ink-50: 249 249 252;
-    --ink-100: 243 243 247;
-    --ink-200: 231 231 238;
-    --ink-300: 211 211 222;
-    --ink-400: 158 158 176;
-    --ink-500: 112 112 132;
-    --ink-600: 81 81 101;
-    --ink-700: 54 54 71;
-    --ink-800: 32 32 46;
-    --ink-900: 15 15 26;
-    --ink-950: 8 8 15;
+    --lv-ink: 10 30 48;
+    --lv-muted: 62 82 99;
+    --ink-50: 247 251 252;
+    --ink-100: 237 244 246;
+    --ink-200: 219 232 235;
+    --ink-300: 191 214 220;
+    --ink-400: 133 157 168;
+    --ink-500: 88 108 123;
+    --ink-600: 62 82 99;
+    --ink-700: 38 60 78;
+    --ink-800: 20 45 65;
+    --ink-900: 10 30 48;
+    --ink-950: 4 17 30;
 
-    /* Brand — electric indigo + orchid + mint */
-    --lv-emerald: 79 70 229;
-    --lv-emerald-deep: 55 48 163;
-    --lv-emerald-bright: 99 102 241;
-    --lv-emerald-soft: 16 185 129;
-    --lv-saffron: 168 85 247;
-    --lv-saffron-soft: 192 132 252;
-    --lv-saffron-deep: 126 34 206;
+    /* Brand — logo navy + logo teal */
+    --lv-emerald: 0 45 96;
+    --lv-emerald-deep: 0 31 66;
+    --lv-emerald-bright: 0 122 112;
+    --lv-emerald-soft: 0 176 160;
+    --lv-saffron: 0 176 160;
+    --lv-saffron-soft: 77 207 195;
+    --lv-saffron-deep: 0 122 112;
 
     /* Shell */
-    --lv-sidebar: 250 250 252;
-    --lv-sidebar-2: 244 244 248;
+    --lv-sidebar: 255 255 255;
+    --lv-sidebar-2: 237 244 246;
     --lv-glass: 255 255 255;
 
     /* Gradient anchors */
-    --lv-brand-from: 79 70 229;
-    --lv-brand-via: 109 76 232;
-    --lv-brand-to: 147 51 234;
-    --lv-mint: 16 185 129;
+    --lv-brand-from: 0 45 96;
+    --lv-brand-via: 0 90 126;
+    --lv-brand-to: 0 176 160;
+    --lv-mint: 0 176 160;
 
     /* Elevation — crisp, layered, never muddy */
     --lv-shadow-card:
-      0 1px 2px rgba(15, 15, 35, 0.035),
-      0 10px 30px -18px rgba(15, 15, 35, 0.14);
+      0 1px 2px rgba(10, 30, 48, 0.035),
+      0 10px 30px -18px rgba(10, 30, 48, 0.14);
     --lv-shadow-card-hover:
-      0 1px 2px rgba(15, 15, 35, 0.045),
-      0 24px 48px -24px rgba(15, 15, 35, 0.22);
+      0 1px 2px rgba(10, 30, 48, 0.045),
+      0 24px 48px -24px rgba(10, 30, 48, 0.22);
     --lv-shadow-lift:
-      0 1px 2px rgba(15, 15, 35, 0.06),
-      0 18px 40px -20px rgba(79, 70, 229, 0.42);
+      0 1px 2px rgba(10, 30, 48, 0.06),
+      0 18px 40px -20px rgba(0, 45, 96, 0.42);
     --lv-shadow-panel:
-      0 40px 110px -38px rgba(9, 9, 24, 0.44),
-      0 2px 10px rgba(9, 9, 24, 0.06);
+      0 40px 110px -38px rgba(4, 17, 30, 0.44),
+      0 2px 10px rgba(4, 17, 30, 0.06);
     --lv-shadow-glow:
-      0 0 0 1px rgba(99, 102, 241, 0.16),
-      0 24px 60px -24px rgba(99, 102, 241, 0.5);
+      0 0 0 1px rgba(0, 176, 160, 0.18),
+      0 24px 60px -24px rgba(0, 45, 96, 0.5);
   }
 
   .dark {
     color-scheme: dark;
 
-    --lv-canvas: 7 7 12;
-    --lv-surface: 13 13 21;
-    --lv-surface-2: 18 18 28;
-    --lv-surface-3: 24 24 36;
-    --lv-line: 34 34 48;
-    --lv-line-strong: 52 52 70;
+    --lv-canvas: 6 17 27;
+    --lv-surface: 10 25 37;
+    --lv-surface-2: 15 35 49;
+    --lv-surface-3: 20 44 58;
+    --lv-line: 35 60 73;
+    --lv-line-strong: 52 82 96;
 
-    --lv-ink: 240 240 247;
-    --lv-muted: 154 154 176;
-    --ink-50: 18 18 28;
-    --ink-100: 23 23 35;
-    --ink-200: 38 38 53;
-    --ink-300: 58 58 78;
-    --ink-400: 112 112 136;
-    --ink-500: 148 148 170;
-    --ink-600: 176 176 196;
-    --ink-700: 200 200 218;
-    --ink-800: 221 221 235;
-    --ink-900: 240 240 247;
-    --ink-950: 8 8 14;
+    --lv-ink: 232 246 247;
+    --lv-muted: 177 201 205;
+    --ink-50: 15 35 49;
+    --ink-100: 20 44 58;
+    --ink-200: 35 60 73;
+    --ink-300: 52 82 96;
+    --ink-400: 140 170 177;
+    --ink-500: 177 201 205;
+    --ink-600: 198 219 222;
+    --ink-700: 214 232 234;
+    --ink-800: 224 240 242;
+    --ink-900: 232 246 247;
+    --ink-950: 243 251 251;
 
-    --lv-emerald: 99 102 241;
-    --lv-emerald-deep: 49 46 129;
-    --lv-emerald-bright: 129 140 248;
-    --lv-emerald-soft: 52 211 153;
-    --lv-saffron: 192 132 252;
-    --lv-saffron-soft: 216 180 254;
-    --lv-saffron-deep: 216 180 254;
+    --lv-emerald: 64 224 208;
+    --lv-emerald-deep: 0 122 112;
+    --lv-emerald-bright: 121 239 226;
+    --lv-emerald-soft: 0 176 160;
+    --lv-saffron: 94 234 212;
+    --lv-saffron-soft: 153 246 228;
+    --lv-saffron-deep: 64 224 208;
 
-    --lv-sidebar: 10 10 17;
-    --lv-sidebar-2: 14 14 23;
-    --lv-glass: 13 13 21;
+    --lv-sidebar: 5 14 23;
+    --lv-sidebar-2: 9 22 33;
+    --lv-glass: 10 25 37;
 
     --lv-shadow-card:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -129,8 +296,8 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.055),
       0 44px 120px -40px rgba(0, 0, 0, 0.98);
     --lv-shadow-glow:
-      0 0 0 1px rgba(129, 140, 248, 0.22),
-      0 24px 70px -24px rgba(99, 102, 241, 0.46);
+      0 0 0 1px rgba(64, 224, 208, 0.22),
+      0 24px 70px -24px rgba(0, 176, 160, 0.46);
   }
 
   .hc {
@@ -202,8 +369,7 @@
       radial-gradient(1100px 800px at 50% 118%, rgba(16, 185, 129, 0.045), transparent 60%),
       linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 320px);
     background-attachment: fixed;
-    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system,
-      'Segoe UI', sans-serif;
+    font-family: 'Inter', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-feature-settings: 'ss01' 1, 'cv11' 1;
     font-variant-numeric: tabular-nums lining-nums;
     -webkit-font-smoothing: antialiased;
@@ -319,8 +485,7 @@
   }
 
   html[lang='bn-BD'] body {
-    font-family: 'Hind Siliguri', 'Noto Sans Bengali', 'Plus Jakarta Sans', system-ui, -apple-system,
-      'Segoe UI', sans-serif;
+    font-family: 'Noto Sans Bengali', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-feature-settings: normal;
     letter-spacing: 0;
   }
@@ -938,6 +1103,422 @@
   .hc .status-dot::after {
     animation: none;
   }
+
+  /* ----------------------------------------------------------------------------------------
+   * Quiet Ledger primitives
+   *
+   * These classes are the public/auth/design-system contract. They use only ql tokens, keep
+   * working text at 13px or larger, and never rely on colour alone to convey status.
+   * -------------------------------------------------------------------------------------- */
+
+  .ql-theme {
+    font-family: 'Inter', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: rgb(var(--ql-ink));
+    background-color: rgb(var(--ql-paper));
+    font-variant-numeric: tabular-nums lining-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .ql-theme :lang(bn),
+  .ql-theme[lang='bn-BD'] {
+    line-height: 1.75;
+  }
+
+  .ql-theme :is(h1, h2, h3, h4) {
+    color: rgb(var(--ql-ink));
+    letter-spacing: -0.025em;
+  }
+
+  .ql-theme ::selection {
+    background-color: rgb(var(--ql-brand) / 0.18);
+    color: rgb(var(--ql-ink));
+  }
+
+  .ql-theme :focus-visible {
+    outline: 2px solid rgb(var(--ql-focus));
+    outline-offset: 2px;
+  }
+
+  .ql-skip-link {
+    @apply absolute left-3 top-3 z-[100] -translate-y-24 rounded-ql-control bg-ql-brand px-4 py-2 text-[14px] font-semibold text-ql-brand-ink transition-transform duration-ql-fast focus:translate-y-0;
+  }
+
+  .ql-btn {
+    @apply inline-flex min-h-11 select-none items-center justify-center gap-2 rounded-ql-control px-4 py-2 text-[14px] font-semibold leading-5 transition duration-ql-fast;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ql-focus focus-visible:ring-offset-2;
+  }
+
+  .ql-btn:disabled,
+  .ql-btn[aria-disabled='true'] {
+    @apply cursor-not-allowed opacity-55;
+  }
+
+  .ql-btn-primary {
+    @apply bg-ql-brand text-ql-brand-ink;
+  }
+
+  .ql-btn-primary:hover:not(:disabled):not([aria-disabled='true']) {
+    @apply bg-ql-brand-hover;
+  }
+
+  .ql-btn-secondary {
+    @apply border border-ql-border-strong bg-ql-surface text-ql-ink;
+  }
+
+  .ql-btn-secondary:hover:not(:disabled):not([aria-disabled='true']) {
+    @apply border-ql-ink-subtle bg-ql-surface-muted;
+  }
+
+  .ql-btn-ghost {
+    @apply text-ql-ink-muted;
+  }
+
+  .ql-btn-ghost:hover:not(:disabled):not([aria-disabled='true']) {
+    @apply bg-ql-brand-soft text-ql-brand;
+  }
+
+  .ql-btn-accent {
+    @apply bg-ql-accent text-ql-ink-inverse;
+  }
+
+  .ql-btn-accent:hover:not(:disabled):not([aria-disabled='true']) {
+    filter: brightness(1.08);
+  }
+
+  .ql-btn-danger {
+    @apply bg-ql-danger text-ql-ink-inverse;
+  }
+
+  .ql-btn-danger:hover:not(:disabled):not([aria-disabled='true']) {
+    filter: brightness(1.08);
+  }
+
+  .ql-btn-sm {
+    @apply min-h-9 px-3 py-1.5 text-[13px];
+  }
+
+  .ql-link {
+    @apply font-semibold text-ql-brand underline decoration-ql-brand/30 underline-offset-4 transition hover:decoration-ql-brand;
+  }
+
+  .ql-card {
+    @apply rounded-ql border border-ql-border bg-ql-surface shadow-ql-card;
+  }
+
+  .ql-card-muted {
+    @apply rounded-ql border border-ql-border bg-ql-surface-muted;
+  }
+
+  .ql-label {
+    @apply mb-1.5 block text-[13px] font-semibold text-ql-ink;
+  }
+
+  .ql-hint {
+    @apply mt-1 block text-[13px] leading-5 text-ql-ink-muted;
+  }
+
+  .ql-input,
+  .ql-select,
+  .ql-textarea {
+    @apply block w-full rounded-ql-control border border-ql-border-strong bg-ql-surface px-3 py-2.5 text-[14px] text-ql-ink transition placeholder:text-ql-ink-subtle;
+    @apply hover:border-ql-ink-subtle focus:border-ql-brand focus:outline-none focus:ring-2 focus:ring-ql-focus/25;
+  }
+
+  .ql-input:disabled,
+  .ql-select:disabled,
+  .ql-textarea:disabled {
+    @apply cursor-not-allowed bg-ql-surface-muted text-ql-ink-subtle;
+  }
+
+  .ql-input[aria-invalid='true'],
+  .ql-select[aria-invalid='true'],
+  .ql-textarea[aria-invalid='true'] {
+    @apply border-ql-danger focus:border-ql-danger focus:ring-ql-danger/25;
+  }
+
+  .ql-field-error {
+    @apply mt-1.5 flex items-start gap-1.5 text-[13px] font-medium text-ql-danger;
+  }
+
+  .ql-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold leading-4;
+  }
+
+  .ql-badge-neutral {
+    @apply bg-ql-surface-muted text-ql-ink-muted;
+  }
+
+  .ql-badge-success {
+    @apply bg-ql-success-soft text-ql-success;
+  }
+
+  .ql-badge-warning {
+    @apply bg-ql-warning-soft text-ql-warning;
+  }
+
+  .ql-badge-danger {
+    @apply bg-ql-danger-soft text-ql-danger;
+  }
+
+  .ql-badge-info {
+    @apply bg-ql-info-soft text-ql-info;
+  }
+
+  .ql-badge-brand {
+    @apply bg-ql-brand-soft text-ql-brand;
+  }
+
+  .ql-alert {
+    @apply flex items-start gap-3 rounded-ql border px-4 py-3 text-[14px] leading-6;
+  }
+
+  .ql-alert-info {
+    @apply border-ql-info/25 bg-ql-info-soft text-ql-ink;
+  }
+
+  .ql-alert-success {
+    @apply border-ql-success/25 bg-ql-success-soft text-ql-ink;
+  }
+
+  .ql-alert-warning {
+    @apply border-ql-warning/30 bg-ql-warning-soft text-ql-ink;
+  }
+
+  .ql-alert-danger {
+    @apply border-ql-danger/25 bg-ql-danger-soft text-ql-ink;
+  }
+
+  .ql-table {
+    @apply w-full border-collapse text-left text-[14px];
+  }
+
+  .ql-table caption {
+    @apply border-b border-ql-border bg-ql-surface px-4 py-3 text-left text-[13px] font-semibold text-ql-ink;
+  }
+
+  .ql-table thead th {
+    @apply border-b border-ql-border bg-ql-surface-muted px-4 py-2.5 text-[12px] font-semibold text-ql-ink-muted;
+  }
+
+  .ql-table tbody td {
+    @apply border-b border-ql-border/80 px-4 py-3 align-top text-[14px] text-ql-ink;
+  }
+
+  .ql-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .ql-table tbody tr:hover {
+    background-color: rgb(var(--ql-brand) / 0.035);
+  }
+
+  .ql-money {
+    @apply text-right font-ql-sans tabular-nums;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .ql-rule {
+    height: 1px;
+    background-color: rgb(var(--ql-border));
+  }
+
+  .ql-ledger-rule {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(var(--ql-border)) 0,
+      rgb(var(--ql-border)) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  }
+
+  .ql-eyebrow {
+    @apply text-[13px] font-semibold text-ql-accent;
+  }
+
+  .ql-display {
+    @apply font-ql-sans font-semibold leading-[1.05] tracking-[-0.035em] text-ql-ink;
+    text-wrap: balance;
+  }
+
+  .ql-spinner {
+    @apply inline-block h-4 w-4 animate-spin rounded-full border-2 border-ql-border-strong border-t-ql-brand;
+  }
+
+  /* Fintuity brand loader: a breathing mark inside a slow orbit. The label is always visible so the
+     loader never relies on motion or colour alone. */
+  /* The supplied Logo.svg contains generous artboard whitespace. These frames crop the whitespace
+     visually without editing the supplied asset: the full lockup and the compact swoosh both come
+     from the same file. */
+  .fintuity-logo-crop {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  .fintuity-logo-crop > img {
+    flex: none;
+    max-width: none;
+  }
+
+  .fintuity-mark-crop {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow:
+      0 1px 2px rgb(10 30 48 / 0.08),
+      0 10px 24px -16px rgb(10 30 48 / 0.3);
+  }
+
+  .fintuity-mark-crop > img {
+    flex: none;
+    max-width: none;
+  }
+
+  .fintuity-loader {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    color: rgb(var(--ql-ink-muted));
+    font-size: 14px;
+  }
+
+  .fintuity-loader-art {
+    position: relative;
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+  }
+
+  .fintuity-loader-art > img {
+    position: relative;
+    z-index: 1;
+    border-radius: 12px;
+    animation: fintuity-breathe 1.9s ease-in-out infinite;
+    box-shadow: 0 14px 30px -14px rgb(var(--ql-brand) / 0.55);
+  }
+
+  .fintuity-loader-ring {
+    position: absolute;
+    inset: -7px;
+    border: 2px solid rgb(var(--ql-brand) / 0.14);
+    border-top-color: rgb(var(--ql-accent));
+    border-radius: 18px;
+    animation: fintuity-orbit 1.15s linear infinite;
+  }
+
+  .fintuity-loader-label {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .fintuity-mark-glow {
+    box-shadow: var(--ql-shadow-brand);
+  }
+
+  @keyframes fintuity-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.06);
+    }
+  }
+
+  @keyframes fintuity-orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .ql-brand-gradient {
+    background-image: linear-gradient(
+      135deg,
+      rgb(var(--ql-brand)) 0%,
+      rgb(var(--ql-brand-hover)) 58%,
+      rgb(var(--ql-accent)) 100%
+    );
+  }
+
+  .ql-auth-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: var(--ql-radius-card);
+    padding: 2rem;
+    color: rgb(255 255 255);
+    background-image:
+      radial-gradient(circle at 85% 8%, rgb(0 176 160 / 0.5), transparent 34%),
+      linear-gradient(145deg, rgb(var(--ql-brand)) 0%, rgb(0 59 96) 58%, rgb(0 107 98) 100%);
+    box-shadow: var(--ql-shadow-brand);
+  }
+
+  .ql-auth-panel::before {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.055) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(circle at 20% 20%, black, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 20% 20%, black, transparent 78%);
+    content: '';
+    pointer-events: none;
+  }
+
+  .ql-auth-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ql-auth-panel :is(h1, h2, h3, p, li) {
+    color: inherit;
+  }
+
+  .ql-auth-panel-muted {
+    color: rgb(255 255 255 / 0.76);
+  }
+
+  .ql-btn-primary {
+    background-image: linear-gradient(
+      135deg,
+      rgb(var(--ql-brand)) 0%,
+      rgb(var(--ql-brand-hover)) 62%,
+      rgb(var(--ql-accent)) 100%
+    );
+  }
+
+  .ql-btn-primary:hover:not(:disabled):not([aria-disabled='true']) {
+    background-image: linear-gradient(
+      135deg,
+      rgb(var(--ql-brand-hover)) 0%,
+      rgb(var(--ql-accent)) 100%
+    );
+  }
+
+  .ql-skeleton {
+    @apply animate-pulse rounded-ql-control bg-ql-surface-muted;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ql-theme *,
+    .ql-theme *::before,
+    .ql-theme *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* ------------------------------------------------------------------------------------------
@@ -1306,5 +1887,368 @@
 
   a[href]::after {
     content: '';
+  }
+}
+
+/* ------------------------------------------------------------------------------------------
+ * 6. Quiet Ledger bridge for the authenticated workspaces
+ *
+ * Phase 14 moves the operating screens onto the Quiet Ledger language without rewriting the
+ * financial workflow code. The legacy `lv-*` and `ink-*` vocabulary is remapped only inside
+ * `.ql-theme`; the isolated demo shell keeps its original Lumen appearance. Working text is never
+ * below 12px, gradients and decorative effects are removed, and status remains text + colour.
+ * ---------------------------------------------------------------------------------------- */
+
+@layer components {
+  .ql-theme {
+    --lv-canvas: 246 249 250;
+    --lv-surface: 255 255 255;
+    --lv-surface-2: 250 253 253;
+    --lv-surface-3: 237 244 246;
+    --lv-line: 219 232 235;
+    --lv-line-strong: 191 214 220;
+
+    --lv-ink: 10 30 48;
+    --lv-muted: 62 82 99;
+
+    --ink-50: 247 251 252;
+    --ink-100: 237 244 246;
+    --ink-200: 219 232 235;
+    --ink-300: 191 214 220;
+    --ink-400: 133 157 168;
+    --ink-500: 88 108 123;
+    --ink-600: 62 82 99;
+    --ink-700: 38 60 78;
+    --ink-800: 20 45 65;
+    --ink-900: 10 30 48;
+    --ink-950: 4 17 30;
+
+    --lv-emerald: 0 45 96;
+    --lv-emerald-deep: 0 31 66;
+    --lv-emerald-bright: 0 122 112;
+    --lv-emerald-soft: 0 176 160;
+    --lv-saffron: 0 122 112;
+    --lv-saffron-soft: 0 176 160;
+    --lv-saffron-deep: 0 90 84;
+
+    --lv-brand-from: 0 45 96;
+    --lv-brand-via: 0 90 126;
+    --lv-brand-to: 0 176 160;
+    --lv-mint: 0 176 160;
+
+    --lv-sidebar: 255 255 255;
+    --lv-sidebar-2: 237 244 246;
+    --lv-glass: 255 255 255;
+
+    --lv-shadow-card: var(--ql-shadow-card);
+    --lv-shadow-card-hover: var(--ql-shadow-card);
+    --lv-shadow-lift: var(--ql-shadow-card);
+    --lv-shadow-panel: var(--ql-shadow-popover);
+    --lv-shadow-glow: var(--ql-shadow-card);
+  }
+
+  .dark .ql-theme {
+    --lv-canvas: 6 17 27;
+    --lv-surface: 10 25 37;
+    --lv-surface-2: 15 35 49;
+    --lv-surface-3: 20 44 58;
+    --lv-line: 35 60 73;
+    --lv-line-strong: 52 82 96;
+
+    --lv-ink: 232 246 247;
+    --lv-muted: 177 201 205;
+
+    --ink-50: 15 35 49;
+    --ink-100: 20 44 58;
+    --ink-200: 35 60 73;
+    --ink-300: 52 82 96;
+    --ink-400: 140 170 177;
+    --ink-500: 177 201 205;
+    --ink-600: 198 219 222;
+    --ink-700: 214 232 234;
+    --ink-800: 224 240 242;
+    --ink-900: 232 246 247;
+    --ink-950: 243 251 251;
+
+    --lv-emerald: 64 224 208;
+    --lv-emerald-deep: 0 122 112;
+    --lv-emerald-bright: 121 239 226;
+    --lv-emerald-soft: 0 176 160;
+    --lv-saffron: 94 234 212;
+    --lv-saffron-soft: 153 246 228;
+    --lv-saffron-deep: 64 224 208;
+    --lv-sidebar: 5 14 23;
+    --lv-sidebar-2: 9 22 33;
+  }
+
+  .ql-theme .lv-card {
+    border-radius: var(--ql-radius-card);
+    border-color: rgb(var(--ql-border));
+    background-color: rgb(var(--ql-surface));
+    box-shadow: var(--ql-shadow-card);
+  }
+
+  .ql-theme .lv-card-pad {
+    padding: 1rem 1.25rem;
+  }
+
+  .ql-theme .lv-card-header {
+    border-color: rgb(var(--ql-border));
+    padding: 0.875rem 1.25rem;
+  }
+
+  .ql-theme .lv-card-interactive:hover {
+    transform: none;
+    border-color: rgb(var(--ql-border-strong));
+    box-shadow: var(--ql-shadow-card);
+  }
+
+  .ql-theme .lv-kicker {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgb(var(--ql-ink-muted));
+  }
+
+  .ql-theme .lv-label {
+    margin-bottom: 0.375rem;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgb(var(--ql-ink-muted));
+  }
+
+  .ql-theme .lv-hint,
+  .ql-theme .lv-meta {
+    font-size: 12px;
+    line-height: 1.55;
+    color: rgb(var(--ql-ink-muted));
+  }
+
+  .ql-theme .lv-btn {
+    min-height: 44px;
+    border-radius: var(--ql-radius-control);
+    padding: 0.5rem 0.875rem;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .ql-theme .lv-btn-primary {
+    background-image: none;
+    background-color: rgb(var(--ql-brand));
+    color: rgb(var(--ql-brand-ink));
+    box-shadow: none;
+  }
+
+  .ql-theme .lv-btn-primary:hover {
+    background-color: rgb(var(--ql-brand-hover));
+    filter: none;
+    box-shadow: none;
+  }
+
+  .ql-theme .lv-btn-primary:active {
+    transform: none;
+  }
+
+  .ql-theme .lv-btn-secondary {
+    border-color: rgb(var(--ql-border-strong));
+    background-color: rgb(var(--ql-surface));
+    color: rgb(var(--ql-ink));
+    box-shadow: none;
+  }
+
+  .ql-theme .lv-btn-secondary:hover {
+    background-color: rgb(var(--ql-surface-muted));
+    color: rgb(var(--ql-ink));
+  }
+
+  .ql-theme .lv-btn-ghost:hover {
+    background-color: rgb(var(--ql-brand-soft));
+    color: rgb(var(--ql-brand));
+  }
+
+  .ql-theme .lv-btn-saffron {
+    background-image: none;
+    background-color: rgb(var(--ql-accent));
+    color: rgb(var(--ql-ink-inverse));
+    box-shadow: none;
+  }
+
+  .ql-theme .lv-input,
+  .ql-theme .lv-select {
+    min-height: 44px;
+    border-radius: var(--ql-radius-control);
+    border-color: rgb(var(--ql-border-strong));
+    background-color: rgb(var(--ql-surface));
+    color: rgb(var(--ql-ink));
+    font-size: 14px;
+    box-shadow: none;
+  }
+
+  .ql-theme .lv-input:hover,
+  .ql-theme .lv-select:hover {
+    border-color: rgb(var(--ql-ink-subtle));
+  }
+
+  .ql-theme .lv-input:focus,
+  .ql-theme .lv-select:focus {
+    border-color: rgb(var(--ql-brand));
+    outline: 2px solid rgb(var(--ql-focus) / 0.45);
+    outline-offset: 1px;
+  }
+
+  .ql-theme .lv-input:disabled,
+  .ql-theme .lv-select:disabled {
+    background-color: rgb(var(--ql-surface-muted));
+    color: rgb(var(--ql-ink-subtle));
+  }
+
+  .ql-theme .lv-table {
+    font-size: 13px;
+  }
+
+  .ql-theme .lv-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-color: rgb(var(--ql-border));
+    background-color: rgb(var(--ql-surface-muted));
+    padding: 0.625rem 0.75rem;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgb(var(--ql-ink-muted));
+    white-space: nowrap;
+  }
+
+  .ql-theme .lv-table tbody td {
+    border-color: rgb(var(--ql-border) / 0.8);
+    padding: 0.625rem 0.75rem;
+    font-size: 13px;
+    color: rgb(var(--ql-ink));
+  }
+
+  .ql-theme .lv-table tbody tr:hover {
+    background-color: rgb(var(--ql-brand) / 0.035);
+  }
+
+  .ql-theme [data-mode='PRO'] .lv-table thead th {
+    padding: 0.5rem 0.75rem;
+    font-size: 12px;
+  }
+
+  .ql-theme [data-mode='PRO'] .lv-table tbody td {
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+  }
+
+  .ql-theme .lv-chip {
+    border-radius: 9999px;
+    padding: 0.25rem 0.625rem;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1rem;
+  }
+
+  .ql-theme .lv-chip-neutral {
+    background-color: rgb(var(--ql-surface-muted));
+    color: rgb(var(--ql-ink-muted));
+    box-shadow: inset 0 0 0 1px rgb(var(--ql-border));
+  }
+
+  .ql-theme .lv-chip-emerald {
+    background-color: rgb(var(--ql-success-soft));
+    color: rgb(var(--ql-success));
+    box-shadow: inset 0 0 0 1px rgb(var(--ql-success) / 0.2);
+  }
+
+  .ql-theme .lv-chip-gold {
+    background-color: rgb(var(--ql-warning-soft));
+    color: rgb(var(--ql-warning));
+    box-shadow: inset 0 0 0 1px rgb(var(--ql-warning) / 0.2);
+  }
+
+  .ql-theme .lv-chip-rose {
+    background-color: rgb(var(--ql-danger-soft));
+    color: rgb(var(--ql-danger));
+    box-shadow: inset 0 0 0 1px rgb(var(--ql-danger) / 0.2);
+  }
+
+  .ql-theme .lv-kbd {
+    min-width: 22px;
+    border-radius: 4px;
+    border-color: rgb(var(--ql-border));
+    background-color: rgb(var(--ql-surface-muted));
+    font-size: 12px;
+    color: rgb(var(--ql-ink-muted));
+    box-shadow: none;
+  }
+
+  .ql-theme .lv-seg {
+    border-radius: var(--ql-radius-control);
+    border-color: rgb(var(--ql-border));
+    background-color: rgb(var(--ql-surface-muted));
+  }
+
+  .ql-theme .lv-seg-item {
+    border-radius: var(--ql-radius-control);
+    font-size: 12px;
+  }
+
+  .ql-theme .lv-code,
+  .ql-theme pre {
+    border-radius: var(--ql-radius-control);
+    font-size: 12px;
+  }
+
+  .ql-theme .lv-tooltip {
+    border-radius: var(--ql-radius-control);
+    font-size: 12px;
+    background-color: rgb(var(--ql-surface));
+    backdrop-filter: none;
+    box-shadow: var(--ql-shadow-popover);
+  }
+
+  .ql-theme .glass-panel,
+  .ql-theme .glass-bar {
+    border-color: rgb(var(--ql-border));
+    background-color: rgb(var(--ql-surface));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--ql-shadow-card);
+  }
+
+  .ql-theme .brand-gradient,
+  .ql-theme .lv-nav-pill,
+  .ql-theme .text-gradient-emerald,
+  .ql-theme .text-gradient-brand {
+    background-image: none;
+    background-color: rgb(var(--ql-brand));
+    color: rgb(var(--ql-brand-ink));
+  }
+
+  .ql-theme .lv-sheen::after,
+  .ql-theme .lv-aurora,
+  .ql-theme .lv-grain::after {
+    display: none;
+  }
+
+  .ql-theme .status-dot::after {
+    animation: none;
+    border-color: rgb(var(--ql-success) / 0.35);
+  }
+
+  .ql-theme .lv-divider {
+    background: rgb(var(--ql-border));
+  }
+
+  .ql-theme .shadow-card,
+  .ql-theme .shadow-card-hover,
+  .ql-theme .shadow-lift,
+  .ql-theme .shadow-panel {
+    box-shadow: var(--ql-shadow-card);
   }
 }

@@ -27,8 +27,6 @@ import {
   Scale,
   ShieldCheck,
   TriangleAlert,
-  UserCheck,
-  Wallet,
   XCircle,
 } from 'lucide-react';
 
@@ -64,20 +62,6 @@ const PROOF_ICON: Record<SubledgerProofRow['key'], typeof Landmark> = {
   TDS_PAYABLE: Landmark,
 };
 
-/** One-click allocation targets for the 2190 suspense queue. */
-const SUSPENSE_TARGETS: Array<{ code: string; en: string; bn: string }> = [
-  { code: '1210', en: 'Match to trade receivable', bn: 'বাণিজ্যিক প্রাপ্যে মিলান' },
-  { code: '2110', en: 'Match to trade payable', bn: 'বাণিজ্যিক প্রদেয়তে মিলান' },
-  { code: '1110', en: 'Identify as bank deposit', bn: 'ব্যাংক জমা হিসেবে চিহ্নিত' },
-  { code: '3200', en: 'Write off to retained earnings', bn: 'সঞ্চিত মুনাফায় অবলোপন' },
-];
-
-type SignerRole = 'MAKER' | 'CHECKER';
-interface StepSignOff {
-  maker: boolean;
-  checker: boolean;
-}
-
 function debitSum(lines: ReadonlyArray<{ debit_poisha: bigint }>): bigint {
   return lines.reduce((total, line) => total + line.debit_poisha, 0n);
 }
@@ -98,12 +82,9 @@ export default function W09_CloseAndControl() {
 
   const [expandedRow, setExpandedRow] = useState<SubledgerProofRow['key'] | null>(null);
   const [activeStep, setActiveStep] = useState(1);
-  const [signOffs, setSignOffs] = useState<Record<number, StepSignOff>>({});
-  const [signerRole, setSignerRole] = useState<SignerRole>('MAKER');
   const [verification, setVerification] = useState<AuditChainResult>(vault.auditChain);
   const [verifiedAt, setVerifiedAt] = useState<string>('');
   const [lensJournalId, setLensJournalId] = useState<string | null>(null);
-  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   const lensJournal = lensJournalId ? vault.journals.find((journal) => journal.id === lensJournalId) ?? null : null;
   const periodStatus = period?.status ?? 'OPEN';
@@ -321,93 +302,9 @@ export default function W09_CloseAndControl() {
     ];
   }, [signals, reconciliation, periodCode, periodEnd, statements.period.start, vault.auditChain.valid, vault.statementLines.length]);
 
-  const signedBy = (step: CloseStep): StepSignOff => signOffs[step.id] ?? { maker: false, checker: false };
-
-  const statusOf = (step: CloseStep): CloseStep['status'] => {
-    const sign = signedBy(step);
-    return sign.maker && sign.checker ? 'PASSED' : step.status;
-  };
-
-  const passedCount = steps.filter((step) => statusOf(step) === 'PASSED').length;
+  const passedCount = steps.filter((step) => step.status === 'PASSED').length;
   const ready = passedCount === steps.length;
   const active = steps.find((step) => step.id === activeStep) ?? steps[0];
-  const makerName = 'Farzana Akter';
-  const checkerName = 'Rafiq Chowdhury FCA';
-
-  const signOff = (step: CloseStep): void => {
-    const current = signedBy(step);
-    if (signerRole === 'CHECKER' && !current.maker) {
-      publishToast({
-        tone: 'warning',
-        title: L('Maker must sign first', 'প্রথমে মেকার স্বাক্ষর করবেন'),
-        message: L('Segregation of duties: the checker cannot sign a step the maker has not prepared.', 'দায়িত্ব পৃথকীকরণ: মেকার প্রস্তুত না করলে চেকার স্বাক্ষর করতে পারেন না।'),
-      });
-      setSignerRole('MAKER');
-      return;
-    }
-    if (current[signerRole === 'MAKER' ? 'maker' : 'checker']) {
-      publishToast({
-        tone: 'info',
-        title: L('Already signed', 'ইতিমধ্যে স্বাক্ষরিত'),
-        message: isBn ? step.title_bn : step.title_en,
-      });
-      return;
-    }
-    setSignOffs((previous) => ({
-      ...previous,
-      [step.id]: { ...current, [signerRole === 'MAKER' ? 'maker' : 'checker']: true },
-    }));
-    publishToast({
-      tone: 'success',
-      title: signerRole === 'MAKER' ? L('Maker sign-off recorded', 'মেকার স্বাক্ষর নথিভুক্ত') : L('Checker sign-off recorded', 'চেকার স্বাক্ষর নথিভুক্ত'),
-      message: `${signerRole === 'MAKER' ? makerName : checkerName} · ${isBn ? step.title_bn : step.title_en}`,
-    });
-    if (signerRole === 'MAKER') setSignerRole('CHECKER');
-  };
-
-  const togglePeriodLock = (): void => {
-    const next = locked ? 'OPEN' : 'LOCKED';
-    if (next === 'LOCKED' && !ready) {
-      publishToast({
-        tone: 'warning',
-        title: L('Close is not complete', 'সমাপনী সম্পূর্ণ নয়'),
-        message: L(`${passedCount} of ${steps.length} steps carry both maker and checker sign-off.`, `${steps.length}-এর মধ্যে ${passedCount} ধাপে মেকার ও চেকার উভয়ের স্বাক্ষর আছে।`),
-      });
-      return;
-    }
-    vault.setPeriodStatus(periodCode, next);
-  };
-
-  const resolveSuspense = (item: (typeof reconciliation.suspense_items)[number], targetCode: string): void => {
-    if (locked) {
-      publishToast({
-        tone: 'warning',
-        title: L('Period is locked', 'সময়কাল লকড'),
-        message: L('Re-open the period before allocating suspense balances.', 'সাসপেন্স ব্যালেন্স বরাদ্দের আগে সময়কাল পুনরায় খুলুন।'),
-      });
-      return;
-    }
-    setResolvingId(item.id);
-    const target = SUSPENSE_TARGETS.find((entry) => entry.code === targetCode);
-    const result = vault.postManualJournal({
-      date: periodEnd,
-      book_type: 'STATUTORY_BD',
-      narration_en: `Suspense allocation — ${item.journal_number} cleared to ${targetCode} ${target?.en ?? ''}`.trim(),
-      narration_bn: `সাসপেন্স বরাদ্দ — ${item.journal_number} থেকে ${targetCode} ${target?.bn ?? ''}`.trim(),
-      lines: [
-        { account_code: '2190', debit_poisha: item.amount_poisha, credit_poisha: 0n, memo: 'Suspense cleared' },
-        { account_code: targetCode, debit_poisha: 0n, credit_poisha: item.amount_poisha, memo: target?.en ?? 'Allocation' },
-      ],
-    });
-    setResolvingId(null);
-    if (result.ok) {
-      publishToast({
-        tone: 'success',
-        title: L('Suspense item cleared', 'সাসপেন্স আইটেম নিষ্পত্তি'),
-        message: `${item.journal_number} · ${money(item.amount_poisha)} → ${targetCode}`,
-      });
-    }
-  };
 
   const reverify = (): void => {
     const result = verifyAuditChain(vault.journals);
@@ -459,22 +356,14 @@ export default function W09_CloseAndControl() {
             <div className="flex items-center gap-2">
               <CryptographicSealSvg size={54} variant={locked ? 'locked' : 'audit'} verified={vault.auditChain.valid} />
               <div>
-                <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-ink-400">{L('Period lock switch', 'সময়কাল লক সুইচ')}</p>
-                <button
-                  type="button"
-                  onClick={togglePeriodLock}
-                  className={`mt-1 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide transition ${
-                    locked
-                      ? 'border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100'
-                      : 'border-vault-300 bg-vault-50 text-vault-800 hover:bg-vault-100'
-                  }`}
-                  aria-pressed={locked}
-                  title={L('Switch the period register between OPEN and LOCKED', 'সময়কাল নিবন্ধন ওপেন ও লকডের মধ্যে পরিবর্তন')}
-                >
-                  {locked ? <Lock size={11} /> : <LockOpen size={11} />}
-                  {locked ? 'LOCKED' : 'OPEN'}
-                  <span className="text-ink-400">→ {locked ? 'OPEN' : 'LOCKED'}</span>
-                </button>
+                <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-400">{L('Period status', 'সময়কাল অবস্থা')}</p>
+                <p className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[12px] font-semibold text-ink-700">
+                  {locked ? <Lock size={12} /> : <LockOpen size={12} />}
+                  {periodStatus}
+                </p>
+                <a href="/app/close" className="mt-1 block text-[12px] font-semibold text-vault-700 hover:text-vault-900">
+                  {L('Open controlled close', 'নিয়ন্ত্রিত সমাপনী খুলুন')} →
+                </a>
               </div>
             </div>
             <span className={`lv-chip ${reconciliation.all_reconciled ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
@@ -685,12 +574,12 @@ export default function W09_CloseAndControl() {
                   <th>{L('Description', 'বিবরণ')}</th>
                   <th className="text-right">{L('Age', 'বয়স')}</th>
                   <th className="text-right">{L('Amount', 'পরিমাণ')}</th>
-                  <th className="text-right">{L('Resolve in 1 click', '১ ক্লিকে নিষ্পত্তি')}</th>
+                  <th className="text-right">{L('Resolution', 'নিষ্পত্তি')}</th>
                   <th className="text-right">{L('GL', 'খতিয়ান')}</th>
                 </tr>
               </thead>
               <tbody>
-                {reconciliation.suspense_items.map((item, index) => (
+                {reconciliation.suspense_items.map((item) => (
                   <tr key={item.id}>
                     <td className="font-mono text-[11px] font-semibold text-vault-700">{item.journal_number}</td>
                     <td className="text-[11px] text-ink-600">{formatDate(item.date, locale)}</td>
@@ -703,25 +592,10 @@ export default function W09_CloseAndControl() {
                       </span>
                     </td>
                     <td className="font-money text-right text-[12px] font-semibold text-ink-900">{money(item.amount_poisha)}</td>
-                    <td>
-                      {index === 0 ? (
-                        <div className="flex flex-wrap items-center justify-end gap-1">
-                          {SUSPENSE_TARGETS.map((target) => (
-                            <button
-                              key={target.code}
-                              type="button"
-                              disabled={locked || resolvingId === item.id}
-                              onClick={() => resolveSuspense(item, target.code)}
-                              className="rounded-md border border-vault-200 bg-white px-1.5 py-1 text-[9px] font-semibold text-vault-800 transition hover:border-vault-500 hover:bg-vault-50 disabled:opacity-40"
-                              title={isBn ? target.bn : target.en}
-                            >
-                              {target.code}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-right text-[9px] text-ink-400">{L('queued — oldest clears first', 'সারিতে — আগে পুরোনোটি')}</p>
-                      )}
+                    <td className="text-right">
+                      <a href="/app/close" className="text-[12px] font-semibold text-vault-700 hover:text-vault-900">
+                        {L('Resolve with approval', 'অনুমোদনসহ নিষ্পত্তি')} →
+                      </a>
                     </td>
                     <td className="text-right">
                       <button type="button" className="text-[11px] font-semibold text-vault-700 hover:text-vault-900" onClick={() => setLensJournalId(item.journal_id)}>
@@ -764,7 +638,7 @@ export default function W09_CloseAndControl() {
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
           <ol className="divide-y divide-ink-100 border-b border-ink-100 lg:border-b-0 lg:border-r">
             {steps.map((step) => {
-              const status = statusOf(step);
+              const status = step.status;
               const selected = step.id === activeStep;
               return (
                 <li key={step.id}>
@@ -783,11 +657,9 @@ export default function W09_CloseAndControl() {
                       <span className="flex items-center gap-1.5">
                         <span className="truncate text-[12px] font-semibold text-ink-900">{isBn ? step.title_bn : step.title_en}</span>
                         {!step.automated && <span className="lv-chip lv-chip-gold shrink-0 !px-1 !py-0 text-[9px]">{L('manual', 'ম্যানুয়াল')}</span>}
-                        <span className={`shrink-0 font-mono text-[9px] ${signedBy(step).maker ? 'text-vault-700' : 'text-ink-300'}`}>M✓</span>
-                        <span className={`shrink-0 font-mono text-[9px] ${signedBy(step).checker ? 'text-vault-700' : 'text-ink-300'}`}>C✓</span>
                       </span>
                       <span className="mt-0.5 block truncate text-[10px] text-ink-400">
-                        {status === 'WARNING' ? L('Needs attention', 'মনোযোগ প্রয়োজন') : status === 'PASSED' ? L('Passed', 'সম্পন্ন') : L('Pending sign-off', 'স্বাক্ষর বাকি')}
+                        {status === 'WARNING' ? L('Needs attention', 'মনোযোগ প্রয়োজন') : status === 'PASSED' ? L('Passed', 'সম্পন্ন') : L('Pending', 'বাকি')}
                       </span>
                     </span>
                   </button>
@@ -804,60 +676,32 @@ export default function W09_CloseAndControl() {
             <p className="mt-1 text-[11px] leading-relaxed text-ink-500">{isBn ? active.description_bn : active.description_en}</p>
 
             <div className={`mt-3 rounded-xl px-3 py-2.5 ${
-              statusOf(active) === 'PASSED' ? 'bg-vault-50' : statusOf(active) === 'WARNING' ? 'bg-rose-50' : 'bg-amber-50'
+              active.status === 'PASSED' ? 'bg-vault-50' : active.status === 'WARNING' ? 'bg-rose-50' : 'bg-amber-50'
             }`}>
-              <p className={`text-[11px] leading-relaxed ${
-                statusOf(active) === 'PASSED' ? 'text-vault-900' : statusOf(active) === 'WARNING' ? 'text-rose-900' : 'text-amber-900'
+              <p className={`text-[12px] leading-relaxed ${
+                active.status === 'PASSED' ? 'text-vault-900' : active.status === 'WARNING' ? 'text-rose-900' : 'text-amber-900'
               }`}>
                 {isBn ? active.detail_bn : active.detail_en}
               </p>
             </div>
 
             <div className="mt-3 rounded-xl border border-ink-200 bg-white px-3 py-2.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="lv-kicker flex items-center gap-1.5"><UserCheck size={11} /> {L('Maker-checker sign-off', 'মেকার-চেকার স্বাক্ষর')}</p>
-                <div className="lv-seg">
-                  <button type="button" data-active={signerRole === 'MAKER'} className="lv-seg-item" onClick={() => setSignerRole('MAKER')}>
-                    {L('Maker', 'মেকার')} · {makerName.split(' ')[0]}
-                  </button>
-                  <button type="button" data-active={signerRole === 'CHECKER'} className="lv-seg-item" onClick={() => setSignerRole('CHECKER')}>
-                    {L('Checker', 'চেকার')} · {checkerName.split(' ')[0]}
-                  </button>
-                </div>
-              </div>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <div className={`rounded-lg px-2.5 py-1.5 ${signedBy(active).maker ? 'bg-vault-50' : 'bg-ink-50'}`}>
-                  <p className="text-[9px] font-semibold uppercase tracking-wide text-ink-400">{L('Maker', 'মেকার')}</p>
-                  <p className={`mt-0.5 text-[11px] font-semibold ${signedBy(active).maker ? 'text-vault-800' : 'text-ink-500'}`}>
-                    {signedBy(active).maker ? <CheckCircle2 size={11} className="mr-1 inline" /> : null}
-                    {signedBy(active).maker ? makerName : L('Awaiting preparation', 'প্রস্তুতির অপেক্ষায়')}
-                  </p>
-                </div>
-                <div className={`rounded-lg px-2.5 py-1.5 ${signedBy(active).checker ? 'bg-vault-50' : 'bg-ink-50'}`}>
-                  <p className="text-[9px] font-semibold uppercase tracking-wide text-ink-400">{L('Checker', 'চেকার')}</p>
-                  <p className={`mt-0.5 text-[11px] font-semibold ${signedBy(active).checker ? 'text-vault-800' : 'text-ink-500'}`}>
-                    {signedBy(active).checker ? <CheckCircle2 size={11} className="mr-1 inline" /> : null}
-                    {signedBy(active).checker ? checkerName : L('Awaiting review', 'পর্যালোচনার অপেক্ষায়')}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="lv-btn lv-btn-primary mt-2 !px-2 !py-1 text-[11px]"
-                disabled={statusOf(active) === 'PASSED'}
-                onClick={() => signOff(active)}
-              >
-                <ShieldCheck size={12} />{' '}
-                {signerRole === 'MAKER'
-                  ? L('Sign as maker with evidence', 'প্রমাণসহ মেকার স্বাক্ষর')
-                  : L('Sign as checker and release', 'চেকার স্বাক্ষর ও মুক্তি')}
-              </button>
+              <p className="text-[13px] font-semibold text-ink-900">{L('Controlled sign-off is server-side', 'নিয়ন্ত্রিত স্বাক্ষর সার্ভারে হয়')}</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-ink-600">
+                {L(
+                  'This demo workspace does not record sign-offs. In the production workspace the signed-in maker prepares a persisted close run, a different authorised checker approves it, and the period locks with an audit trail and exportable close pack.',
+                  'এই ডেমো ওয়ার্কস্পেস স্বাক্ষর সংরক্ষণ করে না। প্রোডাকশন ওয়ার্কস্পেসে সাইন-ইন করা মেকার সংরক্ষিত সমাপনী রান প্রস্তুত করেন, ভিন্ন অনুমোদিত চেকার তা অনুমোদন করেন এবং অডিট ট্রেইল ও রপ্তানযোগ্য সমাপনী প্যাকসহ হিসাবকাল লক হয়।',
+                )}
+              </p>
+              <a href="/app/close" className="lv-btn lv-btn-primary mt-2 !px-2 !py-1 text-[12px]">
+                <ShieldCheck size={12} /> {L('Open controlled close', 'নিয়ন্ত্রিত সমাপনী খুলুন')}
+              </a>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]"
+                className="lv-btn lv-btn-ghost !px-2 !py-1 text-[12px]"
                 disabled={activeStep === 1}
                 onClick={() => setActiveStep((current) => Math.max(1, current - 1))}
               >
@@ -865,21 +709,21 @@ export default function W09_CloseAndControl() {
               </button>
               <button
                 type="button"
-                className="lv-btn lv-btn-secondary !px-2 !py-1 text-[11px]"
+                className="lv-btn lv-btn-secondary !px-2 !py-1 text-[12px]"
                 disabled={activeStep === steps.length}
                 onClick={() => setActiveStep((current) => Math.min(steps.length, current + 1))}
               >
                 {L('Next step', 'পরবর্তী ধাপ')} <ArrowRight size={12} />
               </button>
-              <span className="ml-auto text-[10px] text-ink-400">
-                {active.automated ? L('Automated check', 'স্বয়ংক্রিয় যাচাই') : L('Manual sign-off', 'ম্যানুয়াল স্বাক্ষর')}
+              <span className="ml-auto text-[12px] text-ink-400">
+                {active.automated ? L('Automated check', 'স্বয়ংক্রিয় যাচাই') : L('Manual evidence step', 'ম্যানুয়াল প্রমাণ ধাপ')}
               </span>
             </div>
 
             <p className="mt-3 border-t border-ink-100 pt-2 text-[10px] leading-relaxed text-ink-400">
               {L(
-                'Segregation of duties is enforced in the UI: the checker cannot sign before the maker, and the period register (OPEN / CLOSED / LOCKED) is enforced by the posting engine itself.',
-                'দায়িত্ব পৃথকীকরণ ইন্টারফেসে প্রয়োগ করা: মেকারের আগে চেকার স্বাক্ষর করতে পারেন না, এবং সময়কাল নিবন্ধন (ওপেন / ক্লোজড / লকড) পোস্টিং ইঞ্জিন নিজেই প্রয়োগ করে।',
+                'No sign-off is recorded in this demo. The production close enforces maker-checker on the server and the posting service rejects every CLOSED or LOCKED period.',
+                'এই ডেমোতে কোনো স্বাক্ষর সংরক্ষিত হয় না। প্রোডাকশন সমাপনী সার্ভারে মেকার-চেকার প্রয়োগ করে এবং পোস্টিং সেবা প্রতিটি CLOSED বা LOCKED সময়কাল প্রত্যাখ্যান করে।',
               )}
             </p>
           </div>

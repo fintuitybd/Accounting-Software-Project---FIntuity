@@ -24,11 +24,11 @@ const customer = dataset.parties.find((party) => party.type === 'CUSTOMER')!;
 const supplier = dataset.parties.find((party) => party.type === 'SUPPLIER')!;
 
 // 1. Gap-free Mushak 6.3 allocation per BIN unit
-const serial = allocateMushak63Serial('BU-DHK', dataset.commercialDocs);
+const serial = allocateMushak63Serial('BU-DHK', dataset.commercialDocs, '2026');
 assert(serial === 'M63-2026-00006', `next Dhaka Mushak 6.3 serial is ${serial}`);
-const chattogramSerial = allocateMushak63Serial('BU-CTG', dataset.commercialDocs);
+const chattogramSerial = allocateMushak63Serial('BU-CTG', dataset.commercialDocs, '2026');
 assert(chattogramSerial === 'M63-2026-00001', `Chattogram unit starts its own series (${chattogramSerial})`);
-const sequence = inspectMushak63Sequence('BU-DHK', dataset.commercialDocs);
+const sequence = inspectMushak63Sequence('BU-DHK', dataset.commercialDocs, '2026');
 assert(sequence.gap_free, `Dhaka Mushak 6.3 series is gap-free through ${sequence.last_sequence}`);
 
 // 2. Sales invoice exactly as the shell composes it
@@ -145,6 +145,30 @@ assert(
   journalTotals(revoked.reversal.lines).debit_poisha === journalTotals(documentJournal.lines).credit_poisha,
   'reversal debit total equals the original credit total (debit/credit swapped)',
 );
+let secondReversalRejected = false;
+try {
+  createReversalJournal(revoked.original, 'Duplicate reversal attempt', '2026-10-31', 'selfcheck', {
+    journals,
+    periods: dataset.periods,
+    accounts: dataset.accounts,
+    actor: 'selfcheck',
+  });
+} catch {
+  secondReversalRejected = true;
+}
+assert(secondReversalRejected, 'a second reversal of the same journal is rejected');
+let reversalOfReversalRejected = false;
+try {
+  createReversalJournal(revoked.reversal, 'Reverse the reversal', '2026-10-31', 'selfcheck', {
+    journals,
+    periods: dataset.periods,
+    accounts: dataset.accounts,
+    actor: 'selfcheck',
+  });
+} catch {
+  reversalOfReversalRejected = true;
+}
+assert(reversalOfReversalRejected, 'reversing a reversal is rejected');
 
 // 5. Period lock is enforced
 let lockedRejected = false;
@@ -170,6 +194,54 @@ try {
   lockedRejected = true;
 }
 assert(lockedRejected, 'posting into the LOCKED June 2026 period is rejected');
+
+let closedRejected = false;
+try {
+  postJournal(
+    {
+      book_type: 'STATUTORY_BD',
+      bin_unit_id: 'BU-DHK',
+      document_date: '2026-09-15',
+      posting_date: '2026-09-15',
+      source_module: 'MANUAL_JOURNAL',
+      narration_en: 'Closed period probe',
+      narration_bn: 'বন্ধ মেয়াদ পরীক্ষা',
+      created_by: 'selfcheck',
+      lines: [
+        { account_code: '5200', debit_poisha: 100n },
+        { account_code: '1110', credit_poisha: 100n },
+      ],
+    },
+    { journals, periods: dataset.periods, accounts: dataset.accounts },
+  );
+} catch {
+  closedRejected = true;
+}
+assert(closedRejected, 'posting into the CLOSED September 2026 period is rejected');
+
+let unknownRejected = false;
+try {
+  postJournal(
+    {
+      book_type: 'STATUTORY_BD',
+      bin_unit_id: 'BU-DHK',
+      document_date: '2025-12-15',
+      posting_date: '2025-12-15',
+      source_module: 'MANUAL_JOURNAL',
+      narration_en: 'Unknown period probe',
+      narration_bn: 'অজানা মেয়াদ পরীক্ষা',
+      created_by: 'selfcheck',
+      lines: [
+        { account_code: '5200', debit_poisha: 100n },
+        { account_code: '1110', credit_poisha: 100n },
+      ],
+    },
+    { journals, periods: dataset.periods, accounts: dataset.accounts },
+  );
+} catch {
+  unknownRejected = true;
+}
+assert(unknownRejected, 'posting outside every configured period is rejected');
 
 // 6. Unbalanced journals are rejected before they reach the chain
 let unbalancedRejected = false;

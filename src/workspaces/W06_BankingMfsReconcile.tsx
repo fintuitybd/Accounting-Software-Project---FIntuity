@@ -9,10 +9,8 @@ import {
   ArrowRight,
   ArrowRightLeft,
   BadgeCheck,
-  Banknote,
   Building2,
   Check,
-  CircleCheck,
   CircleDollarSign,
   Coins,
   CreditCard,
@@ -270,7 +268,7 @@ export default function W06_BankingMfsReconcile() {
         isBn={isBn}
         chips={
           <>
-            <span className="lv-chip lv-chip-gold"><Coins size={12} /> {L('MFS fee 1.5% auto-split', 'এমএফএস ফি ১.৫% স্বয়ংক্রিয় বিভাজন')}</span>
+            <span className="lv-chip lv-chip-gold"><Coins size={12} /> {L('Synthetic demo · fee rate is not a policy', 'কৃত্রিম ডেমো · ফি হার কোনো নীতি নয়')}</span>
             <span className={`lv-chip ${counts.unmatched ? 'lv-chip-rose' : 'lv-chip-emerald'}`}>
               {counts.unmatched ? <TriangleAlert size={12} /> : <ShieldCheck size={12} />} {counts.unmatched} {L('unmatched', 'অমিলিত')}
             </span>
@@ -279,6 +277,13 @@ export default function W06_BankingMfsReconcile() {
       />
 
       <main className="space-y-5">
+        <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] leading-relaxed text-amber-900">
+          <TriangleAlert size={14} className="mt-0.5 shrink-0" />
+          {L(
+            'This workspace is synthetic demo data. It does not import a real statement, does not prove tenant reconciliation and the 1.5% fee shown here is only a demo assumption. Use the server-backed Banking page for imported statements, approved GL creation, configured fees and reviewed sign-off.',
+            'এই ওয়ার্কস্পেস কৃত্রিম ডেমো ডেটা। এটি প্রকৃত স্টেটমেন্ট আমদানি করে না, টেন্যান্ট মিলকরণ প্রমাণ করে না এবং এখানে দেখানো ১.৫% ফি কেবল ডেমো অনুমান। প্রকৃত স্টেটমেন্ট আমদানি, অনুমোদিত জিএল তৈরি, কনফিগার করা ফি ও পর্যালোচিত স্বাক্ষরের জন্য সার্ভার-ভিত্তিক ব্যাংকিং পৃষ্ঠা ব্যবহার করুন।',
+          )}
+        </div>
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {bankAccounts.map((account) => {
             const accent = ACCENT[account.accent] ?? ACCENT.vault;
@@ -419,7 +424,7 @@ export default function W06_BankingMfsReconcile() {
               </table>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 bg-ink-50/60 px-4 py-2.5 text-[9.5px] text-ink-500">
-              <span className="flex items-center gap-1.5"><Smartphone size={11} /> {L('MFS fee is separated at 1.50% with `applyRateBps` on BigInt poisha — no float drift.', 'এমএফএস ফি বিগইন্ট পয়সায় `applyRateBps` দিয়ে ১.৫০% বিভক্ত — কোনো ফ্লোট ত্রুটি নেই।')}</span>
+              <span className="flex items-center gap-1.5"><Smartphone size={11} /> {L('Demo assumption: the 1.50% rate is not a configured policy. Production fees come from an account rule or an evidence-backed override.', 'ডেমো অনুমান: ১.৫০% হার কোনো কনফিগার করা নীতি নয়। প্রকৃত ফি হিসাব-ভিত্তিক নিয়ম বা প্রমাণসম্মত ওভাররাইড থেকে আসে।')}</span>
               <span>{L('Click a line to open the workbench', 'ওয়ার্কবেঞ্চ খুলতে লাইনে ক্লিক করুন')} <ArrowRight size={10} className="inline" /></span>
             </div>
           </section>

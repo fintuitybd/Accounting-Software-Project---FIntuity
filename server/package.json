@@ -1,0 +1,38 @@
+{
+  "name": "@ledgervault/server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "migrate": "node src/migrations/cli.ts up",
+    "migrate:down": "node src/migrations/cli.ts down",
+    "migrate:status": "node src/migrations/cli.ts status",
+    "db:reset:dev": "node src/migrations/cli.ts reset-dev",
+    "auth:bootstrap": "node src/scripts/bootstrap.ts"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "2.2.2",
+    "dotenv": "18.0.9",
+    "drizzle-orm": "0.45.4",
+    "fastify": "5.12.8",
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

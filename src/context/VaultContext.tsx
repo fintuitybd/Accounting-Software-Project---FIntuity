@@ -21,12 +21,18 @@ import {
 } from 'react';
 import { createTranslator, type Translator } from '../core/i18n';
 import { addDays, formatPoisha, isoNow } from '../core/money';
-import { buildFinancialStatements } from '../core/ifrs-engine/ifrsEngine';
+import { loadStoredPreferences, saveStoredPreferences } from '../core/storage/preferences';
+import { useAuth } from '../auth/AuthContext';
+import type { AuthCompany, AuthUser, ServerPermission } from '../auth/types';
+import { buildFinancialStatements, previousPeriodCode } from '../core/ifrs-engine/ifrsEngine';
 import {
   buildCogsJournalLines,
+  buildReturnCogsJournalLines,
   calculatePerpetualCogs,
   issueInventoryStock,
+  lineTaxBasePoisha,
   receiveInventoryStock,
+  returnInventoryStock,
   type StockReceiptLine,
 } from '../core/tax-engine/engine';
 import {
@@ -41,13 +47,16 @@ import {
   buildCommercialDoc,
   createReversalJournal,
   journalTotals,
+  nextCommercialDocNumber,
   postJournal,
   periodStatusFor,
   reconcileSubledgers,
+  settleCommercialDoc,
   verifyAuditChain,
   type AuditChainResult,
   type JournalDraft,
   type JournalLineDraft,
+  type SettlementResult,
   type SubledgerReconciliation,
   type TaxAnnotatedDoc,
 } from '../core/ledger/ledgerEngine';
@@ -82,7 +91,9 @@ import type {
   InventoryItem,
   JournalEntry,
   Party,
+  PaymentMethod,
   PermissionAction,
+  StockMovement,
   TdsNature,
   TenantEntity,
   ToastMessage,
@@ -92,58 +103,22 @@ import type {
 } from '../core/types';
 
 const ROLE_PERMISSIONS: Record<PermissionAction, readonly UserRole[]> = {
-  CREATE_COMMERCIAL_DRAFT: ['ADMIN', 'CONTROLLER', 'ACCOUNTANT', 'OPERATOR'],
-  DISPATCH_OR_RECEIVE_STOCK: ['ADMIN', 'CONTROLLER', 'ACCOUNTANT', 'OPERATOR'],
-  POST_TO_GL: ['ADMIN', 'CONTROLLER', 'ACCOUNTANT'],
-  APPROVE_HIGH_VALUE: ['ADMIN', 'CONTROLLER'],
-  OVERRIDE_3WAY_VARIANCE: ['ADMIN', 'CONTROLLER'],
-  REVERSE_POSTED_JOURNAL: ['ADMIN', 'CONTROLLER'],
-  SUBMIT_CLOSE_MAKER: ['ADMIN', 'CONTROLLER', 'ACCOUNTANT'],
-  APPROVE_CLOSE_CHECKER: ['ADMIN', 'CONTROLLER'],
-  MANAGE_MASTERS_AND_COA: ['ADMIN', 'CONTROLLER', 'ACCOUNTANT'],
-  MANAGE_USERS_AND_ORG: ['ADMIN'],
+  MANAGE_COMPANY_SETTINGS: ['OWNER', 'ADMIN', 'CONTROLLER'],
+  CREATE_COMMERCIAL_DRAFT: ['OWNER', 'ADMIN', 'CONTROLLER', 'ACCOUNTANT', 'OPERATOR'],
+  DISPATCH_OR_RECEIVE_STOCK: ['OWNER', 'ADMIN', 'CONTROLLER', 'ACCOUNTANT', 'OPERATOR'],
+  POST_TO_GL: ['OWNER', 'ADMIN', 'CONTROLLER', 'ACCOUNTANT'],
+  APPROVE_HIGH_VALUE: ['OWNER', 'ADMIN', 'CONTROLLER'],
+  OVERRIDE_3WAY_VARIANCE: ['OWNER', 'ADMIN', 'CONTROLLER'],
+  REVERSE_POSTED_JOURNAL: ['OWNER', 'ADMIN', 'CONTROLLER'],
+  SUBMIT_CLOSE_MAKER: ['OWNER', 'ADMIN', 'CONTROLLER', 'ACCOUNTANT'],
+  APPROVE_CLOSE_CHECKER: ['OWNER', 'ADMIN', 'CONTROLLER'],
+  MANAGE_MASTERS_AND_COA: ['OWNER', 'ADMIN', 'CONTROLLER', 'ACCOUNTANT'],
+  MANAGE_USERS_AND_ORG: ['OWNER', 'ADMIN'],
+  VIEW_REPORTS: ['OWNER', 'ADMIN', 'CONTROLLER', 'ACCOUNTANT', 'AUDITOR'],
+  VIEW_LIMITED_REPORTS: ['OPERATOR'],
+  EXPORT_DATA: ['OWNER', 'ADMIN', 'CONTROLLER', 'ACCOUNTANT', 'AUDITOR'],
+  OVERRIDE_NEGATIVE_STOCK: ['OWNER', 'ADMIN', 'CONTROLLER'],
 };
-
-export const ALL_PERMISSIONS = Object.keys(ROLE_PERMISSIONS) as PermissionAction[];
-
-export const PERMISSION_MATRIX: Readonly<Record<PermissionAction, readonly UserRole[]>> = ROLE_PERMISSIONS;
-
-export const ROLE_LABELS: Record<UserRole, { label_en: string; label_bn: string; note_en: string; note_bn: string }> = {
-  ADMIN: {
-    label_en: 'Admin',
-    label_bn: 'প্রশাসক',
-    note_en: 'Full control of the ledger, masters, users and the organisation.',
-    note_bn: 'লেজার, মাস্টার, ব্যবহারকারী ও প্রতিষ্ঠানের সম্পূর্ণ নিয়ন্ত্রণ।',
-  },
-  CONTROLLER: {
-    label_en: 'Controller',
-    label_bn: 'নিয়ন্ত্রক',
-    note_en: 'Approves high-value documents, reversals and the two-person close.',
-    note_bn: 'উচ্চ-মূল্যের ডকুমেন্ট, রিভার্সাল ও দ্বি-ব্যক্তি সমাপনী অনুমোদন করেন।',
-  },
-  ACCOUNTANT: {
-    label_en: 'Accountant',
-    label_bn: 'হিসাবরক্ষক',
-    note_en: 'Posts to the GL, maintains masters and submits periods for close.',
-    note_bn: 'জিএল-এ পোস্ট করেন, মাস্টার রক্ষণাবেক্ষণ ও সময়কাল সমাপনীর জন্য জমা দেন।',
-  },
-  OPERATOR: {
-    label_en: 'Operator',
-    label_bn: 'অপারেটর',
-    note_en: 'Creates commercial drafts and dispatches or receives stock — cannot post to GL.',
-    note_bn: 'বাণিজ্যিক খসড়া তৈরি ও স্টক প্রেরণ/গ্রহণ করেন — জিএল-এ পোস্ট করতে পারেন না।',
-  },
-  AUDITOR: {
-    label_en: 'Auditor',
-    label_bn: 'নিরীক্ষক',
-    note_en: 'Read-only. Every write action is disabled with "Read-Only Auditor Mode".',
-    note_bn: 'শুধুমাত্র পাঠযোগ্য। প্রতিটি লেখা কার্যক্রম "রিড-অনলি অডিটর মোড"-এ নিষ্ক্রিয়।',
-  },
-};
-
-export function permissionsForRole(role: UserRole): PermissionAction[] {
-  return ALL_PERMISSIONS.filter((permission) => ROLE_PERMISSIONS[permission].includes(role));
-}
 
 const SEED_USERS: readonly UserAccount[] = [
   {
@@ -242,6 +217,7 @@ export interface VaultState {
   payrollRows: PayrollEmployeeRow[];
   parties: Party[];
   items: SeedItem[];
+  stockMovements: StockMovement[];
   periods: AccountingPeriod[];
   statutoryRecords: StatutoryNoticeAndLicence[];
 }
@@ -256,15 +232,14 @@ export interface VaultContextValue extends VaultState {
   t: Translator;
   money: (poisha: bigint, options?: { sign?: boolean; symbol?: boolean }) => string;
   statements: ReturnType<typeof buildFinancialStatements>;
+  statementPeriodCode: string;
+  setStatementPeriodCode: (periodCode: string) => void;
   reconciliation: SubledgerReconciliation;
   auditChain: AuditChainResult;
   toasts: ToastMessage[];
   publishToast: (toast: Omit<ToastMessage, 'id'>) => void;
   dismissToast: (id: string) => void;
-  // Identity & access control
-  login: (username: string) => ActionResult<UserAccount>;
-  logout: () => void;
-  switchUserRole: (role: UserRole) => ActionResult<UserAccount>;
+  // Identity & access control (authorization is resolved by the server session in AuthContext)
   hasPermission: (permission: PermissionAction) => boolean;
   // Master data
   addAccount: (input: AccountDraft) => ActionResult<Account>;
@@ -290,6 +265,10 @@ export interface VaultContextValue extends VaultState {
   resetDemoData: () => void;
   // Ledger actions
   postCommercialDoc: (input: CreateDocInput, options?: { settle?: boolean }) => ActionResult<TaxAnnotatedDoc>;
+  settleCommercialDocument: (
+    docId: string,
+    options?: { bank_account_code?: string; settlement_date?: string },
+  ) => ActionResult<SettlementResult<TaxAnnotatedDoc>>;
   postManualJournal: (draft: {
     date: string;
     book_type?: BookType;
@@ -311,7 +290,7 @@ export interface VaultContextValue extends VaultState {
   }) => ActionResult<JournalEntry>;
   receiveVdsCertificate: (certificateId: string) => ActionResult<VdsCertificate>;
   reconcileBankLine: (lineId: string) => ActionResult<BankStatementLine>;
-  nextMushakSerial: (binUnitId: string) => string;
+  nextMushakSerial: (binUnitId: string, year: string) => string;
   importState: ImportState;
   simulateRows: (rows: ImportSheetRow[], pipeline: ImportSimulation['pipeline']) => ImportSimulation;
 }
@@ -348,6 +327,7 @@ function stateFromDataset(dataset: SeedDataset, preferences: Partial<VaultState>
     payrollRows: dataset.payrollRows,
     parties: dataset.parties,
     items: withInventoryDefaults(dataset.items),
+    stockMovements: [],
     periods: dataset.periods,
     statutoryRecords: dataset.statutoryRecords,
   };
@@ -394,6 +374,7 @@ function normalizeRestoredState(revived: Partial<VaultState> | null | undefined)
     periods: revived.periods ?? base.periods,
     parties: revived.parties ?? base.parties,
     items: withInventoryDefaults(revived.items ?? base.items),
+    stockMovements: revived.stockMovements ?? [],
     statutoryRecords: revived.statutoryRecords ?? base.statutoryRecords,
     users,
     currentUser,
@@ -435,6 +416,13 @@ function expenseAccountFor(nature: TdsNature, docType: CreateDocInput['doc_type'
   }
 }
 
+function settlementAccountCode(method: PaymentMethod, channel?: string): string {
+  if (method === 'CASH') return '1130';
+  if (method === 'MFS') return (channel ?? '').toLowerCase().includes('nagad') ? '1125' : '1120';
+  if ((channel ?? '').toLowerCase().includes('brac')) return '1115';
+  return '1110';
+}
+
 function statementLineFromJournal(journal: JournalEntry, bankCodes: Set<string>, sequence: number): BankStatementLine[] {
   const lines: BankStatementLine[] = [];
   let offset = 0;
@@ -449,10 +437,12 @@ function statementLineFromJournal(journal: JournalEntry, bankCodes: Set<string>,
       reference: journal.journal_number,
       debit_poisha: line.debit_poisha,
       credit_poisha: line.credit_poisha,
-      status: 'MATCHED',
-      matched_doc_ref: journal.source_doc_ref,
+      // Demo only: a journal that touches a bank account adds synthetic statement evidence, but it
+      // is never pre-matched. The demo accountant must match it explicitly, as in the server flow.
+      status: 'UNMATCHED',
+      matched_doc_ref: undefined,
       fee_poisha: 0n,
-      journal_id: journal.id,
+      journal_id: undefined,
     });
   }
   return lines;
@@ -556,21 +546,191 @@ function withInventoryDefaults<T extends InventoryItem>(items: readonly T[]): T[
 }
 
 // ---------------------------------------------------------------------------------------------
+// Server-backed shell state
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Phase 3 mounts the real shell without pretending the browser ledger is server data. The blank
+ * state carries identity and display preferences only; financial workspaces are withheld until the
+ * server-authoritative ledger arrives in Phase 5.
+ */
+function realTenant(company: AuthCompany | null): TenantEntity {
+  return {
+    id: company?.id ?? 'NO-COMPANY',
+    persona_key: 'APEX',
+    name_en: company?.legalName ?? 'No company selected',
+    name_bn: company?.legalName ?? 'কোনো কোম্পানি নির্বাচিত নয়',
+    trade_name: company?.tradeName ?? '',
+    entity_type: (company?.entityType as TenantEntity['entity_type']) ?? 'PRIVATE_LIMITED',
+    industry_pack: 'TRADING_DISTRIBUTION',
+    tin_number: company?.tin ?? '',
+    rjsc_reg_no: '',
+    vat_status: 'EXEMPT',
+    is_withholding_entity: false,
+    reporting_framework: 'SIMPLIFIED_MANAGEMENT',
+    fiscal_year_label: 'Not configured',
+    functional_currency: 'BDT',
+    address_en: '',
+    address_bn: '',
+    telephone: '',
+    email: company?.organisationName ?? '',
+    bin_units: company?.bin
+      ? [
+          {
+            id: 'PRINCIPAL',
+            bin_number: company.bin,
+            unit_name_en: 'Principal place of business',
+            unit_name_bn: 'প্রধান কার্যালয়',
+            address: '',
+            is_principal: true,
+          },
+        ]
+      : [],
+    accounting_policies: {
+      inventory_formula: 'WEIGHTED_AVERAGE',
+      depreciation_method: 'STRAIGHT_LINE',
+      ifrs18_early_adoption: false,
+      ecl_provision_matrix_enabled: false,
+      cash_disallowance_limit_poisha: 0n,
+    },
+  };
+}
+
+function authUserToAccount(
+  user: AuthUser | null,
+  company: AuthCompany | null,
+  membership: { role: UserRole } | null,
+): UserAccount {
+  return {
+    id: user?.id ?? 'UNKNOWN',
+    username: user?.email.split('@')[0] ?? 'unknown',
+    full_name: user?.name ?? 'Unknown user',
+    role: company?.role ?? membership?.role ?? 'AUDITOR',
+    email: user?.email ?? '',
+    designation: company?.role ?? membership?.role ?? 'AUDITOR',
+    is_active: user?.status === 'ACTIVE',
+    created_at: '2026-01-01T00:00:00.000Z',
+    ...(user?.lastLoginAt ? { last_login_at: user.lastLoginAt } : {}),
+  };
+}
+
+function buildRealState(
+  preferences: ReturnType<typeof loadStoredPreferences>,
+  currentUser: UserAccount,
+  company: AuthCompany | null,
+): VaultState {
+  return {
+    activePersona: 'APEX',
+    tenant: realTenant(company),
+    mode: preferences.mode ?? 'PRO',
+    locale: preferences.locale ?? 'en-BD',
+    numeralScript: preferences.numeralScript ?? 'latin',
+    grouping: preferences.grouping ?? 'LAKH_CRORE',
+    motionTier: preferences.motionTier ?? 'FULL',
+    theme: preferences.theme ?? 'LIGHT',
+    bookFilter: preferences.bookFilter ?? 'ALL_IFRS_BOOKS',
+    users: [currentUser],
+    currentUser,
+    isAuthenticated: true,
+    accounts: [],
+    journals: [],
+    commercialDocs: [],
+    challans: [],
+    bankAccounts: [],
+    statementLines: [],
+    importBatches: [],
+    vdsCertificates: [],
+    payrollRows: [],
+    parties: [],
+    items: [],
+    stockMovements: [],
+    periods: [],
+    statutoryRecords: [],
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Provider
 // ---------------------------------------------------------------------------------------------
 
-export function VaultProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<VaultState>(() => loadPersistedState() ?? buildInitialState('APEX'));
+export function VaultProvider({ children, demoMode }: { children: ReactNode; demoMode: boolean }) {
+  const auth = useAuth();
+  const currentUser = useMemo(
+    () => authUserToAccount(auth.user, auth.activeCompany, auth.activeMembership),
+    [auth.user, auth.activeCompany, auth.activeMembership],
+  );
+  const [state, setState] = useState<VaultState>(() => {
+    if (!demoMode) return buildRealState(loadStoredPreferences(), currentUser, auth.activeCompany);
+    const base = loadPersistedState() ?? buildInitialState('APEX');
+    return {
+      ...base,
+      currentUser,
+      users: base.users.some((user) => user.id === currentUser.id) ? base.users : [...base.users, currentUser],
+      isAuthenticated: true,
+    };
+  });
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [statementPeriodSelection, setStatementPeriodSelection] = useState<string | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
   const storageReadyRef = useRef(false);
 
-  const hasPermission = useCallback((permission: PermissionAction): boolean => {
-    const { currentUser, isAuthenticated } = stateRef.current;
-    if (!isAuthenticated || !currentUser || !currentUser.is_active) return false;
-    return ROLE_PERMISSIONS[permission].includes(currentUser.role);
+  const defaultStatementPeriod = useMemo(() => {
+    const sorted = [...state.periods].sort((left, right) => right.start_date.localeCompare(left.start_date));
+    const withActivity = sorted.find((period) =>
+      state.journals.some((journal) => journal.period_code === period.code),
+    );
+    return (withActivity ?? sorted[0])?.code ?? new Date().toISOString().slice(0, 7);
+  }, [state.journals, state.periods]);
+
+  const statementPeriodCode =
+    statementPeriodSelection && state.periods.some((period) => period.code === statementPeriodSelection)
+      ? statementPeriodSelection
+      : defaultStatementPeriod;
+
+  const statementComparativeCode = useMemo(() => {
+    const sorted = [...state.periods].sort((left, right) => left.start_date.localeCompare(right.start_date));
+    const index = sorted.findIndex((period) => period.code === statementPeriodCode);
+    return index > 0 ? sorted[index - 1]!.code : previousPeriodCode(statementPeriodCode);
+  }, [state.periods, statementPeriodCode]);
+
+  const setStatementPeriodCode = useCallback((periodCode: string) => {
+    setStatementPeriodSelection(periodCode);
   }, []);
+
+  const hasPermission = useCallback(
+    (permission: PermissionAction): boolean => {
+      if (!auth.demoMode) return auth.hasCompanyPermission(permission as ServerPermission);
+      const { currentUser: actor, isAuthenticated } = stateRef.current;
+      if (!isAuthenticated || !actor || !actor.is_active) return false;
+      return ROLE_PERMISSIONS[permission].includes(actor.role);
+    },
+    [auth],
+  );
+
+  // Keep the legacy context identity in step with the server session. In the real shell the
+  // financial arrays stay empty until the server-authoritative ledger is introduced.
+  useEffect(() => {
+    setState((previous) => {
+      if (demoMode) {
+        return {
+          ...previous,
+          currentUser,
+          users: previous.users.some((user) => user.id === currentUser.id)
+            ? previous.users
+            : [...previous.users, currentUser],
+          isAuthenticated: true,
+        };
+      }
+      return {
+        ...previous,
+        tenant: realTenant(auth.activeCompany),
+        currentUser,
+        users: [currentUser],
+        isAuthenticated: auth.status === 'authenticated',
+      };
+    });
+  }, [demoMode, currentUser, auth.activeCompany, auth.status]);
 
   const publishToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
     const id = `TOAST-${Date.now()}-${Math.round(Math.random() * 9999)}`;
@@ -584,66 +744,32 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     setToasts((current) => current.filter((entry) => entry.id !== id));
   }, []);
 
-  const login = useCallback(
-    (username: string): ActionResult<UserAccount> => {
-      const current = stateRef.current;
-      const needle = username.trim().toLowerCase();
-      if (!needle) return { ok: false, error: 'Choose a user account to sign in.' };
-      const user = current.users.find(
-        (entry) =>
-          entry.is_active &&
-          (entry.id.toLowerCase() === needle ||
-            entry.username.toLowerCase() === needle ||
-            entry.full_name.toLowerCase() === needle),
-      );
-      if (!user) return { ok: false, error: 'No active user matches that login.' };
-      const authenticated: UserAccount = { ...user, last_login_at: isoNow() };
-      setState((previous) => ({
-        ...previous,
-        users: previous.users.map((entry) => (entry.id === authenticated.id ? authenticated : entry)),
-        currentUser: authenticated,
-        isAuthenticated: true,
-      }));
-      publishToast({
-        tone: 'success',
-        title: `Signed in as ${authenticated.full_name}`,
-        message: `${ROLE_LABELS[authenticated.role].label_en} · ${permissionsForRole(authenticated.role).length} of ${ALL_PERMISSIONS.length} permissions.`,
-      });
-      return { ok: true, data: authenticated };
-    },
-    [publishToast],
-  );
-
-  const logout = useCallback(() => {
-    const name = stateRef.current.currentUser.full_name;
-    setState((previous) => ({ ...previous, isAuthenticated: false }));
-    publishToast({
-      tone: 'info',
-      title: `${name} signed out`,
-      message: 'The vault is read-only until a user signs back in.',
-    });
-  }, [publishToast]);
-
-  const switchUserRole = useCallback(
-    (role: UserRole): ActionResult<UserAccount> => {
-      const candidate = stateRef.current.users.find((user) => user.is_active && user.role === role);
-      if (!candidate) return { ok: false, error: `No active user is configured for the ${role} role.` };
-      return login(candidate.username);
-    },
-    [login],
-  );
-
-  // Persist the complete state on every change: localStorage synchronously + IndexedDB in parallel.
-  // The very first write waits for the async IndexedDB hydration probe so a fresher IndexedDB
-  // snapshot is never clobbered by the older localStorage copy before it can be applied.
+  // Demo mode keeps the complete synthetic snapshot. The real shell persists display preferences
+  // only and never writes financial-shaped data to browser storage.
   useEffect(() => {
+    if (!demoMode) {
+      saveStoredPreferences({
+        mode: state.mode,
+        locale: state.locale,
+        numeralScript: state.numeralScript,
+        grouping: state.grouping,
+        motionTier: state.motionTier,
+        theme: state.theme,
+        bookFilter: state.bookFilter,
+      });
+      return;
+    }
     if (!storageReadyRef.current) return;
     persistState(state);
-  }, [state]);
+  }, [state, demoMode]);
 
   // On a cold start the synchronous localStorage copy paints first; this upgrades to the newest
   // IndexedDB snapshot if it is fresher (for example after localStorage was evicted).
   useEffect(() => {
+    if (!demoMode) {
+      storageReadyRef.current = true;
+      return;
+    }
     let cancelled = false;
     const hydrate = async (): Promise<void> => {
       const latest = await loadLatestVaultSnapshot<Partial<VaultState>>();
@@ -661,7 +787,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -706,8 +832,8 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         parties: state.parties,
         bankAccounts: state.bankAccounts,
         bookFilter: state.bookFilter,
-        periodCode: '2026-10',
-        comparativeCode: '2026-09',
+        periodCode: statementPeriodCode,
+        comparativeCode: statementComparativeCode,
       }),
     [
       state.tenant,
@@ -717,6 +843,8 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       state.parties,
       state.bankAccounts,
       state.bookFilter,
+      statementComparativeCode,
+      statementPeriodCode,
     ],
   );
 
@@ -834,6 +962,14 @@ export function VaultProvider({ children }: { children: ReactNode }) {
 
   const setPersona = useCallback(
     (persona: TenantEntity['persona_key']) => {
+      if (!demoMode) {
+        publishToast({
+          tone: 'warning',
+          title: 'Company switching is server-controlled',
+          message: 'Use the signed-in company switcher. The synthetic persona switch is demo-only.',
+        });
+        return;
+      }
       setState((current) => {
         const fresh = createSeedDataset(persona);
         return stateFromDataset(fresh, {
@@ -855,10 +991,18 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         message: 'Demo dataset reloaded for the new tenant.',
       });
     },
-    [publishToast],
+    [publishToast, demoMode],
   );
 
   const resetDemoData = useCallback(() => {
+    if (!demoMode) {
+      publishToast({
+        tone: 'warning',
+        title: 'Demo data reset unavailable',
+        message: 'The real shell never loads synthetic financial data.',
+      });
+      return;
+    }
     setState((current) =>
       stateFromDataset(getSeedDataset(current.activePersona), {
         mode: current.mode,
@@ -878,11 +1022,11 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       title: 'Demo data restored',
       message: 'The seed ledger, chain and documents were rebuilt from the deterministic dataset.',
     });
-  }, [publishToast]);
+  }, [publishToast, demoMode]);
 
   // ---- Posting -----------------------------------------------------------------------------
-  const nextMushakSerial = useCallback((binUnitId: string) => {
-    return allocateMushak63Serial(binUnitId, stateRef.current.commercialDocs);
+  const nextMushakSerial = useCallback((binUnitId: string, year: string) => {
+    return allocateMushak63Serial(binUnitId, stateRef.current.commercialDocs, year);
   }, []);
 
   const postCommercialDoc = useCallback(
@@ -892,87 +1036,138 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       const actor = current.currentUser.full_name;
       const party = current.parties.find((entry) => entry.id === input.party_id);
       if (!party) return { ok: false, error: 'Select a valid counterparty before posting.' };
-      const isSale = input.doc_type === 'SALES_INVOICE' || input.doc_type === 'CREDIT_NOTE';
-      const base = input.lines.reduce(
-        (sum, line) => sum + BigInt(Math.max(0, Math.round(line.quantity))) * line.unit_price_poisha,
-        0n,
-      );
-      if (base <= 0n) return { ok: false, error: 'A document needs at least one priced line.' };
-
-      const docNumber = `${isSale ? 'INV' : input.doc_type === 'EXPENSE_VOUCHER' ? 'PV' : 'PB'}-${input.doc_date.slice(0, 7)}-${String(
-        current.commercialDocs.length + 1,
-      ).padStart(4, '0')}`;
-      const mushakSerial = isSale
-        ? allocateMushak63Serial(input.bin_unit_id, current.commercialDocs)
-        : `M63-SUP-${input.doc_date.slice(0, 7)}-${String(current.commercialDocs.length + 1).padStart(4, '0')}`;
-
-      const built = buildCommercialDoc({
-        doc_type: input.doc_type,
-        doc_number: docNumber,
-        doc_date: input.doc_date,
-        due_date: addDays(input.doc_date, party.credit_days || 15),
-        party,
-        bin_unit_id: input.bin_unit_id,
-        lines: input.lines.map((line, index) => ({ ...line, id: `${docNumber}-L${index + 1}` })),
-        base_poisha: base,
-        tax_category: input.tax_category,
-        tds_nature: input.tds_nature,
-        payment_method: input.payment_method,
-        narration_en: input.narration_en,
-        narration_bn: input.narration_bn,
-        reverse_charge: input.reverse_charge,
-        reverse_charge_challan_held: input.reverse_charge,
-        vds_applicable: input.withhold_vds || isSale ? (input.withhold_vds ? true : party.is_withholding_buyer) : false,
-        mushak_serial: mushakSerial,
-        cost_account_code: expenseAccountFor(input.tds_nature, input.doc_type),
-        book_type: input.book_type,
-        created_by: actor,
-        tenant_is_withholding_entity: current.tenant.is_withholding_entity,
-        vehicle_no: input.vehicle_no,
-        destination: input.destination,
-        payment_channel: input.payment_channel,
-      });
-
-      // ---- Perpetual inventory & COGS (blueprint §4.1–4.2) ---------------------------------
-      const isGoodsReceipt =
-        !isSale && (input.doc_type === 'PURCHASE_BILL' || input.workflow_stage === 'GRN_RECEIVED');
-      let nextItems = current.items;
-      let stockNote = '';
-      built.doc.workflow_stage =
-        input.workflow_stage ?? (isSale ? 'INVOICED_POSTED' : isGoodsReceipt ? 'BILL_POSTED' : 'PURCHASE_ORDER');
-
-      if (input.doc_type === 'SALES_INVOICE') {
-        const cogsPoisha = calculatePerpetualCogs(input.lines, current.items);
-        if (cogsPoisha > 0n) {
-          built.document_lines.push(...buildCogsJournalLines(cogsPoisha, current.accounts, docNumber));
-          stockNote += ` · COGS ${money(cogsPoisha)}`;
+      const isCreditNote = input.doc_type === 'CREDIT_NOTE';
+      if (isCreditNote) {
+        if (!input.original_doc_id) {
+          return {
+            ok: false,
+            error:
+              'A credit note must reference the original posted sales invoice. Open the invoice and select it before posting the credit note.',
+          };
         }
-        const issued = issueInventoryStock(current.items, input.lines);
-        nextItems = issued.items;
-        if (issued.total_issued_qty > 0) stockNote += ` · ${issued.total_issued_qty} unit(s) issued`;
-      } else if (isGoodsReceipt) {
-        const receiptLines: StockReceiptLine[] = input.lines.map((line) => ({
-          sku: line.sku,
-          quantity: line.quantity,
-          unit_cost_poisha: line.unit_price_poisha,
-        }));
-        const disallowedVat =
-          built.decision.input_credit.disallowed_poisha < 0n
-            ? -built.decision.input_credit.disallowed_poisha
-            : built.decision.input_credit.disallowed_poisha;
-        const receipt = receiveInventoryStock(current.items, receiptLines, {
-          basePoisha: base,
-          disallowedVatPoisha: disallowedVat,
-        });
-        nextItems = receipt.items;
-        built.doc.grn_qty = receipt.total_received_qty;
-        built.doc.po_qty = input.po_qty ?? receipt.total_received_qty;
-        if (receipt.total_received_qty > 0) {
-          stockNote += ` · ${receipt.total_received_qty} unit(s) received at weighted average`;
+        const original = current.commercialDocs.find((doc) => doc.id === input.original_doc_id);
+        if (!original || original.doc_type !== 'SALES_INVOICE') {
+          return { ok: false, error: 'The original document for a credit note must be a posted sales invoice.' };
+        }
+        if (original.party_id !== input.party_id) {
+          return { ok: false, error: 'A credit note must be issued to the same party as its original invoice.' };
         }
       }
+      const isSale = input.doc_type === 'SALES_INVOICE' || isCreditNote;
+      const base = input.lines.reduce((sum, line) => sum + lineTaxBasePoisha(line), 0n);
+      if (base <= 0n) return { ok: false, error: 'A document needs at least one priced line.' };
+
+      const docNumber = nextCommercialDocNumber(
+        current.commercialDocs,
+        input.doc_type,
+        input.doc_date,
+        input.bin_unit_id,
+      );
+      const docYear = input.doc_date.slice(0, 4);
+      // Only a sales invoice consumes a Mushak 6.3 serial. A credit note has its own CN series and
+      // a purchase must carry the supplier's actual evidence; the system never invents one.
+      const mushakSerial =
+        input.doc_type === 'SALES_INVOICE'
+          ? allocateMushak63Serial(input.bin_unit_id, current.commercialDocs, docYear)
+          : undefined;
 
       try {
+        const built = buildCommercialDoc({
+          doc_type: input.doc_type,
+          doc_number: docNumber,
+          doc_date: input.doc_date,
+          due_date: addDays(input.doc_date, party.credit_days || 15),
+          party,
+          bin_unit_id: input.bin_unit_id,
+          lines: input.lines.map((line, index) => ({ ...line, id: `${docNumber}-L${index + 1}` })),
+          base_poisha: base,
+          tax_category: input.tax_category,
+          tds_nature: input.tds_nature,
+          payment_method: input.payment_method,
+          narration_en: input.narration_en,
+          narration_bn: input.narration_bn,
+          reverse_charge: input.reverse_charge,
+          reverse_charge_challan_held: input.reverse_charge,
+          vds_applicable: input.withhold_vds || isSale ? (input.withhold_vds ? true : party.is_withholding_buyer) : false,
+          sd_applicable: input.sd_applicable,
+          mushak_serial: mushakSerial,
+          original_doc_id: input.original_doc_id,
+          original_doc_number: input.original_doc_number,
+          cost_account_code: expenseAccountFor(input.tds_nature, input.doc_type),
+          book_type: input.book_type,
+          created_by: actor,
+          tenant_is_withholding_entity: current.tenant.is_withholding_entity,
+          vehicle_no: input.vehicle_no,
+          destination: input.destination,
+          payment_channel: input.payment_channel,
+        });
+
+        // ---- Explicit stock movements and COGS ------------------------------------------------
+        const isGoodsReceipt =
+          !isSale && (input.doc_type === 'PURCHASE_BILL' || input.workflow_stage === 'GRN_RECEIVED');
+        let nextItems = current.items;
+        const newMovements: StockMovement[] = [];
+        let stockNote = '';
+        built.doc.workflow_stage =
+          input.workflow_stage ?? (isSale ? 'INVOICED_POSTED' : isGoodsReceipt ? 'BILL_POSTED' : 'PURCHASE_ORDER');
+
+        if (input.doc_type === 'SALES_INVOICE') {
+          const cogsPoisha = calculatePerpetualCogs(input.lines, current.items);
+          const issued = issueInventoryStock(current.items, input.lines, {
+            movement_date: input.doc_date,
+            source_doc_id: built.doc.id,
+            source_doc_ref: docNumber,
+          });
+          if (cogsPoisha > 0n) {
+            built.document_lines.push(...buildCogsJournalLines(cogsPoisha, current.accounts, docNumber));
+            stockNote += ` · COGS ${money(cogsPoisha)}`;
+          }
+          nextItems = issued.items;
+          newMovements.push(...issued.movements);
+          if (issued.total_issued_qty > 0) stockNote += ` · ${issued.total_issued_qty} unit(s) issued`;
+        } else if (isCreditNote) {
+          const returned = returnInventoryStock(current.items, input.lines, {
+            movement_date: input.doc_date,
+            source_doc_id: built.doc.id,
+            source_doc_ref: docNumber,
+          });
+          if (returned.cogs_reversed_poisha > 0n) {
+            built.document_lines.push(
+              ...buildReturnCogsJournalLines(returned.cogs_reversed_poisha, current.accounts, docNumber),
+            );
+            stockNote += ` · COGS reversed ${money(returned.cogs_reversed_poisha)}`;
+          }
+          nextItems = returned.items;
+          newMovements.push(...returned.movements);
+          if (returned.total_returned_qty > 0) {
+            stockNote += ` · ${returned.total_returned_qty} unit(s) returned to stock`;
+          }
+        } else if (isGoodsReceipt) {
+          const receiptLines: StockReceiptLine[] = input.lines.map((line) => ({
+            sku: line.sku,
+            quantity: line.quantity,
+            unit_cost_poisha: line.unit_price_poisha,
+          }));
+          const disallowedVat =
+            built.decision.input_credit.disallowed_poisha < 0n
+              ? -built.decision.input_credit.disallowed_poisha
+              : built.decision.input_credit.disallowed_poisha;
+          const receipt = receiveInventoryStock(current.items, receiptLines, {
+            basePoisha: base,
+            disallowedVatPoisha: disallowedVat,
+            movement_date: input.doc_date,
+            source_doc_id: built.doc.id,
+            source_doc_ref: docNumber,
+          });
+          nextItems = receipt.items;
+          newMovements.push(...receipt.movements);
+          built.doc.grn_qty = receipt.total_received_qty;
+          built.doc.po_qty = input.po_qty ?? receipt.total_received_qty;
+          if (receipt.total_received_qty > 0) {
+            stockNote += ` · ${receipt.total_received_qty} unit(s) received at weighted average`;
+          }
+        }
+
         const journals = [...current.journals];
         const documentJournal = postJournal(
           {
@@ -996,30 +1191,22 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         journals.push(documentJournal);
         built.doc.document_journal_id = documentJournal.id;
         const newJournals: JournalEntry[] = [documentJournal];
-        const settle = options.settle ?? input.payment_method !== 'CREDIT_CARD';
-        if (settle) {
-          const settlementJournal = postJournal(
+
+        // Settlement is never a default. The caller may ask for it explicitly, in which case the
+        // same full-settlement command used by a later receipt/payment performs the posting.
+        if (options.settle === true && input.doc_type !== 'CREDIT_NOTE') {
+          const settlement = settleCommercialDoc(
+            built.doc,
             {
-              book_type: input.book_type,
-              bin_unit_id: input.bin_unit_id,
-              document_date: input.doc_date,
-              posting_date: input.doc_date,
-              source_module: 'BANK_MFS',
-              source_doc_id: built.doc.id,
-              source_doc_ref: docNumber,
-              narration_en: `Settlement of ${docNumber} — ${party.name_en}`,
-              narration_bn: `${docNumber} নিষ্পত্তি — ${party.name_bn}`,
-              tax_decision_trace_id: built.doc.tax_trace_id,
-              created_by: actor,
-              lines: built.settlement_lines,
+              settlement_date: input.doc_date,
+              bank_account_code: settlementAccountCode(input.payment_method, input.payment_channel),
+              actor,
             },
             { journals, periods: current.periods, accounts: current.accounts, actor },
           );
-          journals.push(settlementJournal);
-          newJournals.push(settlementJournal);
-          built.doc.settlement_journal_id = settlementJournal.id;
-          built.doc.settled_poisha = built.doc.gross_poisha;
-          built.doc.status = 'SETTLED';
+          journals.push(settlement.journal);
+          newJournals.push(settlement.journal);
+          built.doc = settlement.doc;
         }
 
         const bankCodes = new Set(current.bankAccounts.map((bank) => bank.account_code));
@@ -1033,6 +1220,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
           commercialDocs: [built.doc, ...previous.commercialDocs],
           statementLines: [...newStatementLines, ...previous.statementLines],
           items: nextItems,
+          stockMovements: [...newMovements, ...previous.stockMovements],
         }));
         publishToast({
           tone: built.decision.decision === 'SUPPORTED' ? 'success' : 'warning',
@@ -1045,6 +1233,58 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         publishToast({ tone: 'error', title: 'Posting rejected', message });
+        return { ok: false, error: message };
+      }
+    },
+    [hasPermission, money, publishToast],
+  );
+
+  const settleCommercialDocument = useCallback(
+    (
+      docId: string,
+      options: { bank_account_code?: string; settlement_date?: string } = {},
+    ): ActionResult<SettlementResult<TaxAnnotatedDoc>> => {
+      if (!hasPermission('POST_TO_GL')) return deny('POST_TO_GL');
+      const current = stateRef.current;
+      const actor = current.currentUser.full_name;
+      const doc = current.commercialDocs.find((entry) => entry.id === docId);
+      if (!doc) return { ok: false, error: 'Document not found.' };
+      try {
+        const journals = [...current.journals];
+        const settlement = settleCommercialDoc(
+          doc,
+          {
+            settlement_date: options.settlement_date ?? isoToday(),
+            bank_account_code:
+              options.bank_account_code ?? settlementAccountCode(doc.payment_method, doc.payment_channel),
+            actor,
+          },
+          { journals, periods: current.periods, accounts: current.accounts, actor },
+        );
+        journals.push(settlement.journal);
+        const bankCodes = new Set(current.bankAccounts.map((bank) => bank.account_code));
+        const newStatementLines = statementLineFromJournal(
+          settlement.journal,
+          bankCodes,
+          current.statementLines.length + 1,
+        );
+        setState((previous) => ({
+          ...previous,
+          journals,
+          commercialDocs: previous.commercialDocs.map((entry) =>
+            entry.id === doc.id ? settlement.doc : entry,
+          ),
+          statementLines: [...newStatementLines, ...previous.statementLines],
+        }));
+        publishToast({
+          tone: 'success',
+          title: `${doc.doc_number} settled`,
+          message: `${money(doc.gross_poisha - doc.settled_poisha)} · ${settlement.journal.journal_number}`,
+        });
+        return { ok: true, data: settlement };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        publishToast({ tone: 'error', title: 'Settlement rejected', message });
         return { ok: false, error: message };
       }
     },
@@ -1497,9 +1737,9 @@ export function VaultProvider({ children }: { children: ReactNode }) {
           rolled_back_at: isoNow(),
           rollback_journal_ids: rollbackIds,
         };
-        // A rollback must put the operational registers back too: the documents the batch created
-        // are withdrawn (their journals are reversed, never deleted) and the bank statement lines
-        // it posted are removed so the control matrix and the reconciliation come back clean.
+        // A rollback must put the operational registers back too, without deleting document
+        // history: imported documents are marked REVERSED, keep their numbers and remain visible
+        // as audit evidence. Their journals are reversed, never removed.
         const batchDocNumbers = new Set(
           current.journals
             .filter((journal) => batch.journal_ids.includes(journal.id))
@@ -1510,7 +1750,9 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         setState((previous) => ({
           ...previous,
           journals,
-          commercialDocs: previous.commercialDocs.filter((doc) => !batchDocNumbers.has(doc.doc_number)),
+          commercialDocs: previous.commercialDocs.map((doc) =>
+            batchDocNumbers.has(doc.doc_number) ? { ...doc, status: 'REVERSED' } : doc,
+          ),
           statementLines: previous.statementLines.filter(
             (line) => !line.journal_id || !batchJournalIds.has(line.journal_id),
           ),
@@ -1519,7 +1761,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         publishToast({
           tone: 'success',
           title: `Batch ${batchId} rolled back`,
-          message: `${rollbackIds.length} linked reversal journals posted · ${batchDocNumbers.size} imported documents withdrawn. The original journals stay in the chain.`,
+          message: `${rollbackIds.length} linked reversal journals posted · ${batchDocNumbers.size} imported documents marked REVERSED. The original journals stay in the chain.`,
         });
         return { ok: true, data: updated };
       } catch (error) {
@@ -1541,6 +1783,13 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       if (!account.name_en) return { ok: false, error: 'An account name is required.' };
       if (current.accounts.some((entry) => entry.code === account.code)) {
         return { ok: false, error: `Account ${account.code} already exists in the chart of accounts.` };
+      }
+      if (account.opening_debit_poisha !== 0n || account.opening_credit_poisha !== 0n) {
+        return {
+          ok: false,
+          error:
+            'Opening balances must be posted through a balanced opening-balance batch, not entered on a new account master.',
+        };
       }
       setState((previous) => ({ ...previous, accounts: [...previous.accounts, account] }));
       publishToast({
@@ -1567,6 +1816,20 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         code,
         name_en: input.name_en.trim(),
       });
+      const openingChanged =
+        !existing ||
+        existing.opening_debit_poisha !== account.opening_debit_poisha ||
+        existing.opening_credit_poisha !== account.opening_credit_poisha;
+      if (
+        openingChanged &&
+        (account.opening_debit_poisha !== 0n || account.opening_credit_poisha !== 0n)
+      ) {
+        return {
+          ok: false,
+          error:
+            'Opening balances must be posted through a balanced opening-balance batch. The account master cannot create or change a posted opening balance.',
+        };
+      }
       setState((previous) => ({
         ...previous,
         accounts: existing
@@ -1657,6 +1920,12 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   // ---- Company onboarding ------------------------------------------------------------------
   const createCustomTenant = useCallback(
     (input: CustomTenantInput): ActionResult<TenantEntity> => {
+      if (!demoMode) {
+        return {
+          ok: false,
+          error: 'Company onboarding is server-backed from Phase 4; the local demo wizard is disabled.',
+        };
+      }
       if (!hasPermission('MANAGE_USERS_AND_ORG')) return deny('MANAGE_USERS_AND_ORG');
       const current = stateRef.current;
       const nameEn = input.name_en.trim();
@@ -1845,6 +2114,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         payrollRows: [],
         parties: [],
         items: [],
+        stockMovements: [],
         periods,
         statutoryRecords: [],
       }));
@@ -1859,11 +2129,19 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       });
       return { ok: true, data: tenant };
     },
-    [hasPermission, publishToast],
+    [hasPermission, publishToast, demoMode],
   );
 
   // ---- Vault file export / import ----------------------------------------------------------
   const exportVaultFile = useCallback((): string | null => {
+    if (!demoMode) {
+      publishToast({
+        tone: 'warning',
+        title: 'Export unavailable',
+        message: 'Server-side exports will be added with the ledger and audit-pack phases. No browser ledger is exported.',
+      });
+      return null;
+    }
     const current = stateRef.current;
     const fileName = downloadVaultFile(current, { companyName: current.tenant.name_en });
     if (!fileName) {
@@ -1880,15 +2158,21 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       message: `${fileName} · ${current.accounts.length} accounts · ${current.parties.length} parties · ${current.items.length} items · ${current.journals.length} journals.`,
     });
     return fileName;
-  }, [publishToast]);
+  }, [publishToast, demoMode]);
 
   const importVaultFile = useCallback(
     async (file: File): Promise<ActionResult<VaultState>> => {
+      if (!demoMode) {
+        return {
+          ok: false,
+          error: 'A browser vault cannot be restored into the server-backed shell. Use the server import workflow when it is available.',
+        };
+      }
       if (!hasPermission('MANAGE_USERS_AND_ORG')) return deny('MANAGE_USERS_AND_ORG');
       try {
         const parsed = await readVaultFileFromDisk<Partial<VaultState>>(file);
         if (!parsed) {
-          return { ok: false, error: 'That file is not a valid LedgerVault .vault.json snapshot.' };
+          return { ok: false, error: 'That file is not a valid Fintuity Accounting Suite .vault.json snapshot.' };
         }
         const normalized = normalizeRestoredState(parsed.state);
         if (!normalized) {
@@ -1907,7 +2191,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         return { ok: false, error: message };
       }
     },
-    [hasPermission, publishToast],
+    [hasPermission, publishToast, demoMode],
   );
 
   const value = useMemo<VaultContextValue>(
@@ -1916,14 +2200,13 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       t,
       money,
       statements,
+      statementPeriodCode,
+      setStatementPeriodCode,
       reconciliation,
       auditChain,
       toasts,
       publishToast,
       dismissToast,
-      login,
-      logout,
-      switchUserRole,
       hasPermission,
       addAccount,
       upsertAccount,
@@ -1944,6 +2227,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       setPersona,
       resetDemoData,
       postCommercialDoc,
+      settleCommercialDocument,
       postManualJournal,
       reverseJournal,
       commitImportBatch,
@@ -1961,14 +2245,13 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       t,
       money,
       statements,
+      statementPeriodCode,
+      setStatementPeriodCode,
       reconciliation,
       auditChain,
       toasts,
       publishToast,
       dismissToast,
-      login,
-      logout,
-      switchUserRole,
       hasPermission,
       addAccount,
       upsertAccount,
@@ -1989,6 +2272,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       setPersona,
       resetDemoData,
       postCommercialDoc,
+      settleCommercialDocument,
       postManualJournal,
       reverseJournal,
       commitImportBatch,

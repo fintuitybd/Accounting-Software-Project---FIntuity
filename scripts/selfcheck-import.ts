@@ -22,6 +22,10 @@ function assert(condition: boolean, message: string): void {
 }
 
 const dataset = createSeedDataset('APEX');
+// The demo opening-balance batch is dated at the fiscal-year start, which the seed exposes as
+// CLOSED. A historical opening batch can only post when the operator reopens/authorises the
+// period, so this harness uses an OPEN view rather than bypassing the production rule.
+const openPeriods = dataset.periods.map((period) => ({ ...period, status: 'OPEN' as const }));
 const state: ImportState = {
   tenant: dataset.tenant,
   accounts: dataset.accounts,
@@ -34,7 +38,9 @@ const state: ImportState = {
 
 for (const pipeline of ['SALES_PURCHASE', 'BULK_JOURNAL', 'OPENING_BALANCE', 'BANK_MFS'] as const) {
   const rows = generateDemoImportBatch(pipeline);
-  const simulation = applyBatchBalanceRules(parseAndSimulateImport(rows, state, { pipeline }));
+  const pipelineState: ImportState =
+    pipeline === 'OPENING_BALANCE' ? { ...state, periods: openPeriods } : state;
+  const simulation = applyBatchBalanceRules(parseAndSimulateImport(rows, pipelineState, { pipeline }));
   console.log(
     `[${pipeline}] rows=${simulation.rows.length} valid=${simulation.valid_rows} invalid=${simulation.invalid_rows} outVat=${Number(
       simulation.output_vat_poisha,
@@ -52,13 +58,14 @@ for (const pipeline of ['SALES_PURCHASE', 'BULK_JOURNAL', 'OPENING_BALANCE', 'BA
 
   // Commit the valid rows into a scratch ledger and prove the chain + statements still hold.
   const result = buildJournalsFromSimulation(simulation, {
-    state,
+    state: pipelineState,
     batchId: `BATCH-${pipeline}`,
     committedBy: 'selfcheck',
   });
   const scratch = [...dataset.journals];
+  const postingPeriods = pipeline === 'OPENING_BALANCE' ? openPeriods : dataset.periods;
   for (const draft of result.drafts) {
-    const posted = postJournal(draft, { journals: scratch, periods: dataset.periods, accounts: dataset.accounts, actor: 'selfcheck' });
+    const posted = postJournal(draft, { journals: scratch, periods: postingPeriods, accounts: dataset.accounts, actor: 'selfcheck' });
     scratch.push(posted);
   }
   const chain = verifyAuditChain(scratch);

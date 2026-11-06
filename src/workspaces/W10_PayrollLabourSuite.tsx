@@ -1,4 +1,4 @@
-// LedgerVault — W10 Payroll & labour suite.
+// Fintuity Accounting Suite — W10 Payroll & labour suite.
 //
 // Bangladesh Labour (Amendment) Act 2026 payroll under SRO 53-Law/2026: worker classification, the
 // monthly salary register (basic, HRA, medical, transport, a live double-rate overtime calculator,
@@ -249,7 +249,7 @@ export default function W10_PayrollLabourSuite() {
   };
 
   const statutorySummarySheet = (): Array<Array<string | number>> => [
-    ['LedgerVault payroll statutory summary'],
+    ['Fintuity Accounting Suite payroll statutory summary'],
     ['Period', periodCode],
     ['Legal reference', SRO_REFERENCE],
     ['Employees on register', computedRows.length],

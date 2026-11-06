@@ -1,4 +1,4 @@
-// LedgerVault — durable vault storage.
+// Fintuity Accounting Suite — durable vault storage.
 //
 // Two persistence doors over the same JSON snapshot:
 //   1. localStorage  — synchronous, survives tab close and load-shedding;
@@ -23,7 +23,7 @@ export const VAULT_SNAPSHOT_STORE = 'snapshots';
 export const VAULT_SNAPSHOT_KEY = 'current';
 
 export const VAULT_FILE_FORMAT = 'ledgervault.vault';
-export const VAULT_FILE_APP = 'LedgerVault';
+export const VAULT_FILE_APP = 'Fintuity Accounting Suite';
 
 export type VaultSnapshotSource = 'localstorage' | 'indexeddb';
 

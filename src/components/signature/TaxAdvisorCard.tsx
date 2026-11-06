@@ -802,12 +802,22 @@ export function TaxAdvisorCard({
                     {filing ? (
                       <div className="flex items-start gap-2.5 rounded-xl border border-gold-200 bg-gold-50 p-3">
                         <Landmark size={14} className="mt-0.5 shrink-0 text-gold-700" />
-                        <div className="text-[10px] leading-relaxed text-gold-700">
+                        <div className="text-[12px] leading-relaxed text-gold-700">
                           <p className="font-semibold">
-                            {L('VAT return due', 'ভ্যাট রিটার্ন জমার তারিখ')}: {filing.due_date} ({filing.days_after_period} {L('days after period end', 'দিন পর')})
+                            {L(
+                              'Filing deadline pending tax-counsel verification',
+                              'দাখিলের সময়সীমা কর পরামর্শকের যাচাইয়ের অপেক্ষায়',
+                            )}
                           </p>
-                          <p className="mt-0.5">{isBn ? filing.explanation_bn : filing.explanation_en}</p>
-                          <p className="mt-1 font-mono text-[9px] text-gold-700/80">{filing.citation}</p>
+                          <p className="mt-0.5">
+                            {L(
+                              'This demo does not assert a filing deadline, filing frequency or statutory acknowledgement.',
+                              'এই ডেমো কোনো দাখিলের সময়সীমা, ফাইলিং ফ্রিকোয়েন্সি বা সংবিধিবদ্ধ স্বীকৃতি দাবি করে না।',
+                            )}
+                          </p>
+                          <p className="mt-1 font-mono text-[12px] text-gold-700/80">
+                            {L('Rule pack status', 'রুল প্যাক অবস্থা')}: PENDING_TAX_COUNSEL
+                          </p>
                         </div>
                       </div>
                     ) : null}

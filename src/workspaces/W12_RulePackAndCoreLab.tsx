@@ -50,7 +50,6 @@ import {
   createTranslator,
   dictionaryParity,
   localized,
-  monthYearLabel,
   searchDictionary,
   type DictionaryHit,
   type Locale,
@@ -115,7 +114,7 @@ const DEFAULT_FACTS: LabFacts = {
   govtOrBank: false,
   bin: '004271836-0203',
   tin: '138547291063',
-  periodEnd: '2026-10-31',
+  periodEnd: new Date().toISOString().slice(0, 10),
   partyName: 'Meghna Distribution Ltd.',
 };
 
@@ -1003,14 +1002,16 @@ export default function W12_RulePackAndCoreLab() {
                           <span className="lv-kicker flex items-center gap-1.5">
                             <CalendarClock size={13} /> {t('tax.filing.title')}
                           </span>
-                          <span className="lv-chip lv-chip-gold font-money">
-                            {decision.filing.due_date}
+                          <span className="lv-chip lv-chip-gold">
+                            {localized(locale, 'PENDING TAX-COUNSEL VERIFICATION', 'কর পরামর্শকের যাচাইয়ের অপেক্ষায়')}
                           </span>
                         </div>
                         <p className="mt-1 text-xs leading-relaxed text-ink-600">
-                          {monthYearLabel(facts.periodEnd || decision.filing.due_date, locale)} ·{' '}
-                          {t('tax.filing.days', { n: decision.filing.days_after_period })}
-                          {decision.filing.holiday_adjusted ? ` · ${t('tax.filing.holiday')}` : ''}
+                          {localized(
+                            locale,
+                            'No filing deadline is asserted by this demo. The rule pack and statutory template are not approved for filing use.',
+                            'এই ডেমো কোনো দাখিলের সময়সীমা দাবি করে না। রুল প্যাক ও সংবিধিবদ্ধ টেমপ্লেট দাখিলের ব্যবহারের জন্য অনুমোদিত নয়।',
+                          )}
                         </p>
                       </div>
                     ) : null}

@@ -1,4 +1,4 @@
-// LedgerVault — W08 Big-4 publication-grade IAS 1 / IFRS 18 / IAS 7 statements studio.
+// LedgerVault — W08 management-accounts workbench (IAS 1 / IFRS 18 / IAS 7 presentation).
 //
 // One workbench, three control axes: the FRC reporting framework, the multi-book consolidation
 // scope and the P&L presentation basis. Every statement is generated live from the immutable
@@ -703,10 +703,10 @@ export default function W08_IfrsStatementsStudio() {
     });
     publishToast({
       tone: 'success',
-      title: L('9-tab Excel audit workbook exported', '৯-ট্যাব এক্সেল অডিট ওয়ার্কবুক রপ্তানি'),
+      title: L('9-tab management workbook exported', '৯-ট্যাব ব্যবস্থাপনা ওয়ার্কবুক রপ্তানি'),
       message: L(
-        'Summary · Trial balance · IAS 1 balance sheet · IFRS 18 P&L · IAS 7 cash flows · Mushak 6.1 · Mushak 6.2 · VDS/TDS schedule · Immutable GL',
-        'সারসংক্ষেপ · রেওয়ামিল · আইএএস ১ ব্যালেন্স শিট · আইএফআরএস ১৮ পিএল · আইএএস ৭ নগদ প্রবাহ · মূসক ৬.১ · মূসক ৬.২ · ভিডিএস/টিডিএস সূচি · অপরিবর্তনীয় খতিয়ান',
+        'Management accounts — unaudited. Summary · Trial balance · IAS 1 balance sheet · IFRS 18 P&L · IAS 7 cash flows · Mushak 6.1 · Mushak 6.2 · VDS/TDS schedule · Immutable GL',
+        'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়। সারসংক্ষেপ · রেওয়ামিল · আইএএস ১ ব্যালেন্স শিট · আইএফআরএস ১৮ পিএল · আইএএস ৭ নগদ প্রবাহ · মূসক ৬.১ · মূসক ৬.২ · ভিডিএস/টিডিএস সূচি · অপরিবর্তনীয় খতিয়ান',
       ),
     });
   };
@@ -751,19 +751,37 @@ export default function W08_IfrsStatementsStudio() {
           <div>
             <p className="lv-kicker flex items-center gap-1.5"><BookOpen size={12} /> {L('Executive statement workbench', 'নির্বাহী বিবরণী ওয়ার্কবেঞ্চ')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">
-              {L('Audited financial statements', 'নিরীক্ষিত আর্থিক বিবরণী')} · {isBn ? statements.period.label_bn : statements.period.label_en}
+              {L('Management accounts — unaudited', 'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়')} · {isBn ? statements.period.label_bn : statements.period.label_en}
             </h2>
             <p className="lv-hint mt-1">
               {L('Comparative', 'তুলনামূলক')}: {isBn ? statements.comparative.label_bn : statements.comparative.label_en} ·{' '}
               {bookScope} · {journals.length} {L('journals in scope', 'পরিসরের জার্নাল')}
             </p>
+            <p className="mt-1 text-[12px] font-semibold text-amber-700">
+              {L(
+                'These are management accounts prepared from posted journals. No independent audit has been performed and no audit opinion is expressed.',
+                'এগুলো পোস্টকৃত জার্নাল থেকে প্রস্তুত ব্যবস্থাপনা হিসাব। কোনো স্বাধীন নিরীক্ষা সম্পন্ন হয়নি এবং কোনো নিরীক্ষা মতামত প্রকাশ করা হয় না।',
+              )}
+            </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <label className="text-[12px] font-semibold text-ink-600">
+              {L('Statement period', 'বিবরণীর সময়কাল')}
+              <select
+                value={vault.statementPeriodCode}
+                onChange={(event) => vault.setStatementPeriodCode(event.target.value)}
+                className="lv-select mt-1 min-h-11 w-full text-[13px]"
+              >
+                {vault.periods.map((period) => (
+                  <option key={period.code} value={period.code}>{period.code} — {period.status}</option>
+                ))}
+              </select>
+            </label>
             <button type="button" className="lv-btn lv-btn-secondary" onClick={() => setPrintOpen(true)}>
-              <Printer size={14} /> {L('Print A4 Audited Financial Statements Pack', 'এ৪ নিরীক্ষিত আর্থিক বিবরণী প্যাক প্রিন্ট')}
+              <Printer size={14} /> {L('Print A4 management accounts (unaudited)', 'এ৪ ব্যবস্থাপনা হিসাব (নিরীক্ষিত নয়) প্রিন্ট')}
             </button>
             <button type="button" className="lv-btn lv-btn-primary" onClick={exportWorkbook}>
-              <FileSpreadsheet size={14} /> {L('Export 9-Tab Excel Audit Workbook (.xlsx)', '৯-ট্যাব এক্সেল অডিট ওয়ার্কবুক রপ্তানি (.xlsx)')}
+              <FileSpreadsheet size={14} /> {L('Export 9-tab management workbook (.xlsx)', '৯-ট্যাব ব্যবস্থাপনা ওয়ার্কবুক রপ্তানি (.xlsx)')}
             </button>
           </div>
         </div>

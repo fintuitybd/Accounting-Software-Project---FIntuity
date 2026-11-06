@@ -72,7 +72,6 @@ import {
 import {
   buildCommercialDoc,
   documentTaxInput,
-  type JournalLineDraft,
   type TaxAnnotatedDoc,
 } from '../core/ledger/ledgerEngine';
 import type { SeedItem } from '../core/ledger/seedData';
@@ -87,9 +86,6 @@ import type {
   TdsNature,
 } from '../core/types';
 
-const TODAY = '2026-11-01';
-const PERIOD_END = '2026-10-31';
-const PERIOD_CODE = '2026-10';
 const PAYMENT_PREFIX = 'Supplier payment of ';
 
 // ---------------------------------------------------------------------------------------------
@@ -264,8 +260,7 @@ function stageIndex(stage: PurchaseStage): number {
 }
 
 function daysAgoIso(days: number): string {
-  const [year, month, day] = TODAY.split('-').map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
+  const date = new Date();
   date.setUTCDate(date.getUTCDate() - days);
   return date.toISOString().slice(0, 10);
 }
@@ -654,16 +649,21 @@ export default function W03_PurchasesWithholding() {
     tenant,
     parties,
     items,
-    accounts,
     commercialDocs,
     journals,
     currentUser,
     hasPermission,
     postCommercialDoc,
-    postManualJournal,
+    settleCommercialDocument,
+    periods,
+    statementPeriodCode,
+    setStatementPeriodCode,
   } = useVault();
   const isBn = locale === 'bn-BD';
   const L = (en: string, bn: string): string => (isBn ? bn : en);
+  const TODAY = new Date().toISOString().slice(0, 10);
+  const PERIOD_CODE = statementPeriodCode;
+  const PERIOD_END = periods.find((period) => period.code === PERIOD_CODE)?.end_date ?? TODAY;
 
   const suppliers = useMemo(
     () => parties.filter((party) => party.type === 'SUPPLIER' || party.type === 'BOTH'),
@@ -730,7 +730,10 @@ export default function W03_PurchasesWithholding() {
       vds_applicable: withholdVds && !isImported,
       tds_nature: isImported ? 'NONE' : tdsNature,
       payment_method: rail.method,
-      has_valid_mushak63: !isImported,
+      // This screen does not capture the supplier's Mushak 6.3 serial/date, so input credit cannot
+      // be assumed from a local purchase. The preview must show the same blocked credit the posting
+      // engine will apply.
+      has_valid_mushak63: false,
       is_reverse_charge: isImported,
       has_reverse_charge_challan: challanHeld,
       sd_applicable: sd && !isImported,
@@ -797,7 +800,9 @@ export default function W03_PurchasesWithholding() {
     });
   }, [entries, journals, query, stageTab, lifecycleFilter, dateWindow]);
 
-  const periodDocs = purchaseDocs.filter((doc) => doc.doc_date.startsWith(PERIOD_CODE));
+  const periodDocs = purchaseDocs.filter(
+    (doc) => doc.doc_date.startsWith(PERIOD_CODE) && doc.status === 'POSTED',
+  );
   const totals = useMemo(
     () =>
       periodDocs.reduce(
@@ -945,7 +950,6 @@ export default function W03_PurchasesWithholding() {
 
   const activePaymentJournal = activeDoc ? paymentJournalFor(activeDoc, journals) : undefined;
   const activeBankCode = activeDoc ? bankCodeFor(activeDoc.payment_method, activeDoc.payment_channel) : bankCodeFor(rail.method, rail.channel);
-  const accountName = (code: string): string => accounts.find((account) => account.code === code)?.name_en ?? code;
 
   const journalPreview = useMemo(() => {
     const input = activeDoc ? activeTaxInput ?? advisorInput : advisorInput;
@@ -1016,10 +1020,10 @@ export default function W03_PurchasesWithholding() {
       narration_bn: narration || 'ক্রয় দলিল',
       reverse_charge: isImported,
       vds_applicable: withholdVds && !isImported,
+      sd_applicable: sd && !isImported,
       book_type: 'STATUTORY_BD',
       created_by: currentUser.full_name,
       status: 'DRAFT',
-      mushak_serial: `M63-SUP-${docDate.slice(0, 7)}-${String(draftSeq).padStart(4, '0')}`,
       vehicle_no: vehicleNo,
       destination,
       payment_channel: rail.channel,
@@ -1235,53 +1239,9 @@ export default function W03_PurchasesWithholding() {
       setFeedback({ tone: 'info', text: `${L('Payment already posted', 'পরিশোধ ইতিমধ্যে পোস্টেড')} · ${existing.journal_number}` });
       return;
     }
-    const bankCode = bankCodeFor(doc.payment_method, doc.payment_channel);
-    const paymentLines: JournalLineDraft[] = [
-      {
-        account_code: '2110',
-        account_name_en: accountName('2110'),
-        debit_poisha: doc.gross_poisha,
-        memo: `Trade payable settled — ${doc.doc_number}`,
-        party_id: doc.party_id,
-        party_name: doc.party_name_en,
-      },
-    ];
-    if (doc.vds_poisha > 0n) {
-      paymentLines.push({
-        account_code: '2130',
-        account_name_en: accountName('2130'),
-        credit_poisha: doc.vds_poisha,
-        memo: `VDS withheld — Mushak 6.6 challan queued (${doc.doc_number})`,
-        party_id: doc.party_id,
-        party_name: doc.party_name_en,
-      });
-    }
-    if (doc.tds_poisha > 0n) {
-      paymentLines.push({
-        account_code: '2140',
-        account_name_en: accountName('2140'),
-        credit_poisha: doc.tds_poisha,
-        memo: `TDS withheld — Treasury challan queued (${doc.doc_number})`,
-        party_id: doc.party_id,
-        party_name: doc.party_name_en,
-      });
-    }
-    paymentLines.push({
-      account_code: bankCode,
-      account_name_en: accountName(bankCode),
-      credit_poisha: doc.net_payable_poisha,
-      memo: `Paid to supplier net of withholding — ${doc.doc_number}`,
-      party_id: doc.party_id,
-      party_name: doc.party_name_en,
-    });
-
-    const result = postManualJournal({
-      date: TODAY,
-      book_type: doc.book_type,
-      narration_en: `${PAYMENT_PREFIX}${doc.doc_number} — ${doc.party_name_en} · VDS ${money(doc.vds_poisha)} · TDS ${money(doc.tds_poisha)}`,
-      narration_bn: `সরবরাহকারী পরিশোধ ${doc.doc_number} — ${doc.party_name_bn} · ভিডিএস ${money(doc.vds_poisha)} · টিডিএস ${money(doc.tds_poisha)}`,
-      source_module: 'BANK_MFS',
-      lines: paymentLines,
+    const result = settleCommercialDocument(doc.id, {
+      bank_account_code: bankCodeFor(doc.payment_method, doc.payment_channel),
+      settlement_date: TODAY,
     });
     if (!result.ok || !result.data) {
       setFeedback({ tone: 'error', text: result.error ?? L('Payment rejected.', 'পরিশোধ বাতিল হয়েছে।') });
@@ -1289,7 +1249,9 @@ export default function W03_PurchasesWithholding() {
     }
     setFeedback({
       tone: 'success',
-      text: `${L('Payment', 'পরিশোধ')} ${result.data.journal_number} · ${money(doc.net_payable_poisha)} ${L('paid', 'প্রদত্ত')} · ${L('VDS/TDS queued for the treasury challan', 'ভিডিএস/টিডিএস ট্রেজারি চালানের জন্য অপেক্ষমাণ')}`,
+      text: `${L('Payment', 'পরিশোধ')} ${result.data.journal.journal_number} · ${money(
+        doc.gross_poisha - doc.vds_poisha - doc.tds_poisha,
+      )} ${L('paid', 'প্রদত্ত')} · ${L('bill settled and AP 2110 cleared; VDS/TDS queued for the treasury challan', 'বিল নিষ্পত্তি ও এপি ২১১০ সমন্বয়; ভিডিএস/টিডিএস ট্রেজারি চালানের জন্য অপেক্ষমাণ')}`,
     });
   };
 
@@ -1549,8 +1511,20 @@ export default function W03_PurchasesWithholding() {
         }
         actions={
           <>
+            <label className="text-[12px] font-semibold text-ink-600">
+              <span className="sr-only">{L('VAT period', 'ভ্যাট সময়কাল')}</span>
+              <select
+                value={PERIOD_CODE}
+                onChange={(event) => setStatementPeriodCode(event.target.value)}
+                className="lv-select min-h-9 text-[12px]"
+              >
+                {periods.map((period) => (
+                  <option key={period.code} value={period.code}>{period.code} — {period.status}</option>
+                ))}
+              </select>
+            </label>
             <button type="button" className="lv-btn lv-btn-secondary !py-1.5 !text-[11px]" onClick={() => setPrintReturnOpen(true)}>
-              <Printer size={13} /> {L('A4 9.1', 'এ৪ ৯.১')}
+              <Printer size={13} /> {L('Internal VAT draft', 'অভ্যন্তরীণ ভ্যাট খসড়া')}
             </button>
             <button
               type="button"
@@ -1564,6 +1538,18 @@ export default function W03_PurchasesWithholding() {
           </>
         }
       />
+
+      <div className="mx-1 mb-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-[12px] leading-relaxed text-amber-900 dark:text-amber-100">
+        <p className="font-semibold">
+          {L('Synthetic demo only — this screen is not the server-backed purchase ledger.', 'শুধুমাত্র সিন্থেটিক ডেমো — এই স্ক্রিনটি সার্ভার-ভিত্তিক ক্রয় লেজার নয়।')}
+        </p>
+        <p className="mt-1">
+          {L(
+            'The real procure-to-pay flow is at /app/purchases. This demo keeps local PO/GRN/three-way-match interactions for illustration; those stages are not implemented in production and must not be used for real books.',
+            'প্রকৃত ক্রয়-থেকে-পরিশোধ প্রবাহ /app/purchases-এ রয়েছে। এই ডেমোতে স্থানীয় PO/GRN/থ্রি-ওয়ে মিলিং শুধু উদাহরণের জন্য রাখা হয়েছে; উৎপাদনে এই ধাপগুলি নেই এবং প্রকৃত হিসাবের জন্য ব্যবহার করা যাবে না।',
+          )}
+        </p>
+      </div>
 
       <main className="space-y-4">
         {/* ZONE A — pipeline stage bar + filters */}

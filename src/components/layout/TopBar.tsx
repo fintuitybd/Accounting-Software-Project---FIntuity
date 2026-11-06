@@ -5,6 +5,7 @@
 // The bar stays single-line at every width — labels retire before controls ever wrap.
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Building2,
@@ -19,6 +20,7 @@ import {
   FileText,
   Gauge,
   Hash,
+  LogOut,
   Menu,
   Moon,
   PanelLeftClose,
@@ -37,9 +39,11 @@ import {
 
 import { localized } from '../../core/i18n';
 import { tenantByKey } from '../../core/ledger/seedData';
-import { ROLE_LABELS, useVault } from '../../context/VaultContext';
+import { useVault } from '../../context/VaultContext';
+import { useAuth } from '../../auth/AuthContext';
+import { ROLE_LABELS, ROLE_TONE } from '../../auth/roles';
 import { useWorkspaceNav } from './WorkspaceNav';
-import type { TenantEntity, UserRole } from '../../core/types';
+import type { EntityType, TenantEntity } from '../../core/types';
 import type { WorkspaceKey } from '../../workspaces/registry';
 import { entityTypeLabel } from '../../workspaces/registry';
 
@@ -77,16 +81,6 @@ const PERSONA_META: Array<{
   },
 ];
 
-const USER_ROLES: readonly UserRole[] = ['ADMIN', 'CONTROLLER', 'ACCOUNTANT', 'OPERATOR', 'AUDITOR'];
-
-const ROLE_TONE: Record<UserRole, string> = {
-  ADMIN: 'bg-vault-100 text-vault-700 dark:bg-vault-500/15 dark:text-vault-300',
-  CONTROLLER: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300',
-  ACCOUNTANT: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  OPERATOR: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  AUDITOR: 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
-};
-
 const QUICK_ACTIONS: ReadonlyArray<{
   id: 'INVOICE' | 'BILL' | 'MASTERS';
   key?: WorkspaceKey;
@@ -111,8 +105,8 @@ const QUICK_ACTIONS: ReadonlyArray<{
     icon: ShoppingCart,
     label_en: 'New purchase bill',
     label_bn: 'নতুন ক্রয় বিল',
-    desc_en: 'VDS 4.5% · TDS schedule',
-    desc_bn: 'ভিডিএস ৪.৫% · টিডিএস সিডিউল',
+    desc_en: 'Bills · AP · VDS/TDS',
+    desc_bn: 'বিল · প্রদেয় · ভিডিএস/টিডিএস',
   },
   {
     id: 'MASTERS',
@@ -134,26 +128,26 @@ export interface TopBarProps {
   onOpenMenu: () => void;
   onOpenPalette: () => void;
   onOpenMasters: () => void;
-  onOpenOnboarding: () => void;
-  onOpenAccess: () => void;
 }
 
-export function TopBar({
-  rail,
-  onToggleRail,
-  onOpenMenu,
-  onOpenPalette,
-  onOpenMasters,
-  onOpenOnboarding,
-  onOpenAccess,
-}: TopBarProps) {
+export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMasters }: TopBarProps) {
   const vault = useVault();
+  const auth = useAuth();
   const { navigate } = useWorkspaceNav();
-  const { locale, currentUser, isAuthenticated, tenant, users, theme, mode, numeralScript, grouping } = vault;
+  const appNavigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { locale, currentUser, tenant, theme, mode, numeralScript, grouping } = vault;
   const isBn = locale === 'bn-BD';
   const L = (en: string, bn: string): string => localized(locale, en, bn);
   const [menu, setMenu] = useState<MenuKey>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const displayName = auth.user?.name ?? currentUser.full_name;
+  const displayEmail = auth.user?.email ?? currentUser.email;
+  const authRole = auth.activeCompany?.role ?? auth.activeMembership?.role ?? currentUser.role;
+  const companyName = auth.demoMode ? tenant.name_en : (auth.activeCompany?.legalName ?? tenant.name_en);
+  const companyNameBn = auth.demoMode ? tenant.name_bn : companyName;
+  const companyBin = auth.demoMode ? (tenant.bin_units[0]?.bin_number ?? '—') : (auth.activeCompany?.bin ?? '—');
+  const companyEntityType = auth.demoMode ? tenant.entity_type : auth.activeCompany?.entityType;
 
   useEffect(() => {
     if (!menu) return;
@@ -178,8 +172,7 @@ export function TopBar({
     () => PERSONA_META.find((persona) => persona.key === vault.activePersona) ?? PERSONA_META[0],
     [vault.activePersona],
   );
-  const bin = tenant.bin_units[0]?.bin_number ?? '—';
-  const tenantInitials = initialsOf(tenant.name_en);
+  const tenantInitials = initialsOf(companyName);
   const isDark = theme === 'DARK';
 
   const closeMenu = (): void => setMenu(null);
@@ -188,32 +181,79 @@ export function TopBar({
   };
 
   const choosePersona = (persona: TenantEntity['persona_key']): void => {
+    if (!auth.demoMode) return;
     vault.setPersona(persona);
+    const next = new URLSearchParams(searchParams);
+    next.set('persona', persona);
+    setSearchParams(next, { replace: true });
     closeMenu();
+  };
+
+  const chooseCompany = async (companyId: string): Promise<void> => {
+    closeMenu();
+    try {
+      await auth.selectCompany(companyId);
+      const next = new URLSearchParams(searchParams);
+      next.set('company', companyId);
+      setSearchParams(next, { replace: true });
+    } catch (error) {
+      vault.publishToast({
+        tone: 'error',
+        title: L('Company unchanged', 'কোম্পানি অপরিবর্তিত'),
+        message: error instanceof Error ? error.message : L('The company could not be selected.', 'কোম্পানি নির্বাচন করা যায়নি।'),
+      });
+    }
   };
 
   const runQuickAction = (id: (typeof QUICK_ACTIONS)[number]['id'], key?: WorkspaceKey): void => {
     closeMenu();
     if (id === 'MASTERS') {
-      onOpenMasters();
+      if (auth.demoMode) onOpenMasters();
+      else appNavigate('/app/masters');
+      return;
+    }
+    if (id === 'INVOICE' && !auth.demoMode) {
+      appNavigate('/app/sales?new=1');
+      return;
+    }
+    if (id === 'BILL' && !auth.demoMode) {
+      appNavigate('/app/purchases?new=1');
+      return;
+    }
+    if (!auth.demoMode) {
+      vault.publishToast({
+        tone: 'info',
+        title: L('Synthetic demo workspace', 'সিন্থেটিক ডেমো ওয়ার্কস্পেস'),
+        message: L(
+          'This workspace is still a labelled demo. Use Ledger, Sales, Purchases, Inventory, Masters or Setup for server-backed work.',
+          'এই বিল্ডে শুধুমাত্র পরিচয়, সদস্যপদ ও অনুমতি যাচাই হয়। আর্থিক এন্ট্রি এখনও উন্মুক্ত নয়।',
+        ),
+      });
       return;
     }
     if (key) navigate(key);
   };
 
-  const handleRole = (role: UserRole): void => {
+  const handleLogout = async (): Promise<void> => {
     closeMenu();
-    const result = vault.switchUserRole(role);
-    if (!result.ok) {
+    try {
+      await auth.logout();
+      appNavigate('/login', { replace: true });
+    } catch {
       vault.publishToast({
         tone: 'error',
-        title: L('Role unchanged', 'ভূমিকা অপরিবর্তিত'),
-        message:
-          result.error ??
-          L('No active user is configured for that role.', 'সেই ভূমিকার জন্য কোনো সক্রিয় ব্যবহারকারী নেই।'),
+        title: L('Sign-out failed', 'সাইন আউট ব্যর্থ'),
+        message: L(
+          'The server session could not be revoked. Check the connection and try again; do not leave this device unattended.',
+          'সার্ভার সেশন বাতিল করা যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন; এই ডিভাইসটি অরক্ষিত রেখে যাবেন না।',
+        ),
       });
     }
   };
+
+  const canCreate = auth.demoMode
+    ? vault.hasPermission('CREATE_COMMERCIAL_DRAFT')
+    : auth.hasCompanyPermission('CREATE_COMMERCIAL_DRAFT');
 
   const handleExport = (): void => {
     closeMenu();
@@ -273,16 +313,18 @@ export function TopBar({
             <span className="hidden min-w-0 max-w-[170px] text-left sm:block">
               <span className="flex items-center gap-1.5">
                 <span className="truncate text-[11.5px] font-semibold leading-tight tracking-[-0.01em] text-ink-900">
-                  {L(tenant.name_en, tenant.name_bn)}
+                  {auth.demoMode ? L(companyName, companyNameBn) : companyName}
                 </span>
                 <span className="rounded-[4px] bg-vault-50 px-1 py-px font-mono text-[7px] font-bold uppercase tracking-[0.06em] text-vault-600 dark:bg-vault-500/10 dark:text-vault-300">
-                  {activePersona.key.slice(0, 4)}
+                  {auth.demoMode ? activePersona.key.slice(0, 4) : 'LIVE'}
                 </span>
               </span>
               <span className="mt-0.5 flex items-center gap-1 font-mono text-[7.5px] leading-none text-ink-400">
-                <span className="uppercase tracking-[0.05em]">{entityTypeLabel(tenant.entity_type, isBn)}</span>
+                <span className="uppercase tracking-[0.05em]">
+                  {companyEntityType ? entityTypeLabel(companyEntityType as EntityType, isBn) : L('Not configured', 'নির্ধারিত নয়')}
+                </span>
                 <span className="text-ink-300">·</span>
-                <span className="truncate">BIN {bin}</span>
+                <span className="truncate">BIN {companyBin}</span>
               </span>
             </span>
             <ChevronsUpDown size={12} className="hidden shrink-0 text-ink-400 transition group-hover:text-ink-600 sm:block" />
@@ -293,7 +335,7 @@ export function TopBar({
               <div>
                 <p className="lv-kicker">{L('Organization context', 'প্রতিষ্ঠানের প্রেক্ষাপট')}</p>
                 <p className="mt-1 text-[12px] font-semibold text-ink-900">
-                  {L('Switch company', 'প্রতিষ্ঠান পরিবর্তন')}
+                  {auth.demoMode ? L('Demo companies', 'ডেমো কোম্পানি') : L('Your companies', 'আপনার কোম্পানি')}
                 </p>
               </div>
               <button
@@ -306,81 +348,127 @@ export function TopBar({
               </button>
             </div>
             <div className="p-1.5">
-              {PERSONA_META.map((persona) => {
-                const entity = tenantByKey(persona.key);
-                const Icon = persona.icon;
-                const active = vault.activePersona === persona.key && tenant.id === entity.id;
-                return (
-                  <button
-                    key={persona.key}
-                    type="button"
-                    onClick={() => choosePersona(persona.key)}
-                    className={`flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition ${
-                      active
-                        ? 'bg-vault-50/80 ring-1 ring-inset ring-vault-100 dark:bg-vault-500/[0.08] dark:ring-vault-500/15'
-                        : 'hover:bg-ink-100/60 dark:hover:bg-white/[0.045]'
-                    }`}
-                  >
-                    <span
-                      className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[10px] ${
-                        active
-                          ? 'brand-gradient text-white shadow-sm'
-                          : 'bg-ink-100 text-ink-500 dark:bg-white/[0.05]'
-                      }`}
-                    >
-                      <Icon size={15} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate text-[12px] font-semibold text-ink-900">
-                          {L(persona.label_en, persona.label_bn)}
-                        </span>
+              {auth.demoMode
+                ? PERSONA_META.map((persona) => {
+                    const entity = tenantByKey(persona.key);
+                    const Icon = persona.icon;
+                    const active = vault.activePersona === persona.key && tenant.id === entity.id;
+                    return (
+                      <button
+                        key={persona.key}
+                        type="button"
+                        onClick={() => choosePersona(persona.key)}
+                        className={`flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition ${
+                          active
+                            ? 'bg-vault-50/80 ring-1 ring-inset ring-vault-100 dark:bg-vault-500/[0.08] dark:ring-vault-500/15'
+                            : 'hover:bg-ink-100/60 dark:hover:bg-white/[0.045]'
+                        }`}
+                      >
                         <span
-                          className={`rounded px-1 py-px font-mono text-[7.5px] font-bold uppercase ${
-                            active
-                              ? 'bg-vault-100 text-vault-600 dark:bg-vault-500/15 dark:text-vault-300'
-                              : 'bg-ink-100 text-ink-400 dark:bg-white/[0.06]'
+                          className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[10px] ${
+                            active ? 'brand-gradient text-white shadow-sm' : 'bg-ink-100 text-ink-500 dark:bg-white/[0.05]'
                           }`}
                         >
-                          {persona.key}
+                          <Icon size={15} />
                         </span>
-                      </span>
-                      <span className="mt-0.5 block text-[10px] leading-snug text-ink-500">
-                        {L(persona.note_en, persona.note_bn)}
-                      </span>
-                      <span className="mt-1.5 flex items-center gap-1.5 font-mono text-[8px] text-ink-400">
-                        <span>{entity.fiscal_year_label}</span>
-                        <span className="text-ink-300">·</span>
-                        <span>BIN {entity.bin_units[0]?.bin_number ?? '—'}</span>
-                      </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-1.5">
+                            <span className="truncate text-[12px] font-semibold text-ink-900">{L(persona.label_en, persona.label_bn)}</span>
+                            <span className={`rounded px-1 py-px font-mono text-[7.5px] font-bold uppercase ${active ? 'bg-vault-100 text-vault-600 dark:bg-vault-500/15 dark:text-vault-300' : 'bg-ink-100 text-ink-400 dark:bg-white/[0.06]'}`}>
+                              DEMO
+                            </span>
+                          </span>
+                          <span className="mt-0.5 block text-[12px] leading-snug text-ink-500">{L(persona.note_en, persona.note_bn)}</span>
+                          <span className="mt-1.5 flex items-center gap-1.5 font-mono text-[12px] text-ink-400">
+                            <span>{entity.fiscal_year_label}</span>
+                            <span className="text-ink-300">·</span>
+                            <span>BIN {entity.bin_units[0]?.bin_number ?? '—'}</span>
+                          </span>
+                        </span>
+                        {active ? <Check size={14} className="mt-1 shrink-0 text-brand-bright" /> : null}
+                      </button>
+                    );
+                  })
+                : auth.companies.map((company) => {
+                    const active = auth.activeCompany?.id === company.id;
+                    return (
+                      <button
+                        key={company.id}
+                        type="button"
+                        onClick={() => void chooseCompany(company.id)}
+                        className={`flex w-full items-start gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition ${
+                          active
+                            ? 'bg-vault-50/80 ring-1 ring-inset ring-vault-100 dark:bg-vault-500/[0.08] dark:ring-vault-500/15'
+                            : 'hover:bg-ink-100/60 dark:hover:bg-white/[0.045]'
+                        }`}
+                      >
+                        <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[10px] ${active ? 'brand-gradient text-white shadow-sm' : 'bg-ink-100 text-ink-500 dark:bg-white/[0.05]'}`}>
+                          <Building2 size={15} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[12px] font-semibold text-ink-900">{company.legalName}</span>
+                          <span className="mt-0.5 block text-[12px] leading-snug text-ink-500">{company.organisationName}</span>
+                          <span className="mt-1.5 flex items-center gap-1.5 font-mono text-[12px] text-ink-400">
+                            <span>{L(ROLE_LABELS[company.role].label_en, ROLE_LABELS[company.role].label_bn)}</span>
+                            <span className="text-ink-300">·</span>
+                            <span>BIN {company.bin ?? '—'}</span>
+                          </span>
+                        </span>
+                        {active ? <Check size={14} className="mt-1 shrink-0 text-brand-bright" /> : null}
+                      </button>
+                    );
+                  })}
+              {!auth.demoMode && auth.companies.length === 0 ? (
+                <p className="px-3 py-4 text-[12px] leading-relaxed text-ink-500">
+                  {L(
+                    'No company is assigned to this account yet. An owner or administrator must grant company access.',
+                    'এই অ্যাকাউন্টে এখনও কোনো কোম্পানি নির্ধারিত নেই। মালিক বা প্রশাসককে কোম্পানি প্রবেশাধিকার দিতে হবে।',
+                  )}
+                </p>
+              ) : null}
+            </div>
+            {!auth.demoMode ? (
+              <div className="border-t border-line/70 p-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    appNavigate('/app/setup');
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-ink-100/60 dark:hover:bg-white/[0.045]"
+                >
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-surface-2 text-ink-500 ring-1 ring-inset ring-line/70"><Settings2 size={14} /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-semibold text-ink-800">{L('Company setup & settings', 'কোম্পানি সেটআপ ও সেটিংস')}</span>
+                    <span className="block text-[12px] text-ink-400">{L('Profile, periods, chart of accounts, opening balances, banks', 'প্রোফাইল, সময়কাল, হিসাবের চার্ট, উদ্বোধনী ব্যালেন্স, ব্যাংক')}</span>
+                  </span>
+                </button>
+                {auth.hasOrganisationPermission('MANAGE_USERS_AND_ORG') ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenu();
+                      appNavigate('/app/setup?new=1');
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-ink-100/60 dark:hover:bg-white/[0.045]"
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-surface-2 text-ink-500 ring-1 ring-inset ring-line/70"><Plus size={14} /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[12px] font-semibold text-ink-800">{L('Create another company', 'আরেকটি কোম্পানি তৈরি করুন')}</span>
+                      <span className="block text-[12px] text-ink-400">{L('The existing company and its setup stay untouched', 'বিদ্যমান কোম্পানি ও তার সেটআপ অপরিবর্তিত থাকবে')}</span>
                     </span>
-                    {active ? <Check size={14} className="mt-1 shrink-0 text-brand-bright" /> : null}
                   </button>
-                );
-              })}
-            </div>
-            <div className="border-t border-line/70 p-2">
-              <button
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  onOpenOnboarding();
-                }}
-                className="flex w-full items-center gap-2 rounded-xl border border-dashed border-line-strong/70 bg-surface-2/40 px-2.5 py-2 text-left transition hover:border-brand-bright/50 hover:bg-surface-2"
-              >
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand-bright">
-                  <Plus size={14} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[11px] font-semibold text-ink-800">
-                    {L('New organization', 'নতুন প্রতিষ্ঠান')}
-                  </span>
-                  <span className="block text-[9px] text-ink-400">
-                    {L('4-step onboarding wizard', '৪ ধাপের অনবোর্ডিং উইজার্ড')}
-                  </span>
-                </span>
-              </button>
-            </div>
+                ) : null}
+              </div>
+            ) : null}
+            {auth.demoMode ? (
+              <div className="border-t border-line/70 px-3 py-2.5 text-[11px] leading-relaxed text-ink-500">
+                {L(
+                  'Synthetic demo data. It never shares the real identity service or real books.',
+                  'কৃত্রিম ডেমো ডেটা। এটি বাস্তব পরিচয় সেবা বা বাস্তব হিসাবের সাথে যুক্ত নয়।',
+                )}
+              </div>
+            ) : null}
           </Popover>
         </div>
 
@@ -418,6 +506,8 @@ export function TopBar({
               onClick={() => toggleMenu('create')}
               aria-haspopup="menu"
               aria-expanded={menu === 'create'}
+              disabled={!canCreate}
+              title={!canCreate ? L('Financial workspaces are not available in this build.', 'এই বিল্ডে আর্থিক ওয়ার্কস্পেস নেই।') : undefined}
               className="lv-btn lv-btn-primary h-9 !gap-1.5 !rounded-xl !px-2.5 !py-0 !text-[11px] sm:!px-3"
             >
               <Plus size={13} strokeWidth={2.5} />
@@ -459,34 +549,36 @@ export function TopBar({
                   );
                 })}
               </div>
-              <div className="border-t border-line/70 bg-surface-2/35 px-3 py-2.5">
-                <p className="lv-label flex items-center gap-1.5">
-                  <Database size={10} className="text-ink-400" />
-                  {L('Vault backup & restore', 'ভল্ট ব্যাকআপ ও পুনরুদ্ধার')}
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={handleExport}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-[10px] font-semibold text-ink-600 transition hover:border-line-strong hover:text-ink-900"
-                  >
-                    <Download size={11} /> {L('Backup', 'ব্যাকআপ')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-[10px] font-semibold text-ink-600 transition hover:border-line-strong hover:text-ink-900"
-                  >
-                    <Upload size={11} /> {L('Restore', 'পুনরুদ্ধার')}
-                  </button>
+              {auth.demoMode ? (
+                <div className="border-t border-line/70 bg-surface-2/35 px-3 py-2.5">
+                  <p className="lv-label flex items-center gap-1.5">
+                    <Database size={10} className="text-ink-400" />
+                    {L('Demo vault backup & restore', 'ডেমো ভল্ট ব্যাকআপ ও পুনরুদ্ধার')}
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleExport}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-[10px] font-semibold text-ink-600 transition hover:border-line-strong hover:text-ink-900"
+                    >
+                      <Download size={11} /> {L('Backup', 'ব্যাকআপ')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-[10px] font-semibold text-ink-600 transition hover:border-line-strong hover:text-ink-900"
+                    >
+                      <Upload size={11} /> {L('Restore', 'পুনরুদ্ধার')}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[8px] leading-relaxed text-ink-400">
+                    {L(
+                      'Synthetic demo snapshot only. Never restore a demo vault into production.',
+                      'শুধুমাত্র কৃত্রিম ডেমো স্ন্যাপশট। ডেমো ভল্ট কখনও উৎপাদনে পুনরুদ্ধার করবেন না।',
+                    )}
+                  </p>
                 </div>
-                <p className="mt-1.5 text-[8px] leading-relaxed text-ink-400">
-                  {L(
-                    'A portable snapshot of accounts, parties, items and the full journal chain.',
-                    'হিসাব, পক্ষ, আইটেম ও সম্পূর্ণ জার্নাল চেইনের পোর্টেবল স্ন্যাপশট।',
-                  )}
-                </p>
-              </div>
+              ) : null}
             </Popover>
           </div>
 
@@ -606,88 +698,83 @@ export function TopBar({
               }`}
             >
               <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-[9px] bg-[#0b0b16] text-[8.5px] font-bold text-white ring-1 ring-white/10">
-                {initialsOf(currentUser.full_name)}
-                <span
-                  className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-[rgb(var(--lv-surface))] ${
-                    isAuthenticated ? 'bg-emerald-500' : 'bg-rose-500'
-                  }`}
-                />
+                {initialsOf(displayName)}
+                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[rgb(var(--lv-surface))]" />
               </span>
               <span className="hidden min-w-0 md:block">
                 <span className="block max-w-[92px] truncate text-[9.5px] font-semibold leading-tight text-ink-800">
-                  {currentUser.full_name.split(' ')[0]}
+                  {displayName.split(' ')[0]}
                 </span>
                 <span className="block text-[7px] font-bold uppercase tracking-[0.08em] text-ink-400">
-                  {isAuthenticated ? ROLE_LABELS[currentUser.role].label_en : L('Read-only', 'পাঠযোগ্য')}
+                  {L(ROLE_LABELS[authRole].label_en, ROLE_LABELS[authRole].label_bn)}
                 </span>
               </span>
-              <span className={`hidden rounded-[5px] px-1 py-0.5 font-mono text-[7.5px] font-bold uppercase tracking-[0.04em] sm:inline ${ROLE_TONE[currentUser.role]}`}>
-                {currentUser.role}
+              <span className={`hidden rounded-[5px] px-1 py-0.5 font-mono text-[7.5px] font-bold uppercase tracking-[0.04em] sm:inline ${ROLE_TONE[authRole]}`}>
+                {authRole}
               </span>
               <ChevronDown size={10} className="hidden shrink-0 text-ink-400 sm:block" />
             </button>
 
-            <Popover open={menu === 'user'} align="right" width="w-[min(92vw,340px)]" label={L('User and role', 'ব্যবহারকারী ও ভূমিকা')}>
+            <Popover open={menu === 'user'} align="right" width="w-[min(92vw,340px)]" label={L('User menu', 'ব্যবহারকারী মেনু')}>
               <div className="flex items-start gap-2.5 border-b border-line/70 px-4 py-3.5">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0b0b16] text-[10px] font-bold text-white ring-1 ring-white/10">
-                  {initialsOf(currentUser.full_name)}
+                  {initialsOf(displayName)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-semibold text-ink-900">{currentUser.full_name}</p>
-                  <p className="truncate text-[9.5px] text-ink-400">
-                    {currentUser.designation} · @{currentUser.username}
-                  </p>
+                  <p className="truncate text-[12px] font-semibold text-ink-900">{displayName}</p>
+                  <p className="truncate text-[9.5px] text-ink-400">{displayEmail}</p>
                   <p className="mt-1 flex items-center gap-1 text-[9px] font-semibold">
-                    <ShieldCheck size={9} className={isAuthenticated ? 'text-emerald-500' : 'text-rose-500'} />
-                    <span className={isAuthenticated ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'}>
-                      {isAuthenticated ? L('Authenticated session', 'প্রমাণিত সেশন') : L('Read-only session', 'শুধুমাত্র পাঠযোগ্য সেশন')}
+                    <ShieldCheck size={9} className="text-emerald-500" />
+                    <span className="text-emerald-700 dark:text-emerald-300">
+                      {auth.demoMode ? L('Synthetic demo session', 'কৃত্রিম ডেমো সেশন') : L('Authenticated server session', 'সার্ভার-প্রমাণিত সেশন')}
                     </span>
                   </p>
+                  {!auth.user?.emailVerified && !auth.demoMode ? (
+                    <p className="mt-1 text-[12px] font-semibold text-amber-700 dark:text-amber-300">
+                      {L('Email not verified', 'ইমেইল যাচাই হয়নি')}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <div className="p-1.5">
-                <p className="px-1.5 pb-1 pt-0.5 text-[8px] font-bold uppercase tracking-[0.13em] text-ink-400">
-                  {L('Switch role', 'ভূমিকা পরিবর্তন')}
-                </p>
-                {USER_ROLES.map((role) => {
-                  const roleUser = users.find((user) => user.is_active && user.role === role);
-                  const active = isAuthenticated && currentUser.role === role;
-                  return (
-                    <button
-                      key={role}
-                      type="button"
-                      onClick={() => handleRole(role)}
-                      disabled={!roleUser}
-                      className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                        active ? 'bg-vault-50 ring-1 ring-inset ring-vault-100 dark:bg-vault-500/[0.08] dark:ring-vault-500/15' : 'hover:bg-ink-100/60 dark:hover:bg-white/[0.045]'
-                      }`}
-                    >
-                      <span className={`rounded-[5px] px-1.5 py-0.5 font-mono text-[7.5px] font-bold uppercase tracking-[0.04em] ${ROLE_TONE[role]}`}>
-                        {role}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[10px] font-semibold text-ink-700">
-                          {roleUser?.full_name ?? L('No active user', 'কোনো সক্রিয় ব্যবহারকারী নেই')}
-                        </span>
-                        <span className="block truncate text-[8.5px] text-ink-400">
-                          {L(ROLE_LABELS[role].note_en, ROLE_LABELS[role].note_bn)}
-                        </span>
-                      </span>
-                      {active ? <Check size={13} className="shrink-0 text-brand-bright" /> : null}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="border-t border-line/70 px-2 py-2">
                 <button
                   type="button"
                   onClick={() => {
                     closeMenu();
-                    onOpenAccess();
+                    appNavigate('/app/account');
                   }}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-[10px] font-semibold text-ink-600 transition hover:border-line-strong hover:text-ink-900"
+                  className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-ink-100/60 dark:hover:bg-white/[0.045]"
                 >
-                  <ShieldCheck size={11} /> {L('Access & roles', 'প্রবেশ ও ভূমিকা')}
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-surface-2 text-ink-500 ring-1 ring-inset ring-line/70"><ShieldCheck size={14} /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-semibold text-ink-800">{L('Account settings', 'অ্যাকাউন্ট সেটিংস')}</span>
+                    <span className="block text-[12px] text-ink-400">{L('Password, sessions, email verification', 'পাসওয়ার্ড, সেশন, ইমেইল যাচাই')}</span>
+                  </span>
+                </button>
+                {auth.hasOrganisationPermission('MANAGE_USERS_AND_ORG') ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenu();
+                      appNavigate('/app/team');
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-ink-100/60 dark:hover:bg-white/[0.045]"
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-surface-2 text-ink-500 ring-1 ring-inset ring-line/70"><Building2 size={14} /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[12px] font-semibold text-ink-800">{L('Team & access', 'টিম ও প্রবেশাধিকার')}</span>
+                      <span className="block text-[12px] text-ink-400">{L('Invitations, roles and company scope', 'আমন্ত্রণ, ভূমিকা ও কোম্পানির পরিধি')}</span>
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+              <div className="border-t border-line/70 px-2 py-2">
+                <button
+                  type="button"
+                  onClick={() => void handleLogout()}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-[12px] font-semibold text-ink-600 transition hover:border-line-strong hover:text-ink-900"
+                >
+                  <LogOut size={13} /> {L('Sign out', 'সাইন আউট')}
                 </button>
               </div>
             </Popover>

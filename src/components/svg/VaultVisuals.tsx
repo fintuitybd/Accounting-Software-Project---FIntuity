@@ -42,7 +42,7 @@ const CREST_RIVETS = Array.from({ length: 12 }, (_, index) => polar(60, 60, 29.5
 export function LedgerVaultCrestSvg({
   className,
   size = 64,
-  title = 'LedgerVault vault crest',
+  title = 'Fintuity Accounting Suite crest',
 }: {
   className?: string;
   size?: number;

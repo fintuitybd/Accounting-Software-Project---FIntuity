@@ -1,4 +1,4 @@
-// LedgerVault — W07 Enterprise `.xlsx` / `.csv` import studio.
+// Fintuity Accounting Suite — W07 Enterprise `.xlsx` / `.csv` import studio.
 //
 // Four production pipelines (bulk journals, sales & purchase, opening balances, bank/MFS) share one
 // discipline: parse → simulate → show every row-level verdict → edit or exclude rows → commit as a
@@ -245,7 +245,7 @@ export default function W07_MassImportExportStudio() {
       setRawRows(rows);
       setExcluded(new Set());
       setEditingRow(null);
-      setSourceName(`LedgerVault-live-demo-${pipeline.toLowerCase()}-25-rows.xlsx`);
+      setSourceName(`Fintuity Accounting Suite-live-demo-${pipeline.toLowerCase()}-25-rows.xlsx`);
       publishToast({
         tone: 'success',
         title: L('25-row live demo batch loaded', '২৫ সারির লাইভ ডেমো ব্যাচ লোড'),

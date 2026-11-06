@@ -1,4 +1,4 @@
-// LedgerVault bilingual layer — English (en-BD, default) and Bangla (bn-BD).
+// Fintuity Accounting Suite bilingual layer — English (en-BD, default) and Bangla (bn-BD).
 //
 // The 1,156 workspace / accounting / Mushak labels live in ./locales/* and are composed here so
 // that every screen has one translation entry point:
@@ -59,7 +59,7 @@ export const LOCALES: readonly LocaleDescriptor[] = [
 /** Phase 1 core-foundation screen — English. */
 export const EN_LAB: Readonly<Record<string, string>> = {
   'lab.badge': 'Phase 1 · Core foundation',
-  'lab.title': 'LedgerVault Core Lab',
+  'lab.title': 'Fintuity Accounting Suite Core Lab',
   'lab.subtitle':
     'Zero-float poisha arithmetic, bilingual dictionaries and the deterministic Bangladesh tax engine.',
   'lab.footer':
@@ -134,7 +134,7 @@ export const EN_LAB: Readonly<Record<string, string>> = {
 /** Phase 1 core-foundation screen — Bangla. */
 export const BN_LAB: Readonly<Record<string, string>> = {
   'lab.badge': 'ফেজ ১ · কোর ভিত্তি',
-  'lab.title': 'লেজারভল্ট কোর ল্যাব',
+  'lab.title': 'ফিনটুইটি অ্যাকাউন্টিং স্যুট কোর ল্যাব',
   'lab.subtitle':
     'শূন্য-ফ্লোট পয়সার হিসাব, দ্বিভাষিক অভিধান এবং নির্ধারক বাংলাদেশ কর ইঞ্জিন।',
   'lab.footer':

@@ -15,9 +15,28 @@ concurrency:
 
 jobs:
   verify:
-    name: Verify baseline
+    name: Verify application and server
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16.15-alpine
+        env:
+          POSTGRES_USER: ledgervault
+          POSTGRES_PASSWORD: ledgervault_ci_only
+          POSTGRES_DB: ledgervault_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ledgervault -d ledgervault_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      DATABASE_URL: postgresql://ledgervault:ledgervault_ci_only@127.0.0.1:5432/ledgervault_ci
+      TEST_DATABASE_URL: postgresql://ledgervault:ledgervault_ci_only@127.0.0.1:5432/ledgervault_ci
 
     steps:
       - name: Check out repository
@@ -26,13 +45,16 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install from lockfile
         run: npm ci
 
-      - name: Typecheck application and tests
+      - name: Scan tracked files for high-confidence secrets
+        run: npm run check:secrets
+
+      - name: Typecheck application, tests and server
         run: npm run typecheck
 
       - name: Lint
@@ -41,20 +63,43 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
-      - name: Unit and smoke tests
+      - name: Frontend unit and smoke tests
         run: npm test
+
+      - name: Server unit and integration tests
+        run: npm run test:server
+
+      - name: Apply migrations to a clean CI database
+        env:
+          NODE_ENV: test
+        run: |
+          npm run migrate
+          npm run migrate:status
 
       - name: Domain self-checks and golden tax suite
         run: npm run selfcheck
 
-      - name: Production build
+      - name: Backup and restore drill
+        run: npm run drill:backup-restore
+
+      - name: Frontend production build
         run: npm run build
 
-      - name: Upload baseline artifacts
+      - name: Bundle performance budgets
+        run: npm run check:bundle
+
+      - name: Built security metadata
+        run: npm run check:built-security
+
+      - name: Server production build
+        run: npm run build:server
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: baseline-artifacts
+          name: build-artifacts
           path: |
             dist/
+            server/dist/
             scripts/LedgerVault-Audit-Pack-*.xlsx
           retention-days: 7

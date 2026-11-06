@@ -497,8 +497,8 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
                 <kbd className="lv-kbd !px-1 !py-0.5">esc</kbd> close
               </span>
             </span>
-            <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-ink-400">
-              LedgerVault OS · 12 workspaces · 3 languages
+            <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-ink-400">
+              Fintuity Accounting Suite · 12 workspaces · English / Bangla
             </span>
           </div>
         </motion.div>

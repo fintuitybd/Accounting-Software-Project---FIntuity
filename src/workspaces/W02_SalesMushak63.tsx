@@ -71,7 +71,6 @@ import {
 import {
   buildCommercialDoc,
   documentTaxInput,
-  type JournalLineDraft,
   type TaxAnnotatedDoc,
 } from '../core/ledger/ledgerEngine';
 import type { SeedItem } from '../core/ledger/seedData';
@@ -611,7 +610,7 @@ export default function W02_SalesMushak63() {
     currentUser,
     hasPermission,
     postCommercialDoc,
-    postManualJournal,
+    settleCommercialDocument,
     nextMushakSerial,
   } = useVault();
   const isBn = locale === 'bn-BD';
@@ -664,7 +663,10 @@ export default function W02_SalesMushak63() {
   const buyer = customers.find((party) => party.id === partyId) ?? customers[0] ?? null;
   const rail = paymentRail(paymentChoice);
   const base = lines.reduce((total, line) => total + lineValuePoisha(line), 0n);
-  const nextSerial = nextMushakSerial(binUnitId || tenant.bin_units[0]?.id || '');
+  const nextSerial = nextMushakSerial(
+    binUnitId || tenant.bin_units[0]?.id || '',
+    docDate.slice(0, 4),
+  );
 
   const advisorInput = useMemo<TaxEvaluationInput>(
     () => ({
@@ -850,6 +852,7 @@ export default function W02_SalesMushak63() {
       narration_bn: narration || 'বিক্রয় দলিল',
       reverse_charge: false,
       vds_applicable: corporateVds,
+      sd_applicable: sd,
       book_type: 'STATUTORY_BD',
       created_by: currentUser.full_name,
       status: 'DRAFT',
@@ -1002,53 +1005,9 @@ export default function W02_SalesMushak63() {
       setFeedback({ tone: 'info', text: `${L('Receipt already posted', 'প্রাপ্তি ইতিমধ্যে পোস্টেড')} · ${existing.journal_number}` });
       return;
     }
-    const bankCode = bankCodeFor(doc.payment_method, doc.payment_channel);
-    const receiptLines: JournalLineDraft[] = [
-      {
-        account_code: bankCode,
-        account_name_en: accountName(bankCode),
-        debit_poisha: doc.net_payable_poisha,
-        memo: `Customer receipt net of withholding — ${doc.doc_number}`,
-        party_id: doc.party_id,
-        party_name: doc.party_name_en,
-      },
-    ];
-    if (doc.vds_poisha > 0n) {
-      receiptLines.push({
-        account_code: '1145',
-        account_name_en: accountName('1145'),
-        debit_poisha: doc.vds_poisha,
-        memo: `Customer VDS receivable — Mushak 6.6 pending (${doc.doc_number})`,
-        party_id: doc.party_id,
-        party_name: doc.party_name_en,
-      });
-    }
-    if (doc.tds_poisha > 0n) {
-      receiptLines.push({
-        account_code: '1150',
-        account_name_en: accountName('1150'),
-        debit_poisha: doc.tds_poisha,
-        memo: `Customer TDS / AIT credit — ${doc.doc_number}`,
-        party_id: doc.party_id,
-        party_name: doc.party_name_en,
-      });
-    }
-    receiptLines.push({
-      account_code: '1210',
-      account_name_en: accountName('1210'),
-      credit_poisha: doc.gross_poisha,
-      memo: `Trade receivable cleared — ${doc.doc_number}`,
-      party_id: doc.party_id,
-      party_name: doc.party_name_en,
-    });
-
-    const result = postManualJournal({
-      date: TODAY,
-      book_type: doc.book_type,
-      narration_en: `${RECEIPT_PREFIX}${doc.doc_number} — ${doc.party_name_en} · VDS ${money(doc.vds_poisha)} · AIT ${money(doc.tds_poisha)}`,
-      narration_bn: `গ্রাহক প্রাপ্তি ${doc.doc_number} — ${doc.party_name_bn} · ভিডিএস ${money(doc.vds_poisha)} · এআইটি ${money(doc.tds_poisha)}`,
-      source_module: 'BANK_MFS',
-      lines: receiptLines,
+    const result = settleCommercialDocument(doc.id, {
+      bank_account_code: bankCodeFor(doc.payment_method, doc.payment_channel),
+      settlement_date: TODAY,
     });
     if (!result.ok || !result.data) {
       setFeedback({ tone: 'error', text: result.error ?? L('Receipt rejected.', 'প্রাপ্তি বাতিল হয়েছে।') });
@@ -1056,7 +1015,11 @@ export default function W02_SalesMushak63() {
     }
     setFeedback({
       tone: 'success',
-      text: `${L('Receipt', 'প্রাপ্তি')} ${result.data.journal_number} · ${money(doc.net_payable_poisha)} · ${L('AR 1210 cleared', 'এআর ১২১০ নিষ্পত্তি')}`,
+      text: `${L('Receipt', 'প্রাপ্তি')} ${result.data.journal.journal_number} · ${money(
+        result.data.journal.lines
+          .filter((line) => line.account_code === bankCodeFor(doc.payment_method, doc.payment_channel))
+          .reduce((total, line) => total + line.debit_poisha, 0n),
+      )} · ${L('invoice settled and AR 1210 cleared', 'চালান নিষ্পত্তি ও এআর ১২১০ সমন্বয়')}`,
     });
   };
 
@@ -1307,6 +1270,16 @@ export default function W02_SalesMushak63() {
       />
 
       <main className="space-y-4">
+        <div
+          role="status"
+          className="rounded-2xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-[12px] leading-relaxed text-amber-900 dark:text-amber-200"
+        >
+          <span className="font-semibold">{L('Synthetic demo only.', 'শুধুমাত্র কৃত্রিম ডেমো।')}</span>{' '}
+          {L(
+            'This local quotation/order/challan pipeline is not the server-backed sales workflow and never writes real books. Signed-in companies use Sales & receivables with server-persisted drafts, posting and receipts.',
+            'এই স্থানীয় কোটেশন/অর্ডার/চালান পাইপলাইন সার্ভার-ভিত্তিক বিক্রয় ওয়ার্কফ্লো নয় এবং কখনও বাস্তব হিসাব লেখে না। সাইন-ইন করা কোম্পানিগুলো সার্ভার-সংরক্ষিত খসড়া, পোস্টিং ও রিসিটসহ বিক্রয় ও প্রাপ্য ব্যবহার করে।',
+          )}
+        </div>
         {/* ZONE A — module header, pipeline stage bar, search & filters */}
         <section className="lv-card overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/70 bg-surface-2/60 px-4 py-2.5 sm:px-5">

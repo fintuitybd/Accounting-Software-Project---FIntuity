@@ -1,4 +1,4 @@
-// LedgerVault — the twelve-workspace map.
+// Fintuity Accounting Suite — the twelve-workspace map.
 //
 // One source of truth for the sidebar in the app shell and the Ctrl+K command palette. The twelve
 // workspaces are grouped into four investor-facing chapters, each with a keyboard shortcut, a
@@ -140,9 +140,9 @@ export const WORKSPACES: readonly WorkspaceDescriptor[] = [
     hint_en: 'Tax invoices, credit notes, Mushak 6.3 serials and receivables',
     hint_bn: 'কর চালান, ক্রেডিট নোট, মূসক ৬.৩ সিরিয়াল ও প্রাপ্য',
     guide_en:
-      'Raise a tax invoice or credit note. LedgerVault allocates the Mushak 6.3 serial, computes VAT and VDS and posts the receivable in one step.',
+      'Raise a tax invoice or credit note. Fintuity Accounting Suite allocates the Mushak 6.3 serial, computes VAT and VDS and posts the receivable in one step.',
     guide_bn:
-      'কর চালান বা ক্রেডিট নোট তৈরি করুন। লেজারভল্ট মূসক ৬.৩ সিরিয়াল বরাদ্দ করে, ভ্যাট ও ভিডিএস হিসাব করে এক ধাপে প্রাপ্য পোস্ট করে।',
+      'কর চালান বা ক্রেডিট নোট তৈরি করুন। ফিনটুইটি অ্যাকাউন্টিং স্যুট মূসক ৬.৩ সিরিয়াল বরাদ্দ করে, ভ্যাট ও ভিডিএস হিসাব করে এক ধাপে প্রাপ্য পোস্ট করে।',
     group: 'CORE_OPERATIONS',
     icon: FileText,
     keywords: ['sales', 'sale', 'invoice', 'mushak 6.3', 'mushak', 'vat', 'customer', 'credit note', 'receivable'],

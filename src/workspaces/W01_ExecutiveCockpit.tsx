@@ -39,14 +39,13 @@ import { TransactionComposer } from '../components/signature/TransactionComposer
 import { MoneyFlowSankey } from '../components/svg/MoneyFlowSankey';
 import { BrandMark } from '../components/brand/BrandMark';
 import { addDays, applyRateBps, daysBetween, formatCount, formatDate, toBanglaDigits } from '../core/money';
-import { filingDecisionFor } from '../core/tax-engine/engine';
+
 import { useVault } from '../context/VaultContext';
 import { useWorkspaceNav } from '../components/layout/WorkspaceNav';
 import type { CashForecastWeek } from '../core/types';
 import { entityTypeLabel, type WorkspaceKey } from '../workspaces/registry';
 
-const TODAY = '2026-11-02';
-const PERIOD_END = '2026-10-31';
+
 const HORIZON = 13;
 const SAFETY_WEEKS = 4n;
 const LOW_STOCK_THRESHOLD = 10;
@@ -148,6 +147,7 @@ export default function W01_ExecutiveCockpit() {
   const L = (en: string, bn: string): string => (isBn ? bn : en);
   const kpis = statements.kpis;
   const firstName = currentUser.full_name.split(' ')[0] || 'there';
+  const TODAY = new Date().toISOString().slice(0, 10);
 
   const [activePanel, setActivePanel] = useState<CockpitPanel>('COMPOSE');
   const [panelOpen, setPanelOpen] = useState(true);
@@ -181,9 +181,6 @@ export default function W01_ExecutiveCockpit() {
     },
     [grouping, numeralScript],
   );
-
-  const filing = useMemo(() => filingDecisionFor({ periodEndDate: PERIOD_END }), []);
-  const daysToFile = Math.max(0, daysBetween(TODAY, filing.due_date));
 
   // ---- Liquidity -------------------------------------------------------------------------
   const liquidity = useMemo(() => {
@@ -760,8 +757,8 @@ export default function W01_ExecutiveCockpit() {
             </h1>
             <p className="mt-2.5 max-w-2xl text-[11.5px] leading-relaxed text-white/55 sm:text-[12px]">
               {L(
-                `October is closed. The 15 November window is ${daysToFile} days away — cash, receivables, payables and tax are live from the ledger.`,
-                `অক্টোবর সমাপ্ত। ১৫ নভেম্বরের সময়সীমা ${daysToFile} দিন দূরে — নগদ, প্রাপ্য, প্রদেয় ও কর খতিয়ান থেকে লাইভ।`,
+                `${statements.period.label_en} management accounts are live from the posted ledger. The VAT template and filing deadline are not verified; the return remains an internal draft.`,
+                `${statements.period.label_bn} ব্যবস্থাপনা হিসাব পোস্টকৃত খতিয়ান থেকে লাইভ। ভ্যাট টেমপ্লেট ও দাখিলের সময়সীমা যাচাইকৃত নয়; রিটার্ন অভ্যন্তরীণ খসড়া হিসেবে থাকছে।`,
               )}
             </p>
 
@@ -816,36 +813,25 @@ export default function W01_ExecutiveCockpit() {
             </div>
           </div>
 
-          {/* Filing clock */}
+          {/* VAT template review status. No unverified filing deadline is displayed. */}
           <aside className="relative rounded-2xl border border-white/[0.09] bg-white/[0.055] p-4 backdrop-blur-md">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-white/40">
-                {L('Mushak 9.1 · filing clock', 'মূসক ৯.১ · দাখিল ঘড়ি')}
+                {L('VAT 9.1 · internal draft', 'ভ্যাট ৯.১ · অভ্যন্তরীণ খসড়া')}
               </p>
-              <span className="rounded-full bg-emerald-400/[0.12] px-1.5 py-0.5 text-[7.5px] font-bold uppercase tracking-[0.08em] text-emerald-300 ring-1 ring-inset ring-emerald-400/20">
-                {L('On track', 'সঠিক পথে')}
+              <span className="rounded-full bg-amber-400/[0.14] px-1.5 py-0.5 text-[7.5px] font-bold uppercase tracking-[0.08em] text-amber-200 ring-1 ring-inset ring-amber-400/25">
+                {L('Review', 'পর্যালোচনা')}
               </span>
             </div>
-            <div className="mt-3 flex items-end gap-2.5">
-              <span className="font-money text-[44px] font-semibold leading-none tracking-[-0.055em] text-white">
-                {formatCount(daysToFile, numeralScript)}
-              </span>
-              <span className="mb-1 text-[9.5px] leading-snug text-white/45">
-                {L('days to file', 'দিন বাকি')}
-                <br />
-                <span className="font-mono text-[8px] text-white/30">{formatDate(filing.due_date, locale)}</span>
-              </span>
-            </div>
-            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.08]">
-              <span
-                className="block h-full rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400"
-                style={{ width: `${Math.max(6, Math.min(100, Math.round(((15 - daysToFile) / 15) * 100)))}%` }}
-              />
-            </div>
-            <div className="mt-1.5 flex justify-between font-mono text-[7.5px] uppercase tracking-[0.1em] text-white/30">
-              <span>31 Oct</span>
-              <span>15 Nov</span>
-            </div>
+            <p className="mt-3 text-[22px] font-semibold leading-none tracking-[-0.03em] text-white">
+              {L('DRAFT — NOT FILED', 'খসড়া — দাখিল হয়নি')}
+            </p>
+            <p className="mt-2 text-[9.5px] leading-relaxed text-white/45">
+              {L(
+                'The statutory template, line labels and filing deadline are not verified. Tax counsel must review the register mapping and GL proof before any external filing.',
+                'সংবিধিবদ্ধ টেমপ্লেট, লাইন লেবেল ও দাখিলের সময়সীমা যাচাইকৃত নয়। কোনো বাহ্যিক দাখিলের আগে কর পরামর্শককে রেজিস্টার ম্যাপিং ও জিএল প্রমাণ পর্যালোচনা করতে হবে।',
+              )}
+            </p>
             <button
               type="button"
               onClick={() => navigate('W05')}
@@ -936,16 +922,16 @@ export default function W01_ExecutiveCockpit() {
             tone="gold"
             title={L('Net tax payable · 15th', 'নিট কর প্রদেয় · ১৫ তারিখ')}
             value={money(taxPayable)}
-            chip={`${formatCount(daysToFile, numeralScript)} ${L('days', 'দিন')}`}
+            chip={L('DRAFT', 'খসড়া')}
             caption={L(
               `VAT ${compactMoney(netVatPayable)} · VDS ${compactMoney(vdsPayable)} · TDS ${compactMoney(tdsPayable)}`,
               `ভ্যাট ${compactMoney(netVatPayable)} · ভিডিএস ${compactMoney(vdsPayable)} · টিডিএস ${compactMoney(tdsPayable)}`,
             )}
             detail={L(
-              `Mushak 9.1 due ${formatDate(filing.due_date, locale)}`,
-              `মূসক ৯.১ মেয়াদ ${formatDate(filing.due_date, locale)}`,
+              'VAT 9.1 internal draft — deadline and template not verified',
+              'ভ্যাট ৯.১ অভ্যন্তরীণ খসড়া — সময়সীমা ও টেমপ্লেট যাচাইকৃত নয়',
             )}
-            cta={L('File 9.1', '৯.১ দাখিল')}
+            cta={L('Review draft', 'খসড়া পর্যালোচনা')}
             footer={L('VAT + VDS + TDS', 'ভ্যাট + ভিডিএস + টিডিএস')}
             onClick={() => navigate('W05')}
           />

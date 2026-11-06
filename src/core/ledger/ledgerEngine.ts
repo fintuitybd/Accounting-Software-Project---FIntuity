@@ -27,11 +27,12 @@ import type {
   DecisionState,
   DocLine,
   DocumentLifecycleStatus,
+  DocumentLineTax,
   JournalEntry,
   JournalLine,
   Party,
   PaymentMethod,
-  PeriodStatus,
+  PeriodResolution,
   SourceModule,
   SubledgerProof,
   SuspenseItem,
@@ -42,14 +43,16 @@ import type {
   TdsNature,
 } from '../types';
 import {
+  evaluateDocumentTax,
   evaluateTaxDecision,
-  isValidBin,
-  isValidTin,
+  lineTaxBasePoisha,
   previewTaxJournal,
+  type DocumentTaxLineInput,
   type TaxDecisionDetail,
   type TaxJournalPreviewLine,
 } from '../tax-engine/engine';
-import { applyRateBps, daysBetween, isoNow, periodCodeOf, sumPoisha } from '../money';
+import { daysBetween, isoNow, periodCodeOf, sumPoisha } from '../money';
+import { allocateSequence, inspectSequence } from './sequence';
 
 // ---------------------------------------------------------------------------------------------
 // Deterministic synchronous SHA-256
@@ -268,20 +271,30 @@ export interface JournalValidationOptions {
   requirePostedPeriod?: boolean;
 }
 
+/**
+ * Resolve a posting date to exactly one configured period. No match is UNKNOWN, never an implicit
+ * OPEN. A date must not fall between two configured periods either.
+ */
 export function periodStatusFor(
   periods: readonly AccountingPeriod[] | undefined,
   postingDate: string,
-): PeriodStatus {
-  if (!periods || periods.length === 0) return 'OPEN';
+): PeriodResolution {
+  if (!periods || periods.length === 0) return 'UNKNOWN';
   const code = periodCodeOf(postingDate);
   const period =
     periods.find((entry) => entry.code === code) ??
     periods.find((entry) => postingDate >= entry.start_date && postingDate <= entry.end_date);
-  return period ? period.status : 'OPEN';
+  return period ? period.status : 'UNKNOWN';
 }
 
+/** True for a configured CLOSED or LOCKED period. Kept for compatibility with older callers. */
 export function isPeriodLocked(periods: readonly AccountingPeriod[] | undefined, postingDate: string): boolean {
-  return periodStatusFor(periods, postingDate) === 'LOCKED';
+  const status = periodStatusFor(periods, postingDate);
+  return status === 'CLOSED' || status === 'LOCKED';
+}
+
+export function isPeriodPostable(periods: readonly AccountingPeriod[] | undefined, postingDate: string): boolean {
+  return periodStatusFor(periods, postingDate) === 'OPEN';
 }
 
 export function validateJournal(
@@ -341,9 +354,20 @@ export function validateJournal(
     }
   }
 
-  if (options.periods && isPeriodLocked(options.periods, journal.posting_date)) {
-    errors.push(`The period for ${journal.posting_date} is LOCKED and cannot accept postings.`);
-    errorsBn.push(`${journal.posting_date} মেয়াদের হিসাব লক করা আছে, পোস্টিং গ্রহণ করা যাবে না।`);
+  if (options.periods) {
+    const status = periodStatusFor(options.periods, journal.posting_date);
+    if (status !== 'OPEN') {
+      const label = status === 'UNKNOWN' ? 'not configured' : status;
+      errors.push(`The period for ${journal.posting_date} is ${label} and cannot accept postings.`);
+      errorsBn.push(
+        status === 'UNKNOWN'
+          ? `${journal.posting_date} তারিখের কোনো হিসাবকাল কনফিগার করা নেই, পোস্টিং গ্রহণ করা যাবে না।`
+          : `${journal.posting_date} মেয়াদের হিসাব ${status} এবং পোস্টিং গ্রহণ করা যাবে না।`,
+      );
+    }
+  } else if (options.requirePostedPeriod) {
+    errors.push(`No accounting period is configured for ${journal.posting_date}.`);
+    errorsBn.push(`${journal.posting_date} তারিখের কোনো হিসাবকাল কনফিগার করা নেই।`);
   }
 
   return {
@@ -413,7 +437,19 @@ export interface JournalPostContext {
 }
 
 export class JournalPostingError extends Error {
-  readonly code: 'UNBALANCED' | 'TOO_FEW_LINES' | 'NO_DEBIT' | 'PERIOD_LOCKED' | 'UNKNOWN_ACCOUNT' | 'EMPTY';
+  readonly code:
+    | 'UNBALANCED'
+    | 'TOO_FEW_LINES'
+    | 'NO_DEBIT'
+    | 'PERIOD_UNKNOWN'
+    | 'PERIOD_CLOSED'
+    | 'PERIOD_LOCKED'
+    | 'UNKNOWN_ACCOUNT'
+    | 'EMPTY'
+    | 'DUPLICATE_JOURNAL'
+    | 'DUPLICATE_JOURNAL_ID'
+    | 'REVERSAL_ALREADY_REVERSED'
+    | 'REVERSAL_OF_REVERSAL';
 
   constructor(code: JournalPostingError['code'], message: string) {
     super(message);
@@ -422,27 +458,59 @@ export class JournalPostingError extends Error {
   }
 }
 
-export function journalNumberPrefix(postingDate: string, book: BookType): string {
-  const period = periodCodeOf(postingDate);
-  const bookTag =
-    book === 'STATUTORY_BD' ? 'JE' : book === 'IFRS_GROUP_ADJ' ? 'IF' : book === 'TAX_COMPUTATION' ? 'TX' : 'MG';
-  return `${bookTag}-${period}`;
+function journalBookTag(book: BookType): string {
+  return book === 'STATUTORY_BD' ? 'JE' : book === 'IFRS_GROUP_ADJ' ? 'IF' : book === 'TAX_COMPUTATION' ? 'TX' : 'MG';
 }
 
-/** Next sequential journal number for a book + period, derived from the live ledger. */
+export function journalNumberPrefix(postingDate: string, book: BookType): string {
+  return `${journalBookTag(book)}-${periodCodeOf(postingDate)}`;
+}
+
+/**
+ * Next sequential journal number for a book + period. The pure allocator uses the highest issued
+ * number, never the number of rows, so deleting an unrelated row cannot renumber the ledger.
+ */
 export function nextJournalNumber(
   journals: readonly JournalEntry[],
   postingDate: string,
   book: BookType,
 ): string {
-  const prefix = journalNumberPrefix(postingDate, book);
-  let max = 0;
-  for (const journal of journals) {
-    if (!journal.journal_number.startsWith(`${prefix}-`)) continue;
-    const sequence = Number(journal.journal_number.slice(prefix.length + 1));
-    if (Number.isFinite(sequence) && sequence > max) max = sequence;
-  }
-  return `${prefix}-${String(max + 1).padStart(4, '0')}`;
+  return allocateSequence({
+    series: 'JOURNAL',
+    scope: book,
+    period: periodCodeOf(postingDate),
+    prefix: journalBookTag(book),
+    used_numbers: journals.map((journal) => journal.journal_number),
+  }).number;
+}
+
+const DOCUMENT_PREFIX: Record<CommercialDocType, string> = {
+  SALES_INVOICE: 'INV',
+  CREDIT_NOTE: 'CN',
+  PURCHASE_BILL: 'PB',
+  EXPENSE_VOUCHER: 'PV',
+  IMPORTED_SERVICE: 'IMP',
+};
+
+/**
+ * Next commercial document number in its own series/scope/period. Credit notes therefore never
+ * consume a sales-invoice sequence and a deleted row never causes a number to be reused.
+ */
+export function nextCommercialDocNumber(
+  docs: readonly CommercialDoc[],
+  docType: CommercialDocType,
+  docDate: string,
+  binUnitId: string,
+): string {
+  return allocateSequence({
+    series: docType,
+    scope: binUnitId,
+    period: docDate.slice(0, 7),
+    prefix: DOCUMENT_PREFIX[docType],
+    used_numbers: docs
+      .filter((doc) => doc.doc_type === docType && doc.bin_unit_id === binUnitId)
+      .map((doc) => doc.doc_number),
+  }).number;
 }
 
 function accountNames(
@@ -471,10 +539,18 @@ export function postJournal(draft: JournalDraft, context: JournalPostContext): J
   }
 
   const postingDate = draft.posting_date ?? draft.document_date;
-  if (context.periods && isPeriodLocked(context.periods, postingDate)) {
+  const periodStatus = periodStatusFor(context.periods, postingDate);
+  if (periodStatus !== 'OPEN') {
+    const periodCode = periodCodeOf(postingDate);
+    if (periodStatus === 'UNKNOWN') {
+      throw new JournalPostingError(
+        'PERIOD_UNKNOWN',
+        `No accounting period is configured for ${postingDate}. Posting was rejected.`,
+      );
+    }
     throw new JournalPostingError(
-      'PERIOD_LOCKED',
-      `Cannot post ${draft.journal_number ?? draft.id ?? 'journal'} into the LOCKED period ${periodCodeOf(postingDate)}.`,
+      periodStatus === 'CLOSED' ? 'PERIOD_CLOSED' : 'PERIOD_LOCKED',
+      `Cannot post ${draft.journal_number ?? draft.id ?? 'journal'} into the ${periodStatus} period ${periodCode}.`,
     );
   }
 
@@ -524,9 +600,22 @@ export function postJournal(draft: JournalDraft, context: JournalPostContext): J
     }
   }
 
+  if (draft.id && context.journals.some((journal) => journal.id === draft.id)) {
+    throw new JournalPostingError(
+      'DUPLICATE_JOURNAL_ID',
+      `Journal id ${draft.id} already exists. A posted journal is immutable; use a reversal instead.`,
+    );
+  }
+
   const journalNumber =
     draft.journal_number ??
     nextJournalNumber(context.journals, postingDate, draft.book_type);
+  if (context.journals.some((journal) => journal.journal_number === journalNumber)) {
+    throw new JournalPostingError(
+      'DUPLICATE_JOURNAL',
+      `Journal number ${journalNumber} already exists. Sequence allocation must never reuse a number.`,
+    );
+  }
   const id = draft.id ?? `${journalNumber}::${draft.book_type}`;
   const previous = context.journals.length
     ? context.journals[context.journals.length - 1].audit_hash
@@ -580,8 +669,38 @@ export function createReversalJournal(
   actor: string,
   context?: JournalPostContext,
 ): { original: JournalEntry; reversal: JournalEntry } {
+  if (originalJournal.reversal_of_journal_id) {
+    throw new JournalPostingError(
+      'REVERSAL_OF_REVERSAL',
+      `Journal ${originalJournal.journal_number} is itself a reversal. Post a new correcting document instead of reversing it.`,
+    );
+  }
+
   const journals = context?.journals ?? [originalJournal];
   const accounts = context?.accounts;
+  const existingReversal = journals.find(
+    (journal) => journal.reversal_of_journal_id === originalJournal.id,
+  );
+  if (originalJournal.status === 'REVERSED' || originalJournal.reversed_by_journal_id) {
+    throw new JournalPostingError(
+      'REVERSAL_ALREADY_REVERSED',
+      `Journal ${originalJournal.journal_number} has already been reversed${originalJournal.reversed_by_journal_id ? ` by ${originalJournal.reversed_by_journal_id}` : ''}.`,
+    );
+  }
+  if (existingReversal) {
+    // A retry with a stale in-memory copy of the original is idempotent: return the reversal that
+    // is already in the chain instead of appending a duplicate.
+    return {
+      original: {
+        ...originalJournal,
+        status: 'REVERSED',
+        reversed_by_journal_id: existingReversal.id,
+        reversal_reason: existingReversal.reversal_reason ?? reason,
+      },
+      reversal: existingReversal,
+    };
+  }
+
   const lines: JournalLineDraft[] = originalJournal.lines.map((line) => ({
     account_code: line.account_code,
     account_name_en: line.account_name_en,
@@ -669,9 +788,12 @@ function mushak63Sequence(serial: string | undefined, year: string): number | nu
 export function allocateMushak63Serial(
   binUnitId: string,
   existingDocs: readonly CommercialDoc[],
-  year = '2026',
+  year: string,
 ): string {
-  const sequences = existingDocs
+  if (!/^\d{4}$/.test(year)) {
+    throw new Error(`Mushak 6.3 allocation needs an explicit four-digit year, received "${year}".`);
+  }
+  const usedSerials = existingDocs
     .filter(
       (doc) =>
         doc.bin_unit_id === binUnitId &&
@@ -680,17 +802,23 @@ export function allocateMushak63Serial(
         doc.status !== 'SUBMITTED' &&
         doc.status !== 'APPROVED',
     )
-    .map((doc) => mushak63Sequence(doc.mushak_serial, year))
-    .filter((value): value is number => value !== null);
-  const next = sequences.length === 0 ? 1 : Math.max(...sequences) + 1;
-  return `M63-${year}-${String(next).padStart(5, '0')}`;
+    .map((doc) => doc.mushak_serial)
+    .filter((serial): serial is string => Boolean(serial));
+  return allocateSequence({
+    series: 'MUSHAK_63',
+    scope: binUnitId,
+    period: year,
+    prefix: 'M63',
+    used_numbers: usedSerials,
+    width: 5,
+  }).number;
 }
 
 /** Audit the statutory series for gaps and duplicates — surfaced on the compliance dashboard. */
 export function inspectMushak63Sequence(
   binUnitId: string,
   existingDocs: readonly CommercialDoc[],
-  year = '2026',
+  year: string,
 ): Mushak63SequenceState {
   const used: number[] = [];
   const serials: string[] = [];
@@ -703,22 +831,23 @@ export function inspectMushak63Sequence(
     used.push(sequence);
     serials.push(doc.mushak_serial);
   }
-  used.sort((left, right) => left - right);
-  const last = used.length ? used[used.length - 1] : 0;
-  const missing: number[] = [];
-  for (let sequence = 1; sequence <= last; sequence += 1) {
-    if (!used.includes(sequence)) missing.push(sequence);
-  }
-  const duplicateSerials = serials.filter((serial, index) => serials.indexOf(serial) !== index);
+  const audit = inspectSequence({
+    series: 'MUSHAK_63',
+    scope: binUnitId,
+    period: year,
+    prefix: 'M63',
+    used_numbers: serials,
+    width: 5,
+  });
   return {
     bin_unit_id: binUnitId,
     year,
-    last_sequence: last,
-    next_sequence: last + 1,
-    next_serial: `M63-${year}-${String(last + 1).padStart(5, '0')}`,
-    gap_free: missing.length === 0 && duplicateSerials.length === 0,
-    missing_sequences: missing,
-    duplicate_serials: Array.from(new Set(duplicateSerials)),
+    last_sequence: audit.last_value,
+    next_sequence: audit.next_value,
+    next_serial: `M63-${year}-${String(audit.next_value).padStart(5, '0')}`,
+    gap_free: audit.gap_free,
+    missing_sequences: audit.missing_values,
+    duplicate_serials: audit.duplicate_values.map((value) => `M63-${year}-${String(value).padStart(5, '0')}`),
   };
 }
 
@@ -802,10 +931,27 @@ export function documentTaxOutcome(
   options: DocumentTaxOptions = {},
 ): DocumentTaxOutcome {
   const input = documentTaxInput(doc, party, options);
-  const decision = evaluateTaxDecision(
-    input,
-    options.evaluated_at ? { evaluatedAt: options.evaluated_at } : {},
-  );
+  const lineInputs: DocumentTaxLineInput[] = doc.lines.map((line) => ({
+    id: line.id,
+    sku: line.sku,
+    quantity: line.quantity,
+    unit_price_poisha: line.unit_price_poisha,
+    tax_category: line.tax_category ?? doc.tax_category,
+  }));
+  const decision =
+    lineInputs.length > 0
+      ? evaluateDocumentTax(
+          {
+            ...input,
+            lines: lineInputs,
+            fallback_tax_category: doc.tax_category,
+          },
+          options.evaluated_at ? { evaluatedAt: options.evaluated_at } : {},
+        ).decision
+      : evaluateTaxDecision(
+          input,
+          options.evaluated_at ? { evaluatedAt: options.evaluated_at } : {},
+        );
   const sign = doc.doc_type === 'CREDIT_NOTE' ? -1n : 1n;
   const claimable = sign * decision.input_credit.claimable_poisha;
   const disallowed = sign * decision.input_credit.disallowed_poisha;
@@ -839,6 +985,8 @@ export interface CommercialDocSpec {
   reverse_charge_challan_held?: boolean;
   /** VDS applies to services and to supplies bought by a designated withholding entity. */
   vds_applicable?: boolean;
+  /** Supplementary duty is line-level: only standard-rated Second Schedule lines carry it. */
+  sd_applicable?: boolean;
   book_type?: BookType;
   created_by?: string;
   mushak_serial?: string;
@@ -848,6 +996,9 @@ export interface CommercialDocSpec {
   vehicle_no?: string;
   destination?: string;
   payment_channel?: string;
+  /** Mushak 6.7 credit notes carry their own series and point at the invoice they correct. */
+  original_doc_id?: string;
+  original_doc_number?: string;
   /** Redirect the COST leg (e.g. 1310 Inventory or 5310 Consultancy) away from 5100 COGS. */
   cost_account_code?: string;
   cost_account_name_en?: string;
@@ -920,19 +1071,59 @@ export function buildCommercialDoc(spec: CommercialDocSpec): BuiltCommercialDoc 
     has_valid_mushak63: isSale ? true : Boolean(spec.mushak_serial),
     is_reverse_charge: Boolean(spec.reverse_charge),
     has_reverse_charge_challan: Boolean(spec.reverse_charge_challan_held),
-    sd_applicable: false,
+    sd_applicable: Boolean(spec.sd_applicable),
     is_credit_note: Boolean(spec.is_credit_note) || spec.doc_type === 'CREDIT_NOTE',
     is_government_or_bank: party.is_government,
     period_end_date: spec.doc_date.slice(0, 7),
   };
 
-  const decision = evaluateTaxDecision(
-    input,
+  // The lines are authoritative. A caller-supplied base that disagrees with the lines is rejected
+  // rather than trusted, so a preview and a posted total can never silently diverge.
+  const derivedBase = spec.lines.reduce((total, line) => total + lineTaxBasePoisha(line), 0n);
+  if (derivedBase !== spec.base_poisha) {
+    throw new Error(
+      `Document ${spec.doc_number} base ${spec.base_poisha.toString()} poisha does not match its line total ${derivedBase.toString()} poisha.`,
+    );
+  }
+  if (derivedBase <= 0n) {
+    throw new Error(`Document ${spec.doc_number} needs at least one priced line.`);
+  }
+
+  const lineInputs: DocumentTaxLineInput[] = spec.lines.map((line) => ({
+    id: line.id,
+    sku: line.sku,
+    quantity: line.quantity,
+    unit_price_poisha: line.unit_price_poisha,
+    tax_category: line.tax_category ?? spec.tax_category,
+  }));
+  const summary = evaluateDocumentTax(
+    {
+      ...input,
+      lines: lineInputs,
+      fallback_tax_category: spec.tax_category,
+    },
     spec.evaluated_at ? { evaluatedAt: spec.evaluated_at } : {},
   );
+  const decision = summary.decision;
   const preview = previewTaxJournal(input, decision);
   const sign = input.is_credit_note ? -1n : 1n;
   const abs = (value: bigint): bigint => (value < 0n ? -value : value);
+  const lineTax: DocumentLineTax[] = summary.lines.map((line) => ({
+    line_id: line.line_id,
+    sku: line.sku,
+    tax_category: line.tax_category,
+    base_poisha: line.base_poisha,
+    sd_poisha: line.sd_poisha,
+    vat_poisha: line.vat_poisha,
+    gross_poisha: line.gross_poisha,
+    vds_poisha: line.vds_poisha,
+    tds_poisha: line.tds_poisha,
+    net_payable_poisha: line.net_payable_poisha,
+    claimable_poisha: line.claimable_poisha,
+    disallowed_poisha: line.disallowed_poisha,
+    decision_state: line.decision_state,
+    trace_id: line.trace_id,
+  }));
 
   const documentLines = normalisePreviewLines(
     preview.groups.find((group) => group.id === 'DOCUMENT')?.lines ?? [],
@@ -975,6 +1166,8 @@ export function buildCommercialDoc(spec: CommercialDocSpec): BuiltCommercialDoc 
     party_tin: party.tin,
     bin_unit_id: spec.bin_unit_id,
     lines: spec.lines,
+    line_tax: lineTax,
+    tax_categories: Array.from(new Set(spec.lines.map((line) => line.tax_category))),
     base_poisha: abs(sign * decision.base_poisha),
     sd_poisha: abs(sign * decision.sd_poisha),
     vat_poisha: abs(sign * decision.vat_poisha),
@@ -988,8 +1181,11 @@ export function buildCommercialDoc(spec: CommercialDocSpec): BuiltCommercialDoc 
     status: spec.status ?? 'POSTED',
     narration_en: spec.narration_en,
     narration_bn: spec.narration_bn,
-    mushak63_ref: isSale ? spec.doc_number : spec.mushak_serial,
+    mushak63_ref:
+      spec.doc_type === 'SALES_INVOICE' ? spec.doc_number : spec.mushak_serial,
     reverse_charge: Boolean(spec.reverse_charge),
+    original_doc_id: spec.original_doc_id,
+    original_doc_number: spec.original_doc_number,
     reference_no: spec.reference_no,
     vehicle_no: spec.vehicle_no,
     destination: spec.destination,
@@ -1014,6 +1210,221 @@ export function buildCommercialDoc(spec: CommercialDocSpec): BuiltCommercialDoc 
   };
 
   return { doc, decision, input, document_lines: documentLines, settlement_lines: settlementLines };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Explicit settlement command
+// ---------------------------------------------------------------------------------------------
+
+export class SettlementError extends Error {
+  readonly code:
+    | 'DOCUMENT_NOT_FOUND'
+    | 'DOCUMENT_NOT_POSTED'
+    | 'ALREADY_SETTLED'
+    | 'NOTHING_OUTSTANDING'
+    | 'CREDIT_NOTE_NOT_SETTLEABLE'
+    | 'PARTIAL_SETTLEMENT_NOT_SUPPORTED'
+    | 'BANK_ACCOUNT_REQUIRED';
+
+  constructor(code: SettlementError['code'], message: string) {
+    super(message);
+    this.name = 'SettlementError';
+    this.code = code;
+  }
+}
+
+export interface SettlementRequest {
+  settlement_date: string;
+  bank_account_code: string;
+  actor: string;
+  /** Optional assertion: settlement is full-only in Phase 1, so this must equal the outstanding. */
+  amount_poisha?: bigint;
+  journal_number?: string;
+}
+
+export interface SettlementResult<T extends CommercialDoc> {
+  doc: T;
+  journal: JournalEntry;
+}
+
+/** The balanced receipt/payment legs for a posted document, using its stored withholding facts. */
+export function settlementJournalLines(
+  doc: CommercialDoc,
+  bankAccountCode: string,
+): JournalLineDraft[] {
+  if (doc.doc_type === 'CREDIT_NOTE') {
+    throw new SettlementError(
+      'CREDIT_NOTE_NOT_SETTLEABLE',
+      'A credit note reduces a receivable; it is not settled by a separate receipt.',
+    );
+  }
+  const bankAmount = doc.gross_poisha - doc.vds_poisha - doc.tds_poisha;
+  const isSale = doc.doc_type === 'SALES_INVOICE';
+  const lines: JournalLineDraft[] = [];
+
+  if (isSale) {
+    lines.push(
+      {
+        account_code: bankAccountCode,
+        debit_poisha: bankAmount,
+        party_id: doc.party_id,
+        party_name: doc.party_name_en,
+        memo: `Customer receipt net of withholding — ${doc.doc_number}`,
+      },
+      ...(doc.vds_poisha > 0n
+        ? [
+            {
+              account_code: '1145',
+              debit_poisha: doc.vds_poisha,
+              party_id: doc.party_id,
+              party_name: doc.party_name_en,
+              memo: `Customer VDS receivable — Mushak 6.6 pending (${doc.doc_number})`,
+            },
+          ]
+        : []),
+      ...(doc.tds_poisha > 0n
+        ? [
+            {
+              account_code: '1150',
+              debit_poisha: doc.tds_poisha,
+              party_id: doc.party_id,
+              party_name: doc.party_name_en,
+              memo: `Customer TDS / AIT credit — ${doc.doc_number}`,
+            },
+          ]
+        : []),
+      {
+        account_code: '1210',
+        credit_poisha: doc.gross_poisha,
+        party_id: doc.party_id,
+        party_name: doc.party_name_en,
+        memo: `Trade receivable cleared — ${doc.doc_number}`,
+      },
+    );
+    return lines;
+  }
+
+  lines.push(
+    {
+      account_code: '2110',
+      debit_poisha: doc.gross_poisha,
+      party_id: doc.party_id,
+      party_name: doc.party_name_en,
+      memo: `Trade payable settled — ${doc.doc_number}`,
+    },
+    ...(doc.vds_poisha > 0n
+      ? [
+          {
+            account_code: '2130',
+            credit_poisha: doc.vds_poisha,
+            party_id: doc.party_id,
+            party_name: doc.party_name_en,
+            memo: `VDS withheld — Mushak 6.6 challan queued (${doc.doc_number})`,
+          },
+        ]
+      : []),
+    ...(doc.tds_poisha > 0n
+      ? [
+          {
+            account_code: '2140',
+            credit_poisha: doc.tds_poisha,
+            party_id: doc.party_id,
+            party_name: doc.party_name_en,
+            memo: `TDS withheld — Treasury challan queued (${doc.doc_number})`,
+          },
+        ]
+      : []),
+    {
+      account_code: bankAccountCode,
+      credit_poisha: bankAmount,
+      party_id: doc.party_id,
+      party_name: doc.party_name_en,
+      memo: `Paid to supplier net of withholding — ${doc.doc_number}`,
+    },
+  );
+  return lines;
+}
+
+/**
+ * Explicit, full settlement of one posted document. Posting the document never settles it; a
+ * caller must invoke this command (or pass an explicit `settle: true` at creation, which calls the
+ * same command). The journal is idempotent by document id and the document is updated only after
+ * the balanced journal has been sealed.
+ */
+export function settleCommercialDoc<T extends TaxAnnotatedDoc | CommercialDoc>(
+  doc: T,
+  request: SettlementRequest,
+  context: JournalPostContext,
+): SettlementResult<T> {
+  if (!request.bank_account_code) {
+    throw new SettlementError('BANK_ACCOUNT_REQUIRED', 'A bank/MFS/cash account is required to settle.');
+  }
+  if (doc.doc_type === 'CREDIT_NOTE') {
+    throw new SettlementError(
+      'CREDIT_NOTE_NOT_SETTLEABLE',
+      'A credit note reduces a receivable; it is not settled by a separate receipt.',
+    );
+  }
+  if (doc.status === 'SETTLED' || doc.settled_poisha >= doc.gross_poisha) {
+    throw new SettlementError('ALREADY_SETTLED', `Document ${doc.doc_number} is already settled.`);
+  }
+  if (doc.status !== 'POSTED') {
+    throw new SettlementError(
+      'DOCUMENT_NOT_POSTED',
+      `Document ${doc.doc_number} is ${doc.status}; only a POSTED document can be settled.`,
+    );
+  }
+  if (doc.settled_poisha > 0n) {
+    throw new SettlementError(
+      'PARTIAL_SETTLEMENT_NOT_SUPPORTED',
+      `Document ${doc.doc_number} already carries a partial settlement; partial allocations are not supported in this phase.`,
+    );
+  }
+  const outstanding = doc.gross_poisha - doc.settled_poisha;
+  if (outstanding <= 0n) {
+    throw new SettlementError('NOTHING_OUTSTANDING', `Document ${doc.doc_number} has nothing outstanding.`);
+  }
+  if (request.amount_poisha !== undefined && request.amount_poisha !== outstanding) {
+    throw new SettlementError(
+      'PARTIAL_SETTLEMENT_NOT_SUPPORTED',
+      `Full settlement of ${outstanding.toString()} poisha is required in this phase; partial allocations are not yet supported.`,
+    );
+  }
+
+  const lines = settlementJournalLines(doc, request.bank_account_code);
+  const isSale = doc.doc_type === 'SALES_INVOICE';
+  const journal = postJournal(
+    {
+      book_type: doc.book_type,
+      bin_unit_id: doc.bin_unit_id,
+      document_date: request.settlement_date,
+      posting_date: request.settlement_date,
+      tax_point_date: request.settlement_date,
+      journal_number: request.journal_number,
+      source_module: 'BANK_MFS',
+      source_doc_id: doc.id,
+      source_doc_ref: doc.doc_number,
+      narration_en: `${isSale ? 'Customer receipt of' : 'Supplier payment of'} ${doc.doc_number} — ${doc.party_name_en}`,
+      narration_bn: `${isSale ? 'গ্রাহক প্রাপ্তি' : 'সরবরাহকারী পরিশোধ'} ${doc.doc_number} — ${doc.party_name_bn}`,
+      tax_decision_trace_id: (doc as Partial<TaxAnnotatedDoc>).tax_trace_id,
+      idempotency_key: `SETTLEMENT|${doc.id}`,
+      created_by: request.actor,
+      approved_by: request.actor,
+      lines,
+    },
+    context,
+  );
+
+  return {
+    doc: {
+      ...doc,
+      status: 'SETTLED',
+      workflow_stage: 'SETTLED',
+      settled_poisha: doc.settled_poisha + outstanding,
+      settlement_journal_id: journal.id,
+    },
+    journal,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------

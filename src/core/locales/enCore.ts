@@ -1,6 +1,6 @@
 // English (en-BD) — core shell, navigation, dashboard and common vocabulary.
 export const EN_CORE: Record<string, string> = {
-  'app.name': 'LedgerVault',
+  'app.name': 'Fintuity Accounting Suite',
   'app.suite': 'Bangladesh Finance & Tax OS',
   'app.tagline': 'Tax-correct books. Investor-ready reporting. Built for Bangladesh.',
   'app.footer': 'Figures are computed live from the immutable general ledger. Statutory positions are decision support, not a substitute for professional sign-off.',
@@ -263,7 +263,7 @@ export const EN_CORE: Record<string, string> = {
   'dash.composer.cta': 'Draft transaction',
   'dash.composer.demo': 'Try a demo prompt',
   'dash.compliance.title': 'Compliance readiness',
-  'dash.compliance.subtitle': 'Ordinance No. 38 of 2026 filing calendar',
+  'dash.compliance.subtitle': 'Filing calendar — deadline pending verification',
   'dash.compliance.vat': 'Mushak 9.1 readiness',
   'dash.compliance.vds': 'VDS challan status',
   'dash.compliance.tds': 'TDS withholding status',

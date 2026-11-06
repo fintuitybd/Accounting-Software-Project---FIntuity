@@ -1,0 +1,70 @@
+name: ledgervault
+
+services:
+  postgres:
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_USER: ledgervault
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ledgervault
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ledgervault -d ledgervault']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment: &api_environment
+      # Local Compose is a development stack. Production deployments must set NODE_ENV=production,
+      # a real APP_ORIGIN, HTTPS/secure cookies and a real email adapter through the platform
+      # secret/config store.
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_URL: postgresql://ledgervault:${POSTGRES_PASSWORD}@postgres:5432/ledgervault
+      LOG_LEVEL: info
+      TRUST_PROXY: 'false'
+      DB_SSL: disable
+      APP_ORIGIN: http://localhost:5173
+      COOKIE_SECURE: 'false'
+      EMAIL_TRANSPORT: file
+      EMAIL_OUTBOX_DIR: /tmp/ledgervault-mail
+    command: ['node', 'dist/migrations/cli.js', 'up']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment: *api_environment
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

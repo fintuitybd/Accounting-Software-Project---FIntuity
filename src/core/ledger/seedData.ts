@@ -1167,7 +1167,11 @@ function docLine(itemCode: string, sku: string, quantity: number, unitPrice: big
  */
 export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APEX'): SeedDataset {
   const tenant = tenantByKey(personaKey);
-  const ledger = new SeedLedger(ACCOUNTING_PERIODS, ACCOUNTS);
+  // The seed reconstructs historical journals that a live system would have posted while those
+  // periods were still open. Construct against an OPEN view, then expose the real CLOSED/LOCKED
+  // statuses in the dataset. This never bypasses the runtime posting rule.
+  const seedPostingPeriods = ACCOUNTING_PERIODS.map((period) => ({ ...period, status: 'OPEN' as const }));
+  const ledger = new SeedLedger(seedPostingPeriods, ACCOUNTS);
   const binUnit = tenant.bin_units[0]?.id ?? 'BU-DHK';
   const costOf = (percentBps: number, base: bigint): bigint => applyRateBps(base, percentBps);
 
@@ -1313,7 +1317,7 @@ export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APE
       party: partyById('PTY-PADMA'),
       bin_unit_id: 'BU-DHK',
       lines: [docLine('ITM-001', 'HS-8471.30', 12, bdtToPoisha('98500.00')), docLine('ITM-006', 'HS-8544.42', 33, bdtToPoisha('7250.00'))],
-      base_poisha: bdtToPoisha('1450000.00'),
+      base_poisha: bdtToPoisha('1421250.00'),
       tax_category: 'STANDARD_15',
       tds_nature: 'SUPPLY_OF_GOODS',
       payment_method: 'BANK',
@@ -1389,7 +1393,7 @@ export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APE
       party: partyById('PTY-KARNAPHULI'),
       bin_unit_id: 'BU-DHK',
       lines: [docLine('ITM-005', 'HS-6302.60', 28, bdtToPoisha('21800.00')), docLine('ITM-004', 'HS-4820.10', 4, bdtToPoisha('4500.00'))],
-      base_poisha: bdtToPoisha('620000.00'),
+      base_poisha: bdtToPoisha('628400.00'),
       tax_category: 'STANDARD_15',
       tds_nature: 'SUPPLY_OF_GOODS',
       payment_method: 'BANK',
@@ -1635,7 +1639,7 @@ export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APE
       party: partyById('PTY-PADMA'),
       bin_unit_id: 'BU-DHK',
       lines: [docLine('ITM-002', 'HS-8517.62', 30, bdtToPoisha('42500.00')), docLine('ITM-006', 'HS-8544.42', 70, bdtToPoisha('7250.00'))],
-      base_poisha: bdtToPoisha('1780000.00'),
+      base_poisha: bdtToPoisha('1782500.00'),
       tax_category: 'STANDARD_15',
       tds_nature: 'SUPPLY_OF_GOODS',
       payment_method: 'BANK',
@@ -1660,7 +1664,7 @@ export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APE
       party: partyById('PTY-SYLHETAGRO'),
       bin_unit_id: 'BU-DHK',
       lines: [docLine('ITM-005', 'HS-6302.60', 22, bdtToPoisha('21800.00'))],
-      base_poisha: bdtToPoisha('480000.00'),
+      base_poisha: bdtToPoisha('479600.00'),
       tax_category: 'STANDARD_15',
       tds_nature: 'SUPPLY_OF_GOODS',
       payment_method: 'BANK',
@@ -1802,6 +1806,8 @@ export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APE
       payment_method: 'BANK',
       narration_en: 'Mushak 6.7 credit note for damaged goods returned by Meghna Distribution Ltd. — output VAT reversed at 15% and the receivable reduced.',
       narration_bn: 'মেঘনা ডিস্ট্রিবিউশন লিমিটেডের ক্ষতিগ্রস্ত পণ্য ফেরতের মূসক ৬.৭ ক্রেডিট নোট — ১৫% হারে আউটপুট ভ্যাট বাতিল ও প্রাপ্য হ্রাস।',
+      original_doc_id: 'DOC-INV-2026-10-0001',
+      original_doc_number: 'INV-2026-10-0001',
       revenue_account_code: '4200',
       revenue_account_name_en: 'Sales Returns & Credit Note Adjustments (Mushak 6.7)',
       revenue_account_name_bn: 'বিক্রয় ফেরত ও ক্রেডিট নোট সমন্বয় (মূসক ৬.৭)',
@@ -1980,10 +1986,12 @@ export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APE
         reference: journal.journal_number,
         debit_poisha: line.debit_poisha,
         credit_poisha: line.credit_poisha,
-        status: 'MATCHED',
-        matched_doc_ref: journal.source_doc_ref,
+        // The demo statement is synthetic evidence, not a reconciliation result. Even though these
+        // rows were derived from the seed ledger, the demo must still match them explicitly.
+        status: 'UNMATCHED',
+        matched_doc_ref: undefined,
         fee_poisha: 0n,
-        journal_id: journal.id,
+        journal_id: undefined,
       });
     }
   }
