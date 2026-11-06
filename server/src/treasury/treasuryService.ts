@@ -333,16 +333,16 @@ export async function allocateDocumentSequenceNumber(
   pad: number = 5,
 ): Promise<string> {
   await client.query(
-    `INSERT INTO document_sequences (company_id, fiscal_year_id, doc_type, prefix, pad, next_value)
-     VALUES ($1, $2, $3, $4, $5, 1)
-     ON CONFLICT (company_id, fiscal_year_id, doc_type) DO NOTHING`,
-    [companyId, fiscalYearId, docType, prefix, pad],
+    `INSERT INTO document_sequences (company_id, fiscal_year_id, doc_type, prefix, current_value)
+     VALUES ($1, $2, $3, $4, 0)
+     ON CONFLICT (company_id, fiscal_year_id, doc_type) WHERE branch_id IS NULL DO NOTHING`,
+    [companyId, fiscalYearId, docType, prefix],
   );
 
-  const result = await client.query<{ id: string; prefix: string; pad: number; next_value: string }>(
-    `SELECT id, prefix, pad, next_value::text AS next_value
+  const result = await client.query<{ id: string; prefix: string; current_value: string }>(
+    `SELECT id, prefix, current_value::text AS current_value
        FROM document_sequences
-      WHERE company_id = $1 AND fiscal_year_id = $2 AND doc_type = $3
+      WHERE company_id = $1 AND fiscal_year_id = $2 AND doc_type = $3 AND branch_id IS NULL
       FOR UPDATE`,
     [companyId, fiscalYearId, docType],
   );
@@ -350,14 +350,14 @@ export async function allocateDocumentSequenceNumber(
   if (!sequence) {
     throw new AppError(500, 'SEQUENCE_ALLOCATION_FAILED', `Could not allocate sequence for ${docType}`);
   }
-  const value = BigInt(sequence.next_value);
+  const nextValue = BigInt(sequence.current_value) + 1n;
   const startYear = fiscalStart.getFullYear();
   const endYearSuffix = String((startYear + 1) % 100).padStart(2, '0');
   const fyCode = `${startYear}-${endYearSuffix}`;
-  const number = `${sequence.prefix}/${fyCode}/${value.toString().padStart(sequence.pad, '0')}`;
+  const number = `${sequence.prefix}/${fyCode}/${nextValue.toString().padStart(pad, '0')}`;
   await client.query(
-    `UPDATE document_sequences SET next_value = $3, version = version + 1, updated_at = now() WHERE company_id = $1 AND id = $2`,
-    [companyId, sequence.id, (value + 1n).toString()],
+    `UPDATE document_sequences SET current_value = $3, updated_at = now() WHERE company_id = $1 AND id = $2`,
+    [companyId, sequence.id, nextValue.toString()],
   );
   return number;
 }

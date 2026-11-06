@@ -212,11 +212,31 @@ export async function generateSection177Return(
     actorUserId: string;
   },
 ): Promise<WithholdingReturnDto> {
-  const existing = await database.query<{ id: string }>(
-    `SELECT id FROM withholding_tax_returns WHERE company_id = $1 AND tax_period = $2`,
-    [companyId, input.taxPeriod],
+  const parts = input.taxPeriod.split('-');
+  const year = parts[0] ? parseInt(parts[0], 10) : 2026;
+  const month = parts[1] ? parseInt(parts[1], 10) : 11;
+  const periodStart = `${year}-${String(month).padStart(2, '0')}-01`;
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const periodEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+  const fyRes = await database.query<{ id: string }>(
+    `SELECT id FROM fiscal_years WHERE company_id = $1 AND start_date <= $2 AND end_date >= $2 LIMIT 1`,
+    [companyId, periodStart],
+  );
+  if (!fyRes.rows[0]) {
+    throw new AppError(400, 'FISCAL_YEAR_NOT_FOUND', `No fiscal year covers period ${input.taxPeriod}`);
+  }
+  const fiscalYearId = fyRes.rows[0].id;
+
+  const existing = await database.query<{ id: string; status: string }>(
+    `SELECT id, status FROM withholding_tax_returns
+      WHERE company_id = $1 AND return_type = 'MONTHLY_177' AND period_start = $2 AND period_end = $3`,
+    [companyId, periodStart, periodEnd],
   );
   if (existing.rows[0]) {
+    if (existing.rows[0].status === 'SUBMITTED') {
+      throw new AppError(409, 'RETURN_ALREADY_SUBMITTED', 'This Section 177 return has already been submitted to NBR.');
+    }
     await database.query(`DELETE FROM withholding_tax_returns WHERE company_id = $1 AND id = $2`, [
       companyId,
       existing.rows[0].id,
@@ -237,59 +257,59 @@ export async function generateSection177Return(
     party_id: string;
     party_name: string;
     party_tin: string | null;
+    party_bin: string | null;
     tds_nature: string | null;
     supplier_tin_missing: boolean | null;
+    bill_id: string | null;
     challan_number: string | null;
     deposit_date: Date | null;
+    bank_name: string | null;
     bill_gross_poisha: string | null;
   }>(
     `SELECT l.id, l.base_poisha::text AS base_poisha, l.rate_bps, l.amount_poisha::text AS amount_poisha,
             l.status, l.tax_period, l.economic_code, l.challan_id, l.deposited_at, l.created_at,
-            l.party_id, p.name_en AS party_name, p.tin AS party_tin,
-            d.tds_nature, d.supplier_tin_missing,
+            l.party_id, p.name_en AS party_name, p.tin AS party_tin, p.bin AS party_bin,
+            d.tds_nature, d.supplier_tin_missing, d.id AS bill_id,
             c.challan_number, c.deposit_date,
+            b.name AS bank_name,
             d.gross_poisha::text AS bill_gross_poisha
        FROM purchase_withholding_liabilities l
        JOIN parties p ON p.company_id = l.company_id AND p.id = l.party_id
        LEFT JOIN purchase_documents d ON d.company_id = l.company_id AND d.id = l.bill_id
        LEFT JOIN treasury_challans c ON c.company_id = l.company_id AND c.id = l.challan_id
+       LEFT JOIN bank_accounts b ON b.company_id = c.company_id AND b.id = c.bank_account_id
       WHERE l.company_id = $1 AND l.tax_type = 'TDS' AND l.tax_period = $2
       ORDER BY l.created_at ASC`,
     [companyId, input.taxPeriod],
   );
 
-  const linesToInsert: Array<{
-    id: string;
-    schedule: WithholdingSchedule;
-    sectionCode: string;
-    partyId: string;
-    partyName: string;
-    partyTin: string | null;
-    grossPaymentPoisha: bigint;
-    taxableBasePoisha: bigint;
-    rateBps: number;
-    tdsAmountPoisha: bigint;
-    penaltyApplied: boolean;
-    challanNumber: string | null;
-    challanDate: string | null;
-    economicCode: string | null;
-    anomalies: WithholdingAnomaly[];
-    liabilityId: string;
-  }> = [];
-
+  const returnId = randomUUID();
+  let totalGross = 0n;
   let totalDeducted = 0n;
   let totalDeposited = 0n;
-  let totalAnomalies = 0;
 
-  const summary: Record<
-    WithholdingSchedule,
-    { count: number; basePoisha: bigint; tdsPoisha: bigint; anomalyCount: number }
-  > = {
-    SCHEDULE_A: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
-    SCHEDULE_B: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
-    SCHEDULE_C: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
-    SCHEDULE_D: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
-  };
+  const linesToInsert: Array<{
+    id: string;
+    scheduleCode: string;
+    partyId: string;
+    sourceDocumentId: string;
+    deducteeName: string;
+    deducteeTin: string | null;
+    deducteeBin: string | null;
+    penaltyApplied: boolean;
+    sectionCode: string;
+    economicCode: string;
+    grossAmountPoisha: string;
+    paidAmountPoisha: string;
+    rateBps: number;
+    tdsAmountPoisha: string;
+    paymentDateStr: string;
+    challanId: string | null;
+    challanNumber: string | null;
+    challanDateStr: string | null;
+    bankName: string | null;
+    anomalies: WithholdingAnomaly[];
+  }> = [];
 
   for (const row of liabilitiesQuery.rows) {
     const classification = classifySchedule(row.tds_nature ?? 'SUPPLY_OF_GOODS');
@@ -298,12 +318,12 @@ export async function generateSection177Return(
     const grossPoisha = row.bill_gross_poisha ? BigInt(row.bill_gross_poisha) : basePoisha + tdsPoisha;
 
     const anomalies: WithholdingAnomaly[] = [];
-    const tinValid = row.party_tin && /^\d{12}$/.test(row.party_tin.trim());
+    const tinValid = Boolean(row.party_tin && /^\d{12}$/.test(row.party_tin.trim()));
     if (!tinValid) {
       anomalies.push('MISSING_ETIN');
     }
 
-    const deposited = row.status === 'DEPOSITED' && row.challan_number;
+    const deposited = row.status === 'DEPOSITED' && Boolean(row.challan_number);
     if (!deposited) {
       anomalies.push('UNDEPOSITED_TDS');
     } else if (row.deposit_date) {
@@ -315,110 +335,101 @@ export async function generateSection177Return(
 
     const penaltyApplied = row.supplier_tin_missing === true || !tinValid;
 
+    totalGross += grossPoisha;
     totalDeducted += tdsPoisha;
     if (deposited) {
       totalDeposited += tdsPoisha;
     }
-    totalAnomalies += anomalies.length;
 
-    summary[classification.schedule].count += 1;
-    summary[classification.schedule].basePoisha += basePoisha;
-    summary[classification.schedule].tdsPoisha += tdsPoisha;
-    summary[classification.schedule].anomalyCount += anomalies.length;
+    const scheduleCode =
+      classification.schedule === 'SCHEDULE_A'
+        ? 'SCHED_A_SALARY'
+        : classification.schedule === 'SCHEDULE_B'
+          ? 'SCHED_B_GOODS'
+          : classification.schedule === 'SCHEDULE_C'
+            ? 'SCHED_C_RENT'
+            : 'SCHED_D_PROF';
+
+    const paymentDateStr = formatDatabaseDate(row.created_at);
+    const challanDateStr = row.deposit_date ? formatDatabaseDate(row.deposit_date) : null;
 
     linesToInsert.push({
       id: randomUUID(),
-      schedule: classification.schedule,
-      sectionCode: classification.sectionCode,
+      scheduleCode,
       partyId: row.party_id,
-      partyName: row.party_name,
-      partyTin: row.party_tin,
-      grossPaymentPoisha: grossPoisha,
-      taxableBasePoisha: basePoisha,
-      rateBps: row.rate_bps,
-      tdsAmountPoisha: tdsPoisha,
+      sourceDocumentId: row.bill_id ?? row.id,
+      deducteeName: row.party_name,
+      deducteeTin: row.party_tin,
+      deducteeBin: row.party_bin,
       penaltyApplied,
+      sectionCode: classification.sectionCode,
+      economicCode: row.economic_code ?? '1/1141/0010/0111',
+      grossAmountPoisha: grossPoisha.toString(),
+      paidAmountPoisha: basePoisha.toString(),
+      rateBps: row.rate_bps,
+      tdsAmountPoisha: tdsPoisha.toString(),
+      paymentDateStr,
+      challanId: row.challan_id,
       challanNumber: row.challan_number,
-      challanDate: row.deposit_date ? formatDatabaseDate(row.deposit_date) : null,
-      economicCode: row.economic_code ?? '1/1141/0010/0311',
+      challanDateStr,
+      bankName: row.bank_name,
       anomalies,
-      liabilityId: row.id,
     });
   }
 
-  const returnId = randomUUID();
-  const schedulesJson = {
-    SCHEDULE_A: {
-      count: summary.SCHEDULE_A.count,
-      basePoisha: summary.SCHEDULE_A.basePoisha.toString(),
-      tdsPoisha: summary.SCHEDULE_A.tdsPoisha.toString(),
-      anomalyCount: summary.SCHEDULE_A.anomalyCount,
-    },
-    SCHEDULE_B: {
-      count: summary.SCHEDULE_B.count,
-      basePoisha: summary.SCHEDULE_B.basePoisha.toString(),
-      tdsPoisha: summary.SCHEDULE_B.tdsPoisha.toString(),
-      anomalyCount: summary.SCHEDULE_B.anomalyCount,
-    },
-    SCHEDULE_C: {
-      count: summary.SCHEDULE_C.count,
-      basePoisha: summary.SCHEDULE_C.basePoisha.toString(),
-      tdsPoisha: summary.SCHEDULE_C.tdsPoisha.toString(),
-      anomalyCount: summary.SCHEDULE_C.anomalyCount,
-    },
-    SCHEDULE_D: {
-      count: summary.SCHEDULE_D.count,
-      basePoisha: summary.SCHEDULE_D.basePoisha.toString(),
-      tdsPoisha: summary.SCHEDULE_D.tdsPoisha.toString(),
-      anomalyCount: summary.SCHEDULE_D.anomalyCount,
-    },
-  };
-
+  // Insert parent return FIRST to satisfy foreign key constraint
   await database.query(
     `INSERT INTO withholding_tax_returns (
-       id, company_id, tax_year, tax_period, status, total_deducted_poisha,
-       total_deposited_poisha, anomaly_count, schedules_json, created_by
-     ) VALUES ($1, $2, $3, $4, 'DRAFT', $5, $6, $7, $8, $9)`,
+       id, company_id, fiscal_year_id, return_type, period_start, period_end,
+       total_gross_paid_poisha, total_tds_deducted_poisha, total_tds_deposited_poisha,
+       status, prepared_by
+     ) VALUES ($1, $2, $3, 'MONTHLY_177', $4, $5, $6, $7, $8, 'DRAFT', $9)`,
     [
       returnId,
       companyId,
-      input.taxYear,
-      input.taxPeriod,
+      fiscalYearId,
+      periodStart,
+      periodEnd,
+      totalGross.toString(),
       totalDeducted.toString(),
       totalDeposited.toString(),
-      totalAnomalies,
-      JSON.stringify(schedulesJson),
       input.actorUserId,
     ],
   );
 
+  // Insert lines with parent returnId
   for (const line of linesToInsert) {
     await database.query(
       `INSERT INTO withholding_return_lines (
-         id, company_id, return_id, schedule, section_code, party_id,
-         party_name, party_tin, gross_payment_poisha, taxable_base_poisha,
-         rate_bps, tds_amount_poisha, penalty_applied, challan_number,
-         challan_date, economic_code, anomalies, liability_id
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
+         id, company_id, return_id, schedule_code, party_id, source_document_id,
+         deductee_name, deductee_tin, deductee_bin, has_etin_penalty_upscale,
+         section_code, economic_code, gross_amount_poisha, paid_amount_poisha,
+         tds_rate_bps, tds_amount_poisha, payment_date, challan_id,
+         challan_number, challan_date, bank_name, anomaly_flags
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
       [
         line.id,
         companyId,
         returnId,
-        line.schedule,
-        line.sectionCode,
+        line.scheduleCode,
         line.partyId,
-        line.partyName,
-        line.partyTin,
-        line.grossPaymentPoisha.toString(),
-        line.taxableBasePoisha.toString(),
-        line.rateBps,
-        line.tdsAmountPoisha.toString(),
+        line.sourceDocumentId,
+        line.deducteeName,
+        line.deducteeTin,
+        line.deducteeBin,
         line.penaltyApplied,
-        line.challanNumber,
-        line.challanDate,
+        line.sectionCode,
         line.economicCode,
-        line.anomalies,
-        line.liabilityId,
+        line.grossAmountPoisha,
+        line.paidAmountPoisha,
+        line.rateBps,
+        line.tdsAmountPoisha,
+        line.paymentDateStr,
+        line.challanId,
+        line.challanNumber,
+        line.challanDateStr,
+        line.bankName,
+        JSON.stringify(line.anomalies),
       ],
     );
   }
@@ -435,27 +446,35 @@ export async function getSection177Return(
   const result = await database.query<{
     id: string;
     company_id: string;
-    tax_year: string;
-    tax_period: string;
+    fiscal_year_id: string;
+    return_type: string;
+    period_start: Date;
+    period_end: Date;
+    total_gross_paid_poisha: string;
+    total_tds_deducted_poisha: string;
+    total_tds_deposited_poisha: string;
     status: WithholdingReturnStatus;
-    total_deducted_poisha: string;
-    total_deposited_poisha: string;
-    anomaly_count: number;
-    schedules_json: Record<
-      WithholdingSchedule,
-      { count: number; basePoisha: string; tdsPoisha: string; anomalyCount: number }
-    >;
+    submission_ack_number: string | null;
     submitted_at: Date | null;
     submitted_by: string | null;
     created_at: Date;
     updated_at: Date;
   }>(
-    `SELECT id, company_id, tax_year, tax_period, status,
-            total_deducted_poisha::text AS total_deducted_poisha,
-            total_deposited_poisha::text AS total_deposited_poisha,
-            anomaly_count, schedules_json, submitted_at, submitted_by, created_at, updated_at
-       FROM withholding_tax_returns
-      WHERE company_id = $1 AND ${isUuid ? 'id = $2' : 'tax_period = $2'}`,
+    `SELECT r.id, r.company_id, r.fiscal_year_id, r.return_type,
+            r.period_start, r.period_end,
+            r.total_gross_paid_poisha::text AS total_gross_paid_poisha,
+            r.total_tds_deducted_poisha::text AS total_tds_deducted_poisha,
+            r.total_tds_deposited_poisha::text AS total_tds_deposited_poisha,
+            r.status, r.submission_ack_number, r.submitted_at,
+            u.name AS submitted_by,
+            r.created_at, r.updated_at
+       FROM withholding_tax_returns r
+       LEFT JOIN users u ON u.id = r.verified_by
+      WHERE r.company_id = $1 AND ${
+        isUuid
+          ? 'r.id = $2'
+          : `to_char(r.period_start, 'YYYY-MM') = $2`
+      }`,
     [companyId, returnIdOrPeriod],
   );
 
@@ -466,106 +485,156 @@ export async function getSection177Return(
 
   const linesResult = await database.query<{
     id: string;
-    schedule: WithholdingSchedule;
+    schedule_code: string;
     section_code: string;
     party_id: string | null;
-    party_name: string;
-    party_tin: string | null;
-    gross_payment_poisha: string;
-    taxable_base_poisha: string;
-    rate_bps: number;
+    source_document_id: string | null;
+    deductee_name: string;
+    deductee_tin: string | null;
+    deductee_bin: string | null;
+    has_etin_penalty_upscale: boolean;
+    economic_code: string;
+    gross_amount_poisha: string;
+    paid_amount_poisha: string;
+    tds_rate_bps: number;
     tds_amount_poisha: string;
-    penalty_applied: boolean;
+    payment_date: Date;
+    challan_id: string | null;
     challan_number: string | null;
     challan_date: Date | null;
-    economic_code: string | null;
-    anomalies: WithholdingAnomaly[];
-    liability_id: string | null;
+    bank_name: string | null;
+    anomaly_flags: string | null;
   }>(
-    `SELECT id, schedule, section_code, party_id, party_name, party_tin,
-            gross_payment_poisha::text AS gross_payment_poisha,
-            taxable_base_poisha::text AS taxable_base_poisha,
-            rate_bps, tds_amount_poisha::text AS tds_amount_poisha,
-            penalty_applied, challan_number, challan_date, economic_code,
-            anomalies, liability_id
+    `SELECT id, schedule_code, section_code, party_id, source_document_id,
+            deductee_name, deductee_tin, deductee_bin, has_etin_penalty_upscale,
+            economic_code, gross_amount_poisha::text AS gross_amount_poisha,
+            paid_amount_poisha::text AS paid_amount_poisha,
+            tds_rate_bps, tds_amount_poisha::text AS tds_amount_poisha,
+            payment_date, challan_id, challan_number, challan_date, bank_name,
+            anomaly_flags
        FROM withholding_return_lines
       WHERE company_id = $1 AND return_id = $2
-      ORDER BY created_at ASC`,
+      ORDER BY payment_date ASC, deductee_name ASC`,
     [companyId, row.id],
   );
 
-  const rawSummary = row.schedules_json ?? {};
+  const summary: Record<
+    WithholdingSchedule,
+    { count: number; basePoisha: bigint; tdsPoisha: bigint; anomalyCount: number }
+  > = {
+    SCHEDULE_A: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
+    SCHEDULE_B: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
+    SCHEDULE_C: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
+    SCHEDULE_D: { count: 0, basePoisha: 0n, tdsPoisha: 0n, anomalyCount: 0 },
+  };
+
+  let totalAnomalies = 0;
+
+  const lines: WithholdingReturnLineDto[] = linesResult.rows.map((line) => {
+    const sched: WithholdingSchedule =
+      line.schedule_code === 'SCHED_A_SALARY'
+        ? 'SCHEDULE_A'
+        : line.schedule_code === 'SCHED_B_GOODS'
+          ? 'SCHEDULE_B'
+          : line.schedule_code === 'SCHED_C_RENT'
+            ? 'SCHEDULE_C'
+            : 'SCHEDULE_D';
+
+    let anomalies: WithholdingAnomaly[] = [];
+    if (line.anomaly_flags) {
+      try {
+        anomalies = JSON.parse(line.anomaly_flags);
+      } catch {
+        anomalies = [];
+      }
+    }
+
+    const basePoisha = BigInt(line.paid_amount_poisha);
+    const tdsPoisha = BigInt(line.tds_amount_poisha);
+
+    summary[sched].count += 1;
+    summary[sched].basePoisha += basePoisha;
+    summary[sched].tdsPoisha += tdsPoisha;
+    summary[sched].anomalyCount += anomalies.length;
+    totalAnomalies += anomalies.length;
+
+    return {
+      id: line.id,
+      schedule: sched,
+      sectionCode: line.section_code,
+      partyId: line.party_id,
+      partyName: line.deductee_name,
+      partyTin: line.deductee_tin,
+      grossPaymentPoisha: line.gross_amount_poisha,
+      grossPaymentBdt: formatPoishaAsBdt(line.gross_amount_poisha),
+      taxableBasePoisha: line.paid_amount_poisha,
+      taxableBaseBdt: formatPoishaAsBdt(line.paid_amount_poisha),
+      rateBps: line.tds_rate_bps,
+      tdsAmountPoisha: line.tds_amount_poisha,
+      tdsAmountBdt: formatPoishaAsBdt(line.tds_amount_poisha),
+      penaltyApplied: line.has_etin_penalty_upscale,
+      challanNumber: line.challan_number,
+      challanDate: line.challan_date ? formatDatabaseDate(line.challan_date) : null,
+      economicCode: line.economic_code,
+      anomalies,
+      liabilityId: line.source_document_id,
+    };
+  });
+
   const schedulesSummary = {
     SCHEDULE_A: {
-      count: rawSummary.SCHEDULE_A?.count ?? 0,
-      basePoisha: rawSummary.SCHEDULE_A?.basePoisha ?? '0',
-      baseBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_A?.basePoisha ?? 0)),
-      tdsPoisha: rawSummary.SCHEDULE_A?.tdsPoisha ?? '0',
-      tdsBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_A?.tdsPoisha ?? 0)),
-      anomalyCount: rawSummary.SCHEDULE_A?.anomalyCount ?? 0,
+      count: summary.SCHEDULE_A.count,
+      basePoisha: summary.SCHEDULE_A.basePoisha.toString(),
+      baseBdt: formatPoishaAsBdt(summary.SCHEDULE_A.basePoisha),
+      tdsPoisha: summary.SCHEDULE_A.tdsPoisha.toString(),
+      tdsBdt: formatPoishaAsBdt(summary.SCHEDULE_A.tdsPoisha),
+      anomalyCount: summary.SCHEDULE_A.anomalyCount,
     },
     SCHEDULE_B: {
-      count: rawSummary.SCHEDULE_B?.count ?? 0,
-      basePoisha: rawSummary.SCHEDULE_B?.basePoisha ?? '0',
-      baseBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_B?.basePoisha ?? 0)),
-      tdsPoisha: rawSummary.SCHEDULE_B?.tdsPoisha ?? '0',
-      tdsBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_B?.tdsPoisha ?? 0)),
-      anomalyCount: rawSummary.SCHEDULE_B?.anomalyCount ?? 0,
+      count: summary.SCHEDULE_B.count,
+      basePoisha: summary.SCHEDULE_B.basePoisha.toString(),
+      baseBdt: formatPoishaAsBdt(summary.SCHEDULE_B.basePoisha),
+      tdsPoisha: summary.SCHEDULE_B.tdsPoisha.toString(),
+      tdsBdt: formatPoishaAsBdt(summary.SCHEDULE_B.tdsPoisha),
+      anomalyCount: summary.SCHEDULE_B.anomalyCount,
     },
     SCHEDULE_C: {
-      count: rawSummary.SCHEDULE_C?.count ?? 0,
-      basePoisha: rawSummary.SCHEDULE_C?.basePoisha ?? '0',
-      baseBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_C?.basePoisha ?? 0)),
-      tdsPoisha: rawSummary.SCHEDULE_C?.tdsPoisha ?? '0',
-      tdsBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_C?.tdsPoisha ?? 0)),
-      anomalyCount: rawSummary.SCHEDULE_C?.anomalyCount ?? 0,
+      count: summary.SCHEDULE_C.count,
+      basePoisha: summary.SCHEDULE_C.basePoisha.toString(),
+      baseBdt: formatPoishaAsBdt(summary.SCHEDULE_C.basePoisha),
+      tdsPoisha: summary.SCHEDULE_C.tdsPoisha.toString(),
+      tdsBdt: formatPoishaAsBdt(summary.SCHEDULE_C.tdsPoisha),
+      anomalyCount: summary.SCHEDULE_C.anomalyCount,
     },
     SCHEDULE_D: {
-      count: rawSummary.SCHEDULE_D?.count ?? 0,
-      basePoisha: rawSummary.SCHEDULE_D?.basePoisha ?? '0',
-      baseBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_D?.basePoisha ?? 0)),
-      tdsPoisha: rawSummary.SCHEDULE_D?.tdsPoisha ?? '0',
-      tdsBdt: formatPoishaAsBdt(BigInt(rawSummary.SCHEDULE_D?.tdsPoisha ?? 0)),
-      anomalyCount: rawSummary.SCHEDULE_D?.anomalyCount ?? 0,
+      count: summary.SCHEDULE_D.count,
+      basePoisha: summary.SCHEDULE_D.basePoisha.toString(),
+      baseBdt: formatPoishaAsBdt(summary.SCHEDULE_D.basePoisha),
+      tdsPoisha: summary.SCHEDULE_D.tdsPoisha.toString(),
+      tdsBdt: formatPoishaAsBdt(summary.SCHEDULE_D.tdsPoisha),
+      anomalyCount: summary.SCHEDULE_D.anomalyCount,
     },
   };
 
-  const lines: WithholdingReturnLineDto[] = linesResult.rows.map((line) => ({
-    id: line.id,
-    schedule: line.schedule,
-    sectionCode: line.section_code,
-    partyId: line.party_id,
-    partyName: line.party_name,
-    partyTin: line.party_tin,
-    grossPaymentPoisha: line.gross_payment_poisha,
-    grossPaymentBdt: formatPoishaAsBdt(line.gross_payment_poisha),
-    taxableBasePoisha: line.taxable_base_poisha,
-    taxableBaseBdt: formatPoishaAsBdt(line.taxable_base_poisha),
-    rateBps: line.rate_bps,
-    tdsAmountPoisha: line.tds_amount_poisha,
-    tdsAmountBdt: formatPoishaAsBdt(line.tds_amount_poisha),
-    penaltyApplied: line.penalty_applied,
-    challanNumber: line.challan_number,
-    challanDate: line.challan_date ? formatDatabaseDate(line.challan_date) : null,
-    economicCode: line.economic_code,
-    anomalies: line.anomalies ?? [],
-    liabilityId: line.liability_id,
-  }));
+  const periodStartStr = formatDatabaseDate(row.period_start);
+  const taxPeriod = periodStartStr.slice(0, 7);
+  const startYear = parseInt(periodStartStr.slice(0, 4), 10);
+  const taxYear = `${startYear}-${startYear + 1}`;
 
   return {
     id: row.id,
     companyId: row.company_id,
-    taxYear: row.tax_year,
-    taxPeriod: row.tax_period,
+    taxYear,
+    taxPeriod,
     status: row.status,
-    totalDeductedPoisha: row.total_deducted_poisha,
-    totalDeductedBdt: formatPoishaAsBdt(row.total_deducted_poisha),
-    totalDepositedPoisha: row.total_deposited_poisha,
-    totalDepositedBdt: formatPoishaAsBdt(row.total_deposited_poisha),
-    anomalyCount: row.anomaly_count,
+    totalDeductedPoisha: row.total_tds_deducted_poisha,
+    totalDeductedBdt: formatPoishaAsBdt(row.total_tds_deducted_poisha),
+    totalDepositedPoisha: row.total_tds_deposited_poisha,
+    totalDepositedBdt: formatPoishaAsBdt(row.total_tds_deposited_poisha),
+    anomalyCount: totalAnomalies,
     schedulesSummary,
     lines,
-    submittedAt: row.submitted_at?.toISOString() ?? null,
+    submittedAt: row.submitted_at ? row.submitted_at.toISOString() : null,
     submittedBy: row.submitted_by,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
@@ -576,10 +645,11 @@ export async function verifySection177Return(
   database: Queryable,
   companyId: string,
   returnId: string,
+  actorUserId?: string,
 ): Promise<WithholdingReturnDto> {
   await database.query(
-    `UPDATE withholding_tax_returns SET status = 'VERIFIED', updated_at = now() WHERE company_id = $1 AND id = $2`,
-    [companyId, returnId],
+    `UPDATE withholding_tax_returns SET status = 'VERIFIED', verified_by = COALESCE($3, verified_by), updated_at = now() WHERE company_id = $1 AND id = $2`,
+    [companyId, returnId, actorUserId ?? null],
   );
   return getSection177Return(database, companyId, returnId);
 }
@@ -590,11 +660,13 @@ export async function submitSection177Return(
   returnId: string,
   actorUserId: string,
 ): Promise<WithholdingReturnDto> {
+  const current = await getSection177Return(database, companyId, returnId);
+  const ack = `ACK-177-${current.taxPeriod}-${randomUUID().slice(0, 8).toUpperCase()}`;
   await database.query(
     `UPDATE withholding_tax_returns
-        SET status = 'SUBMITTED', submitted_at = now(), submitted_by = $3, updated_at = now()
+        SET status = 'SUBMITTED', submitted_at = now(), verified_by = $3, submission_ack_number = $4, updated_at = now()
       WHERE company_id = $1 AND id = $2`,
-    [companyId, returnId, actorUserId],
+    [companyId, returnId, actorUserId, ack],
   );
   return getSection177Return(database, companyId, returnId);
 }
