@@ -15,37 +15,12 @@ import {
   MemoryEmailSender,
   SmtpEmailSender,
 } from '../../src/auth/email.ts';
-import type { AppConfig } from '../../src/config.ts';
+import { loadConfig, type AppConfig } from '../../src/config.ts';
 
-const baseConfig: AppConfig = {
-  nodeEnv: 'test',
-  host: '127.0.0.1',
-  port: 3000,
-  logLevel: 'silent',
-  trustProxy: false,
-  databaseUrl: 'postgresql://ledger_user:secret@127.0.0.1:5432/ledgervault_test',
-  dbSsl: 'disable',
-  dbPoolMax: 2,
-  dbIdleTimeoutMs: 10000,
-  dbConnectionTimeoutMs: 5000,
-  authSecret: '01234567890123456789012345678901',
-  serviceName: 'ledgervault-api',
-  serviceVersion: '0.1.0',
-  sessionIdleMinutes: 30,
-  sessionAbsoluteHours: 12,
-  cookieSecure: false,
-  publicAppOrigin: 'http://127.0.0.1:5173',
-  emailOutboxDir: './tmp/test-outbox',
-  email: {
-    mode: 'file',
-    host: '127.0.0.1',
-    port: 587,
-    secure: false,
-    auth: { user: '', pass: '' },
-    from: 'noreply@fintuity.test',
-    outboxDir: './tmp/test-outbox',
-  },
-};
+const baseConfig: AppConfig = loadConfig({
+  NODE_ENV: 'test',
+  DATABASE_URL: 'postgresql://ledger_user:secret@127.0.0.1:5432/ledgervault_test',
+});
 
 describe('BigInt Poisha Exact Currency Formatting', () => {
   it('formats zero poisha as 0.00', () => {
@@ -217,7 +192,7 @@ describe('9-Tab Statutory & IFRS Audit Pack Exporter', () => {
     expect(buffer.byteLength).toBeGreaterThan(5000);
 
     const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buffer as unknown as Buffer);
+    await wb.xlsx.load(buffer as any);
 
     // Verify 9 Tabs:
     const expectedSheets = [
