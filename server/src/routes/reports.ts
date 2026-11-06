@@ -7,7 +7,7 @@ import { truncateUserAgent } from '../auth/tokens.ts';
 import { writeAuditEvent } from '../auth/audit.ts';
 import { REPORT_DEFINITIONS } from '../reports/definitions.ts';
 import { getReportCatalog, reportReviewStatusFor } from '../reports/catalog.ts';
-import { exportReportCsv } from '../reports/export.ts';
+import { exportReportCsv, generateNineTabAuditPackBuffer } from '../reports/export.ts';
 import { JOURNAL_SOURCE_MODULES, JOURNAL_STATUSES } from '../ledger/constants.ts';
 import {
   getApAgeingReport,
@@ -453,6 +453,18 @@ export const reportRoutes: FastifyPluginAsync = async (app) => {
       reply.header('content-type', 'text/csv; charset=utf-8');
       reply.header('content-disposition', `attachment; filename="${params.reportKey.toLowerCase()}-${date}.csv"`);
       return reply.send(csv);
+    },
+  );
+
+  app.get(
+    '/companies/:companyId/reports/audit-pack/:fiscalYearId',
+    { config: { auth: { mode: 'company', permission: 'EXPORT_DATA' } } },
+    async (request, reply) => {
+      const { companyId, fiscalYearId } = request.params as { companyId: string; fiscalYearId: string };
+      const buffer = await generateNineTabAuditPackBuffer(companyId, fiscalYearId, app.db);
+      reply.header('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      reply.header('content-disposition', `attachment; filename="audit-pack-${fiscalYearId}.xlsx"`);
+      return reply.send(buffer);
     },
   );
 

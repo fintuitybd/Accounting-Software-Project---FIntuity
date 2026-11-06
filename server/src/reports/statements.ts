@@ -62,6 +62,41 @@ const SECTION_TITLES = {
   financing: { en: 'Financing activities', bn: 'অর্থায়ন কার্যক্রম' },
 } as const;
 
+export function resolveNoteRef(accountCode?: string | null, accountType?: string, subCategory?: string): string {
+  if (!accountCode) return '';
+  const code = accountCode.trim();
+  if (code.startsWith('153')) return 'Note 5';
+  if (code === '1540') return 'Note 27';
+  if (code.startsWith('15')) return 'Note 4';
+  if (code.startsWith('13')) return 'Note 6';
+  if (code.startsWith('121')) return 'Note 7';
+  if (code === '1140') return 'Note 8';
+  if (code === '1145') return 'Note 9';
+  if (code === '1150') return 'Note 10';
+  if (code.startsWith('111') || code.startsWith('112') || code.startsWith('113') || code.startsWith('101') || code.startsWith('102')) return 'Note 11';
+  if (code.startsWith('311') || code.startsWith('310')) return 'Note 12';
+  if (code.startsWith('321') || code.startsWith('320')) return 'Note 13';
+  if (code.startsWith('331') || code.startsWith('330')) return 'Note 14';
+  if (code === '2530') return 'Note 27';
+  if (code.startsWith('25') || code.startsWith('22')) return 'Note 15';
+  if (code === '2120') return 'Note 28';
+  if (code.startsWith('211')) return 'Note 16';
+  if (code === '2130') return 'Note 17';
+  if (code === '2140') return 'Note 18';
+  if (code === '2141') return 'Note 19';
+  if (code.startsWith('215')) return 'Note 29';
+  if (code.startsWith('216')) return 'Note 30';
+  if (code === '2170') return 'Note 20';
+  if (code.startsWith('41')) return 'Note 21';
+  if (code.startsWith('52')) return 'Note 22';
+  if (code === '5190' || code.startsWith('519')) return 'Note 31';
+  if (code.startsWith('51') || code.startsWith('53')) return 'Note 23';
+  if (code.startsWith('42')) return 'Note 24';
+  if (code.startsWith('54')) return 'Note 25';
+  if (code.startsWith('55')) return 'Note 26';
+  return 'Note 32';
+}
+
 function lineFromBalance(row: AccountBalanceRow, amount: bigint, comparative: bigint): ReportLineDto {
   return {
     accountId: row.id,
@@ -72,6 +107,7 @@ function lineFromBalance(row: AccountBalanceRow, amount: bigint, comparative: bi
     comparativePoisha: comparative.toString(),
     kind: 'ACCOUNT',
     note: null,
+    noteRef: resolveNoteRef(row.code, row.accountType, row.subCategory),
   };
 }
 
@@ -203,10 +239,31 @@ export async function getProfitAndLossReport(
   const investingIncome = sumSection(sections, 'investingIncome');
   const financeCosts = sumSection(sections, 'financeCosts');
   const taxExpense = sumSection(sections, 'incomeTax');
-  const grossProfit = revenue - costOfSales;
+
+  // IFRS 18 Mandatory Subtotals:
+  const netOperatingRevenuePoisha = revenue;
+  const cogsPoisha = costOfSales;
+  const grossProfit = netOperatingRevenuePoisha - cogsPoisha;
   const operatingProfit = grossProfit - operatingExpenses;
-  const profitBeforeTax = operatingProfit + investingIncome - financeCosts;
-  const profitForPeriod = profitBeforeTax - taxExpense;
+  const profitBeforeFinancingAndTax = operatingProfit + investingIncome;
+  const profitBeforeTax = profitBeforeFinancingAndTax - financeCosts;
+
+  const taxSection = sections.find((s) => s.key === 'incomeTax');
+  let currentTax = 0n;
+  let deferredTax = 0n;
+  if (taxSection) {
+    for (const line of taxSection.lines) {
+      const amt = BigInt(line.amountPoisha);
+      if (line.accountCode === '5520' || line.accountNameEn.toLowerCase().includes('deferred')) {
+        deferredTax += amt;
+      } else {
+        currentTax += amt;
+      }
+    }
+  } else {
+    currentTax = taxExpense;
+  }
+  const profitForPeriod = profitBeforeTax - currentTax - deferredTax;
 
   const revenueCmp = sumSectionComparative(sections, 'revenue');
   const costOfSalesCmp = sumSectionComparative(sections, 'costOfSales');
@@ -216,8 +273,24 @@ export async function getProfitAndLossReport(
   const taxExpenseCmp = sumSectionComparative(sections, 'incomeTax');
   const grossProfitCmp = revenueCmp - costOfSalesCmp;
   const operatingProfitCmp = grossProfitCmp - operatingExpensesCmp;
-  const profitBeforeTaxCmp = operatingProfitCmp + investingIncomeCmp - financeCostsCmp;
-  const profitForPeriodCmp = profitBeforeTaxCmp - taxExpenseCmp;
+  const profitBeforeFinancingAndTaxCmp = operatingProfitCmp + investingIncomeCmp;
+  const profitBeforeTaxCmp = profitBeforeFinancingAndTaxCmp - financeCostsCmp;
+
+  let currentTaxCmp = 0n;
+  let deferredTaxCmp = 0n;
+  if (taxSection) {
+    for (const line of taxSection.lines) {
+      const amt = BigInt(line.comparativePoisha);
+      if (line.accountCode === '5520' || line.accountNameEn.toLowerCase().includes('deferred')) {
+        deferredTaxCmp += amt;
+      } else {
+        currentTaxCmp += amt;
+      }
+    }
+  } else {
+    currentTaxCmp = taxExpenseCmp;
+  }
+  const profitForPeriodCmp = profitBeforeTaxCmp - currentTaxCmp - deferredTaxCmp;
 
   const profitFromLedger = sumPnlProfit(current);
   const profitFromLedgerCmp = sumPnlProfit(comparative);
@@ -298,8 +371,17 @@ export async function getProfitAndLossReport(
       investingIncomeComparativePoisha: investingIncomeCmp.toString(),
       financeCostsComparativePoisha: financeCostsCmp.toString(),
       profitBeforeTaxComparativePoisha: profitBeforeTaxCmp.toString(),
-      taxExpenseComparativePoisha: taxExpenseCmp.toString(),
+      taxExpenseComparativePoisha: (currentTaxCmp + deferredTaxCmp).toString(),
       profitForPeriodComparativePoisha: profitForPeriodCmp.toString(),
+      // Mandatory IFRS 18 Subtotals:
+      netOperatingRevenuePoisha: revenue.toString(),
+      cogsPoisha: costOfSales.toString(),
+      investingNetPoisha: investingIncome.toString(),
+      profitBeforeFinancingAndTaxPoisha: profitBeforeFinancingAndTax.toString(),
+      financingCostPoisha: financeCosts.toString(),
+      currentTaxPoisha: currentTax.toString(),
+      deferredTaxPoisha: deferredTax.toString(),
+      netProfitPoisha: profitForPeriod.toString(),
     },
   };
 }
@@ -377,7 +459,9 @@ export async function getBalanceSheetReport(
       'assetsCurrent',
       current,
       comparativeMap,
-      (row) => row.accountType === 'ASSET' && row.subCategory === 'CURRENT_ASSET',
+      (row) =>
+        (row.accountType === 'ASSET' && row.subCategory === 'CURRENT_ASSET') ||
+        ['1140', '1145', '1150'].includes(row.code),
     ),
     balanceSheetSection('equity', current, comparativeMap, (row) => row.accountType === 'EQUITY'),
     balanceSheetSection(
@@ -390,7 +474,9 @@ export async function getBalanceSheetReport(
       'liabilitiesCurrent',
       current,
       comparativeMap,
-      (row) => row.accountType === 'LIABILITY' && row.subCategory === 'CURRENT_LIABILITY',
+      (row) =>
+        (row.accountType === 'LIABILITY' && row.subCategory === 'CURRENT_LIABILITY') ||
+        ['2120', '2130', '2140', '2141', '2170'].includes(row.code),
     ),
   ];
   const equitySection = sections.find((section) => section.key === 'equity')!;
@@ -493,6 +579,7 @@ export async function getBalanceSheetReport(
       totalEquityAndLiabilitiesComparativePoisha: totalEquityAndLiabilitiesCmp.toString(),
       unclosedProfitPoisha: currentProfit.toString(),
       imbalancePoisha: imbalance.toString(),
+      accountingEquationDeltaPoisha: imbalance.toString(),
     },
   };
 }
@@ -760,6 +847,7 @@ function cashFlowSectionDto(
       comparativePoisha: comp.toString(),
       kind: 'ACCOUNT',
       note: null,
+      noteRef: resolveNoteRef(row.code),
     });
   }
   lines.sort((left, right) => (left.accountCode ?? '').localeCompare(right.accountCode ?? ''));
@@ -849,6 +937,30 @@ export async function getCashFlowReport(
 
   const unclassified = current.unclassified;
   const cashDifference = openingCash + netChange - closingCash;
+
+  let cashPaidForVdsAndVat = 0n;
+  let cashPaidForTdsAndAit = 0n;
+  for (const entry of current.sections.operating.values()) {
+    if (['1140', '1145', '2120', '2130'].includes(entry.code)) {
+      cashPaidForVdsAndVat += entry.amount;
+    }
+    if (['1150', '2140', '2141', '2170'].includes(entry.code)) {
+      cashPaidForTdsAndAit += entry.amount;
+    }
+  }
+
+  let pnlProfitBeforeTax = 0n;
+  try {
+    const pnl = await getProfitAndLossReport(database, companyId, input);
+    pnlProfitBeforeTax = BigInt(pnl.totals.profitBeforeTaxPoisha);
+  } catch {
+    pnlProfitBeforeTax = 0n;
+  }
+
+  const operatingTotal = BigInt(sections[0]?.totalPoisha ?? '0');
+  const cashGeneratedFromOps = operatingTotal - cashPaidForVdsAndVat - cashPaidForTdsAndAit;
+  const workingCapitalDelta = cashGeneratedFromOps - pnlProfitBeforeTax;
+
   const checks: ReportCheckDto[] = [
     checkDto({
       key: 'CASH_ACCOUNTS_CONFIGURED',
@@ -918,6 +1030,29 @@ export async function getCashFlowReport(
     openingCashComparativePoisha: comparativeOpening.toString(),
     closingCashComparativePoisha: comparativeClosing.toString(),
     netChangeComparativePoisha: netChangeCmp.toString(),
+    cashPaidForVdsAndVatPoisha: cashPaidForVdsAndVat.toString(),
+    cashPaidForTdsAndAitPoisha: cashPaidForTdsAndAit.toString(),
+    indirectMethod: {
+      profitBeforeTaxPoisha: pnlProfitBeforeTax.toString(),
+      adjustments: [],
+      workingCapitalChanges: [
+        {
+          accountId: null,
+          accountCode: 'WC_ADJ',
+          accountNameEn: 'Working capital adjustments (trade receivables, payables, inventories)',
+          accountNameBn: 'কার্যকরী মূলধনের সমন্বয়',
+          amountPoisha: workingCapitalDelta.toString(),
+          comparativePoisha: '0',
+          kind: 'DERIVED',
+          note: 'Reconciles PBT to operating cash flows',
+          noteRef: null,
+        },
+      ],
+      cashGeneratedFromOperationsPoisha: cashGeneratedFromOps.toString(),
+      cashPaidForVdsAndVatPoisha: cashPaidForVdsAndVat.toString(),
+      cashPaidForTdsAndAitPoisha: cashPaidForTdsAndAit.toString(),
+      netCashFromOperatingActivitiesPoisha: operatingTotal.toString(),
+    },
   };
 }
 

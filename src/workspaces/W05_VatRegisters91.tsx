@@ -10,7 +10,7 @@
 // adjustment; the GL proof is computed from the immutable journals, never from a display KPI.
 
 import { useMemo, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { downloadSpreadsheetWorkbook } from '../core/import-export/xlsxEngine';
 import {
   ArrowRight,
   BadgeCheck,
@@ -432,9 +432,7 @@ export default function W05_VatRegisters91() {
   const noteClosing = noteOpening + return91.input_rebate_poisha - return91.output_tax_poisha + books.decreasing;
 
   const exportWorkbook = (): void => {
-    const workbook = XLSX.utils.book_new();
-
-    const summary = XLSX.utils.aoa_to_sheet([
+    const summaryRows: Array<Array<unknown>> = [
       ['Fintuity Accounting Suite — internal VAT workbook (DRAFT — NOT FILED)'],
       ['Legal name', tenant.name_en],
       ['BIN', return91.bin],
@@ -454,33 +452,28 @@ export default function W05_VatRegisters91() {
       ['GL input VAT', poishaToBdtNumber(return91.gl_input_vat_poisha)],
       ['GL vs return variance (BDT)', poishaToBdtNumber(return91.gl_difference_poisha)],
       ['Reconciled', return91.reconciled ? 'YES' : 'NO'],
-    ]);
-    XLSX.utils.book_append_sheet(workbook, summary, 'Mushak 9.1');
+    ];
 
-    const registerSheet = (rows: MushakRegisterRow[], title: string): void => {
-      const sheet = XLSX.utils.json_to_sheet(
-        rows.map((row) => ({
-          Serial: row.serial,
-          Date: row.date,
-          Document: row.doc_number,
-          Party: row.party_name,
-          BIN: row.party_bin,
-          Description: row.description,
-          'Value (BDT)': poishaToBdtNumber(row.value_poisha),
-          'SD (BDT)': poishaToBdtNumber(row.sd_poisha),
-          'VAT (BDT)': poishaToBdtNumber(row.vat_poisha),
-          'VDS (BDT)': poishaToBdtNumber(row.vds_poisha),
-          'Total (BDT)': poishaToBdtNumber(row.total_poisha),
-          'Rebate eligible': row.eligible_rebate ? 'YES' : 'NO',
-          Reason: row.disallowance_reason ?? '',
-        })),
-      );
-      XLSX.utils.book_append_sheet(workbook, sheet, title);
-    };
-    registerSheet(books.purchaseRows, 'Mushak 6.1 purchases');
-    registerSheet(books.salesRows, 'Mushak 6.2 sales');
+    const mapRegister = (rows: MushakRegisterRow[]): Array<Array<unknown>> => [
+      ['Serial', 'Date', 'Document', 'Party', 'BIN', 'Description', 'Value (BDT)', 'SD (BDT)', 'VAT (BDT)', 'VDS (BDT)', 'Total (BDT)', 'Rebate eligible', 'Reason'],
+      ...rows.map((row) => [
+        row.serial,
+        row.date,
+        row.doc_number,
+        row.party_name,
+        row.party_bin,
+        row.description,
+        poishaToBdtNumber(row.value_poisha),
+        poishaToBdtNumber(row.sd_poisha),
+        poishaToBdtNumber(row.vat_poisha),
+        poishaToBdtNumber(row.vds_poisha),
+        poishaToBdtNumber(row.total_poisha),
+        row.eligible_rebate ? 'YES' : 'NO',
+        row.disallowance_reason ?? '',
+      ]),
+    ];
 
-    const note = XLSX.utils.aoa_to_sheet([
+    const noteRows: Array<Array<unknown>> = [
       ['VAT current account — Note 18'],
       ['Opening balance', poishaToBdtNumber(noteOpening)],
       ['Add: input rebate', poishaToBdtNumber(return91.input_rebate_poisha)],
@@ -491,10 +484,14 @@ export default function W05_VatRegisters91() {
       ['GL balance', poishaToBdtNumber(vatRow?.gl_balance_poisha ?? 0n)],
       ['Subledger balance', poishaToBdtNumber(vatRow?.subledger_balance_poisha ?? 0n)],
       ['Difference', poishaToBdtNumber(vatRow?.difference_poisha ?? 0n)],
-    ]);
-    XLSX.utils.book_append_sheet(workbook, note, 'Note 18');
+    ];
 
-    XLSX.writeFile(workbook, `Fintuity Accounting Suite-VAT-internal-draft-${periodCode}.xlsx`);
+    downloadSpreadsheetWorkbook(`Fintuity Accounting Suite-VAT-internal-draft-${periodCode}.xlsx`, [
+      { name: 'Mushak 9.1', rows: summaryRows },
+      { name: 'Mushak 6.1 purchases', rows: mapRegister(books.purchaseRows) },
+      { name: 'Mushak 6.2 sales', rows: mapRegister(books.salesRows) },
+      { name: 'Note 18', rows: noteRows },
+    ]);
     setExportedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
   };
 

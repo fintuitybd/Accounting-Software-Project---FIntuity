@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Download, FileSpreadsheet, Loader2, UploadCloud } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { buildCsv, parseBufferToRows } from '../../core/import-export/xlsxEngine';
 import type { BankStatement, BankStatementPreview, BankStatementPreviewRow } from '../../banking/api';
 import { bankingApi } from '../../banking/api';
 import { apiErrorMessage, ErrorBanner, Field, INPUT_CLASS, Notice, poishaToBdtString } from '../setup/setupUi';
@@ -35,24 +35,13 @@ function escapeCsvCell(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
-function workbookSheetToCsv(buffer: ArrayBuffer): string {
-  const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) throw new Error('The workbook has no worksheet.');
-  const sheet = workbook.Sheets[sheetName];
-  if (!sheet) throw new Error('The first worksheet is empty.');
-  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
-    header: 1,
-    raw: false,
-    dateNF: 'yyyy-mm-dd',
-    defval: '',
-  });
+async function workbookSheetToCsv(buffer: ArrayBuffer): Promise<string> {
+  const rows = await parseBufferToRows(buffer);
+  if (rows.length === 0) throw new Error('The workbook has no worksheet or is empty.');
   if (rows.length > MAX_IMPORT_ROWS) {
     throw new Error(`The worksheet has more than ${MAX_IMPORT_ROWS} rows. Split the statement before importing.`);
   }
-  return rows
-    .map((row) => row.map((cell) => escapeCsvCell(String(cell ?? ''))).join(','))
-    .join('\n');
+  return buildCsv(rows);
 }
 
 function downloadTemplate(): void {
@@ -129,7 +118,7 @@ export function ImportPanel({
       let text = '';
       let mime = 'text/csv';
       if (/\.(xlsx|xls)$/i.test(file.name)) {
-        text = workbookSheetToCsv(await file.arrayBuffer());
+        text = await workbookSheetToCsv(await file.arrayBuffer());
         mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       } else {
         text = await file.text();

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import * as XLSX from 'xlsx';
 import { Download, Loader2, Lock, Pencil, Plus, RotateCcw, Upload, X } from 'lucide-react';
+import { parseBufferToObjects } from '../../core/import-export/xlsxEngine';
 import {
   ACCOUNT_TYPE_OPTIONS,
   CONTROL_SUBLEDGER_OPTIONS,
@@ -222,13 +222,8 @@ export default function ChartOfAccountsStep({
         setNotice(`${result.imported} account${result.imported === 1 ? '' : 's'} imported from ${file.name}.`);
       } else if (/\.xlsx?$/i.test(file.name)) {
         const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
-        const firstSheet = workbook.SheetNames[0];
-        if (!firstSheet) throw new Error('The workbook has no worksheet.');
-        const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[firstSheet]!, {
-          defval: '',
-          raw: false,
-        });
+        const rows = await parseBufferToObjects(buffer);
+        if (rows.length === 0) throw new Error('The workbook has no worksheet or is empty.');
         if (rows.length > MAX_IMPORT_ROWS) {
           throw new Error(`The worksheet has more than ${MAX_IMPORT_ROWS} rows. Split it before importing.`);
         }

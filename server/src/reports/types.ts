@@ -59,6 +59,7 @@ export interface ReportLineDto {
   comparativePoisha: string;
   kind: 'ACCOUNT' | 'DERIVED';
   note: string | null;
+  noteRef?: string | null;
 }
 
 export interface ReportSectionDto {
@@ -106,6 +107,14 @@ export interface ProfitAndLossDto extends ReportEnvelope {
     profitBeforeTaxComparativePoisha: string;
     taxExpenseComparativePoisha: string;
     profitForPeriodComparativePoisha: string;
+    netOperatingRevenuePoisha?: string;
+    cogsPoisha?: string;
+    investingNetPoisha?: string;
+    profitBeforeFinancingAndTaxPoisha?: string;
+    financingCostPoisha?: string;
+    currentTaxPoisha?: string;
+    deferredTaxPoisha?: string;
+    netProfitPoisha?: string;
   };
 }
 
@@ -128,11 +137,12 @@ export interface BalanceSheetDto extends ReportEnvelope {
     totalEquityAndLiabilitiesComparativePoisha: string;
     unclosedProfitPoisha: string;
     imbalancePoisha: string;
+    accountingEquationDeltaPoisha?: string;
   };
 }
 
 export interface CashFlowDto extends ReportEnvelope {
-  method: 'DIRECT';
+  method: 'DIRECT' | 'INDIRECT';
   sections: ReportSectionDto[];
   cashAccountIds: string[];
   cashAccountCodes: string[];
@@ -142,6 +152,17 @@ export interface CashFlowDto extends ReportEnvelope {
   openingCashComparativePoisha: string;
   closingCashComparativePoisha: string;
   netChangeComparativePoisha: string;
+  cashPaidForVdsAndVatPoisha?: string;
+  cashPaidForTdsAndAitPoisha?: string;
+  indirectMethod?: {
+    profitBeforeTaxPoisha: string;
+    adjustments: ReportLineDto[];
+    workingCapitalChanges: ReportLineDto[];
+    cashGeneratedFromOperationsPoisha: string;
+    cashPaidForVdsAndVatPoisha: string;
+    cashPaidForTdsAndAitPoisha: string;
+    netCashFromOperatingActivitiesPoisha: string;
+  };
 }
 
 export interface ChangesInEquityRowDto {

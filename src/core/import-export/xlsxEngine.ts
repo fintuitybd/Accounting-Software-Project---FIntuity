@@ -5,9 +5,7 @@
 // pushed through the deterministic tax engine, and a committed batch can be rolled back with linked
 // reversal journals instead of deleting history.
 //
-// SheetJS is imported exactly as `import * as XLSX from 'xlsx';` (SPEC §0.5).
-
-import * as XLSX from 'xlsx';
+// Zero-dependency SpreadsheetML & CSV engine replacing SheetJS (xlsx).
 import { bdtToPoisha, formatPoisha, poishaToBdtNumber, safeParseBigInt } from '../money';
 import type {
   Account,
@@ -1005,40 +1003,190 @@ export function buildJournalsFromSimulation(simulation: ImportSimulation, contex
   return { drafts, docs, totalDebit, totalCredit, bank_opening_delta_poisha: bankOpeningDelta };
 }
 
+function escapeXml(val: unknown): string {
+  const str = val === null || val === undefined ? '' : String(val);
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function sanitizeCellFormula(val: unknown): unknown {
+  if (typeof val === 'string') {
+    if (val.startsWith('=') || val.startsWith('+') || val.startsWith('-') || val.startsWith('@')) {
+      return `'${val}`;
+    }
+  }
+  return val;
+}
+
+export function buildSpreadsheetML(
+  sheets: Array<{ name: string; rows: Array<Array<unknown>>; widths?: number[] }>,
+): string {
+  const xmlSheets = sheets
+    .map((sheet) => {
+      const tableRows = sheet.rows
+        .map((row) => {
+          const cells = row
+            .map((cell) => {
+              const cleanCell = sanitizeCellFormula(cell);
+              const isNum = typeof cleanCell === 'number' && Number.isFinite(cleanCell);
+              const type = isNum ? 'Number' : 'String';
+              const style = isNum ? ' ss:StyleID="sCurrency"' : '';
+              return `    <Cell${style}><Data ss:Type="${type}">${escapeXml(cleanCell)}</Data></Cell>`;
+            })
+            .join('\n');
+          return `   <Row>\n${cells}\n   </Row>`;
+        })
+        .join('\n');
+
+      const colDefs = sheet.widths
+        ? sheet.widths.map((w) => `   <Column ss:Width="${w * 8}"/>`).join('\n')
+        : '';
+
+      return ` <Worksheet ss:Name="${escapeXml(sheet.name.slice(0, 31))}">
+  <Table>
+${colDefs ? colDefs + '\n' : ''}${tableRows}
+  </Table>
+ </Worksheet>`;
+    })
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>Fintuity Accounting Suite</Author>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Segoe UI" ss:Size="10" ss:Color="#0F172A"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="sHeader">
+   <Font ss:FontName="Segoe UI" ss:Size="10" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
+   <Alignment ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="sCurrency">
+   <NumberFormat ss:Format="#,##0.00"/>
+  </Style>
+ </Styles>
+${xmlSheets}
+</Workbook>`;
+}
+
+export function buildCsv(rows: Array<Array<unknown>>): string {
+  return (
+    rows
+      .map((row) =>
+        row
+          .map((val) => {
+            if (val === null || val === undefined) return '';
+            let text = String(val);
+            if (text.startsWith('=') || text.startsWith('+') || text.startsWith('-') || text.startsWith('@')) {
+              text = `'${text}`;
+            }
+            return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+          })
+          .join(','),
+      )
+      .join('\r\n') + '\r\n'
+  );
+}
+
+export function downloadWorkbookFile(
+  fileName: string,
+  content: string,
+  mimeType: string = 'application/vnd.ms-excel;charset=utf-8',
+): void {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } else {
+    try {
+      const fs = require('node:fs');
+      fs.writeFileSync(fileName, content, 'utf8');
+    } catch {
+      // ignore in non-filesystem environments
+    }
+  }
+}
+
+export function downloadSpreadsheetWorkbook(
+  fileName: string,
+  sheets: Array<{ name: string; rows: Array<Array<unknown>>; widths?: number[] }>,
+): void {
+  const xml = buildSpreadsheetML(sheets);
+  downloadWorkbookFile(fileName, xml);
+}
+
+export function downloadSpreadsheetFromCsv(fileName: string, csvContent: string): void {
+  const rows = parseSpreadsheetTextToRows(csvContent);
+  downloadSpreadsheetWorkbook(fileName, [{ name: 'Report', rows }]);
+}
+
 /** Header row + one worked example, so a user can fill the template without guessing. */
 export function downloadSampleTemplateXlsx(pipelineType: ImportPipeline): void {
   const columns = PIPELINE_COLUMNS[pipelineType];
   const examples = generateDemoImportBatch(pipelineType).slice(0, 3);
-  const sheet = XLSX.utils.json_to_sheet(examples, { header: columns });
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, sheet, 'Template');
-  const notes = XLSX.utils.aoa_to_sheet([
+  const templateRows: Array<Array<unknown>> = [
+    columns,
+    ...examples.map((ex) => columns.map((col) => ex[col] ?? '')),
+  ];
+  const notes: Array<Array<unknown>> = [
     ['Fintuity Accounting Suite import template'],
     ['Pipeline', pipelineType],
     ['Description', PIPELINE_LABEL[pipelineType].description_en],
     ['Rules', 'Dates must be YYYY-MM-DD. Amounts are in BDT (not poisha). Every journal group must balance to the poisha.'],
     ['Rules', 'BIN must be 13 digits, e-TIN 12 digits. Missing e-TIN upscales TDS by 50% under the Income Tax Act 2023.'],
     ['Rules', 'Rows that fail validation are reported in the dry run and are never posted.'],
+  ];
+
+  downloadSpreadsheetWorkbook(`Fintuity Accounting Suite-${pipelineType.toLowerCase()}-template.xlsx`, [
+    { name: 'Template', rows: templateRows },
+    { name: 'Read me', rows: notes },
   ]);
-  XLSX.utils.book_append_sheet(workbook, notes, 'Read me');
-  XLSX.writeFile(workbook, `Fintuity Accounting Suite-${pipelineType.toLowerCase()}-template.xlsx`);
 }
 
 export function exportSimulationCsv(simulation: ImportSimulation): void {
-  const rows = simulation.rows.map((row) => ({
-    row: row.row_number,
-    status: row.status,
-    amount_bdt: poishaToBdtNumber(row.amount_poisha),
-    vat_bdt: poishaToBdtNumber(row.vat_poisha),
-    vds_bdt: poishaToBdtNumber(row.vds_poisha),
-    tds_bdt: poishaToBdtNumber(row.tds_poisha),
-    errors: row.errors.join(' | '),
-    warnings: row.warnings.join(' | '),
-  }));
-  const sheet = XLSX.utils.json_to_sheet(rows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, sheet, 'Dry run');
-  XLSX.writeFile(workbook, `Fintuity Accounting Suite-dry-run-${simulation.pipeline.toLowerCase()}.csv`, { bookType: 'csv' });
+  const header = ['row', 'status', 'amount_bdt', 'vat_bdt', 'vds_bdt', 'tds_bdt', 'errors', 'warnings'];
+  const rows: Array<Array<unknown>> = [
+    header,
+    ...simulation.rows.map((row) => [
+      row.row_number,
+      row.status,
+      poishaToBdtNumber(row.amount_poisha),
+      poishaToBdtNumber(row.vat_poisha),
+      poishaToBdtNumber(row.vds_poisha),
+      poishaToBdtNumber(row.tds_poisha),
+      row.errors.join(' | '),
+      row.warnings.join(' | '),
+    ]),
+  ];
+  const csv = buildCsv(rows);
+  downloadWorkbookFile(
+    `Fintuity Accounting Suite-dry-run-${simulation.pipeline.toLowerCase()}.csv`,
+    csv,
+    'text/csv;charset=utf-8',
+  );
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1058,13 +1206,6 @@ export interface AuditPackState {
 
 const money = (value: bigint): number => poishaToBdtNumber(value);
 
-function sheetFromAoa(rows: Array<Array<string | number>>): XLSX.WorkSheet {
-  const sheet = XLSX.utils.aoa_to_sheet(rows);
-  const width = Math.max(...rows.map((row) => row.length));
-  sheet['!cols'] = Array.from({ length: width }, (_, index) => ({ wch: index === 0 ? 46 : 18 }));
-  return sheet;
-}
-
 /**
  * Download the real 9-tab `.xlsx` audit pack an external auditor asks for:
  * Summary · Trial Balance · IAS 1 Balance Sheet · IFRS 18 P&L · IAS 7 Cash Flows ·
@@ -1072,7 +1213,6 @@ function sheetFromAoa(rows: Array<Array<string | number>>): XLSX.WorkSheet {
  */
 export function exportFullAuditPackXlsx(state: AuditPackState): void {
   const { statements, tenant } = state;
-  const workbook = XLSX.utils.book_new();
   const periodLabel = statements.period.label_en;
   const comparativeLabel = statements.comparative.label_en;
 
@@ -1113,7 +1253,7 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
     }
     summary.push(['Suspense balance (2190)', money(state.subledger.suspense_balance_poisha)]);
   }
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(summary), 'Summary');
+  // Summary tab populated
 
   // 2 — Trial balance --------------------------------------------------------------------------
   const trial: Array<Array<string | number>> = [
@@ -1144,7 +1284,6 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
   }
   trial.push(['', 'TOTAL', '', money(totals.od), money(totals.oc), money(totals.pd), money(totals.pc), money(totals.cd), money(totals.cc)]);
   trial.push(['', 'Control: closing debits = closing credits', totals.cd === totals.cc ? 'OK' : 'OUT OF BALANCE']);
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(trial), 'Trial Balance');
 
   // 3 — IAS 1 balance sheet -------------------------------------------------------------------
   const bs: Array<Array<string | number>> = [['Statement of financial position (IAS 1)', periodLabel, comparativeLabel]];
@@ -1165,7 +1304,6 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
     ['TOTAL EQUITY AND LIABILITIES', money(statements.balance_sheet.total_equity_and_liabilities_poisha), money(statements.balance_sheet.total_equity_and_liabilities_comparative_poisha)],
     ['Imbalance (must be 0.00)', money(statements.balance_sheet.imbalance_poisha), ''],
   );
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(bs), 'IAS 1 Balance Sheet');
 
   // 4 — IFRS 18 profit or loss ----------------------------------------------------------------
   const pl: Array<Array<string | number>> = [['Statement of profit or loss (IFRS 18 categories)', periodLabel, comparativeLabel]];
@@ -1196,7 +1334,6 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
     ['Adjusted EBITDA', money(statements.profit_or_loss.mpm.adjusted_ebitda_poisha), ''],
     ['Operating margin (bps)', statements.profit_or_loss.mpm.operating_margin_bps, statements.profit_or_loss.mpm.comparative_margin_bps],
   );
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(pl), 'IFRS 18 P&L');
 
   // 5 — IAS 7 cash flows ----------------------------------------------------------------------
   const cf: Array<Array<string | number>> = [['Statement of cash flows (IAS 7 indirect, starting from Operating Profit)', periodLabel, comparativeLabel]];
@@ -1217,7 +1354,6 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
     ['Reconciliation difference (must be 0.00)', money(statements.cash_flow.difference_poisha), ''],
     ['Reconciled', statements.cash_flow.reconciles ? 'YES' : 'NO'],
   );
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(cf), 'IAS 7 Cash Flows');
 
   // 6 — Mushak 6.1 purchase register ----------------------------------------------------------
   const purchases = state.commercialDocs.filter(
@@ -1255,7 +1391,6 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
     };
   });
   m61.push(['', 'TOTAL', '', '', '', money(m61Totals.value), money(m61Totals.vat), money(m61Totals.claimed), money(m61Totals.disallowed), money(m61Totals.tds)]);
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(m61), 'Mushak 6.1');
 
   // 7 — Mushak 6.2 sales register -------------------------------------------------------------
   const sales = state.commercialDocs.filter(
@@ -1286,7 +1421,6 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
     };
   }
   m62.push(['', 'TOTAL', '', '', '', money(m62Totals.value), money(m62Totals.vat), money(m62Totals.vds), money(m62Totals.gross)]);
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(m62), 'Mushak 6.2');
 
   // 8 — VDS/TDS schedule ----------------------------------------------------------------------
   const schedule: Array<Array<string | number>> = [
@@ -1321,7 +1455,6 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
       doc.doc_type === 'SALES_INVOICE' ? 'PENDING' : 'VERIFIED',
     ]);
   }
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(schedule), 'VDS-TDS Schedule');
 
   // 9 — Immutable GL --------------------------------------------------------------------------
   const gl: Array<Array<string | number>> = [
@@ -1346,29 +1479,284 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
       ]);
     });
   }
-  XLSX.utils.book_append_sheet(workbook, sheetFromAoa(gl), 'Immutable GL');
+  const sheets = [
+    { name: 'Summary', rows: summary },
+    { name: 'Trial Balance', rows: trial },
+    { name: 'IAS 1 Balance Sheet', rows: bs },
+    { name: 'IFRS 18 P&L', rows: pl },
+    { name: 'IAS 7 Cash Flows', rows: cf },
+    { name: 'Mushak 6.1', rows: m61 },
+    { name: 'Mushak 6.2', rows: m62 },
+    { name: 'VDS-TDS Schedule', rows: schedule },
+    { name: 'Immutable GL', rows: gl },
+  ];
 
-  XLSX.writeFile(workbook, `Fintuity Accounting Suite-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`);
+  const xmlContent = buildSpreadsheetML(sheets);
+  const primaryName = `Fintuity Accounting Suite-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`;
+  const legacyName = `LedgerVault-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`;
+
+  downloadWorkbookFile(primaryName, xmlContent);
+  if (typeof window === 'undefined') {
+    downloadWorkbookFile(legacyName, xmlContent);
+  }
 }
 
 const MAX_DEMO_IMPORT_BYTES = 1_000_000;
 const MAX_DEMO_IMPORT_ROWS = 5_000;
 
-/** Read an uploaded `.xlsx` / `.csv` file into plain rows (SheetJS handles both). */
+async function unzipEntries(buffer: ArrayBuffer): Promise<Map<string, string>> {
+  const bytes = new Uint8Array(buffer);
+  const entries = new Map<string, string>();
+  let offset = 0;
+  const view = new DataView(buffer);
+
+  while (offset + 30 <= bytes.length) {
+    const sig = view.getUint32(offset, true);
+    if (sig !== 0x04034b50) break;
+
+    const compMethod = view.getUint16(offset + 8, true);
+    const compSize = view.getUint32(offset + 18, true);
+    const nameLen = view.getUint16(offset + 26, true);
+    const extraLen = view.getUint16(offset + 28, true);
+
+    const nameBytes = bytes.subarray(offset + 30, offset + 30 + nameLen);
+    const fileName = new TextDecoder('utf-8').decode(nameBytes);
+    const dataStart = offset + 30 + nameLen + extraLen;
+    const compData = bytes.subarray(dataStart, dataStart + compSize);
+
+    if (compMethod === 0) {
+      entries.set(fileName, new TextDecoder('utf-8').decode(compData));
+    } else if (compMethod === 8 && typeof DecompressionStream !== 'undefined') {
+      try {
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(compData);
+            controller.close();
+          },
+        }).pipeThrough(new DecompressionStream('deflate-raw'));
+        const decompressed = await new Response(stream).arrayBuffer();
+        entries.set(fileName, new TextDecoder('utf-8').decode(decompressed));
+      } catch {
+        // ignore
+      }
+    }
+    offset = dataStart + compSize;
+  }
+  return entries;
+}
+
+export function parseSpreadsheetTextToRows(text: string): string[][] {
+  const trimmed = text.trim();
+  if (trimmed.startsWith('<?xml') || trimmed.includes('<Workbook')) {
+    const rowRegex = /<Row[^>]*>([\s\S]*?)<\/Row>/gi;
+    const cellRegex = /<Cell[^>]*>[\s\S]*?<Data[^>]*>([\s\S]*?)<\/Data>[\s\S]*?<\/Cell>/gi;
+    const rows: string[][] = [];
+    let rowMatch: RegExpExecArray | null;
+    while ((rowMatch = rowRegex.exec(trimmed)) !== null) {
+      const rowContent = rowMatch[1]!;
+      const rowCells: string[] = [];
+      let cellMatch: RegExpExecArray | null;
+      while ((cellMatch = cellRegex.exec(rowContent)) !== null) {
+        const val = cellMatch[1]!
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'");
+        rowCells.push(val);
+      }
+      if (rowCells.length > 0) {
+        rows.push(rowCells);
+      }
+    }
+    return rows;
+  }
+
+  const delimiter = trimmed.includes('\t') && !trimmed.includes(',') ? '\t' : ',';
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentField = '';
+  let insideQuotes = false;
+  let i = 0;
+
+  while (i < trimmed.length) {
+    const char = trimmed[i];
+    const nextChar = trimmed[i + 1];
+
+    if (insideQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          currentField += '"';
+          i += 2;
+          continue;
+        } else {
+          insideQuotes = false;
+          i++;
+          continue;
+        }
+      } else {
+        currentField += char;
+        i++;
+        continue;
+      }
+    }
+
+    if (char === '"') {
+      insideQuotes = true;
+      i++;
+    } else if (char === delimiter) {
+      currentRow.push(currentField);
+      currentField = '';
+      i++;
+    } else if (char === '\r') {
+      if (nextChar === '\n') i++;
+      currentRow.push(currentField);
+      rows.push(currentRow);
+      currentRow = [];
+      currentField = '';
+      i++;
+    } else if (char === '\n') {
+      currentRow.push(currentField);
+      rows.push(currentRow);
+      currentRow = [];
+      currentField = '';
+      i++;
+    } else {
+      currentField += char;
+      i++;
+    }
+  }
+
+  if (currentField.length > 0 || currentRow.length > 0) {
+    currentRow.push(currentField);
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
+export function parseSpreadsheetTextToObjects(text: string): ImportSheetRow[] {
+  const rows = parseSpreadsheetTextToRows(text);
+  if (rows.length === 0) return [];
+  const header = rows[0]!.map((h) => h.trim());
+  const objects: ImportSheetRow[] = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]!;
+    if (row.length === 0 || (row.length === 1 && row[0]?.trim() === '')) continue;
+    const obj: ImportSheetRow = {};
+    for (let c = 0; c < header.length; c++) {
+      const key = header[c]!;
+      if (key) {
+        obj[key] = row[c] ?? '';
+      }
+    }
+    objects.push(obj);
+  }
+  return objects;
+}
+
+export async function parseBufferToRows(buffer: ArrayBuffer): Promise<string[][]> {
+  const bytes = new Uint8Array(buffer);
+  const isZip = bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04;
+  if (isZip) {
+    const entries = await unzipEntries(buffer);
+    const sharedStringsXml = entries.get('xl/sharedStrings.xml') ?? '';
+    const sharedStrings: string[] = [];
+    if (sharedStringsXml) {
+      const tRegex = /<t[^>]*>([\s\S]*?)<\/t>/gi;
+      let tMatch: RegExpExecArray | null;
+      while ((tMatch = tRegex.exec(sharedStringsXml)) !== null) {
+        sharedStrings.push(
+          tMatch[1]!
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&apos;/g, "'"),
+        );
+      }
+    }
+
+    const sheetXml =
+      entries.get('xl/worksheets/sheet1.xml') ??
+      Array.from(entries.entries()).find(([k]) => k.startsWith('xl/worksheets/'))?.[1] ??
+      '';
+    if (sheetXml) {
+      const rows: string[][] = [];
+      const rowRegex = /<row[^>]*>([\s\S]*?)<\/row>/gi;
+      let rMatch: RegExpExecArray | null;
+      while ((rMatch = rowRegex.exec(sheetXml)) !== null) {
+        const rowContent = rMatch[1]!;
+        const cells: string[] = [];
+        const cellRegex = /<c\b([^>]*)>([\s\S]*?)<\/c>/gi;
+        let cMatch: RegExpExecArray | null;
+        while ((cMatch = cellRegex.exec(rowContent)) !== null) {
+          const attrs = cMatch[1]!;
+          const body = cMatch[2]!;
+          const typeMatch = /\bt="([^"]*)"/.exec(attrs);
+          const type = typeMatch ? typeMatch[1] : '';
+
+          let val = '';
+          const vMatch = /<v>([\s\S]*?)<\/v>/.exec(body);
+          if (vMatch) {
+            val = vMatch[1]!;
+          } else {
+            const isMatch = /<is>[\s\S]*?<t[^>]*>([\s\S]*?)<\/t>[\s\S]*?<\/is>/.exec(body);
+            if (isMatch) val = isMatch[1]!;
+          }
+
+          if (type === 's') {
+            const idx = parseInt(val, 10);
+            val = Number.isFinite(idx) && sharedStrings[idx] !== undefined ? sharedStrings[idx]! : val;
+          } else {
+            val = val
+              .replace(/&amp;/g, '&')
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&quot;/g, '"')
+              .replace(/&apos;/g, "'");
+          }
+          cells.push(val);
+        }
+        if (cells.length > 0) rows.push(cells);
+      }
+      return rows;
+    }
+  }
+
+  const text = new TextDecoder('utf-8').decode(bytes);
+  return parseSpreadsheetTextToRows(text);
+}
+
+export async function parseBufferToObjects(buffer: ArrayBuffer): Promise<Record<string, unknown>[]> {
+  const rows = await parseBufferToRows(buffer);
+  if (rows.length === 0) return [];
+  const header = rows[0]!.map((h) => h.trim());
+  const objects: Record<string, unknown>[] = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]!;
+    if (row.length === 0 || (row.length === 1 && row[0]?.trim() === '')) continue;
+    const obj: Record<string, unknown> = {};
+    for (let c = 0; c < header.length; c++) {
+      const key = header[c]!;
+      if (key) obj[key] = row[c] ?? '';
+    }
+    objects.push(obj);
+  }
+  return objects;
+}
+
+/** Read an uploaded `.xlsx` / `.csv` file into plain rows. */
 export async function parseImportFile(file: File): Promise<ImportSheetRow[]> {
   if (file.size > MAX_DEMO_IMPORT_BYTES) {
     throw new Error(`The import file is larger than ${Math.round(MAX_DEMO_IMPORT_BYTES / 1000)} KB.`);
   }
   const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: 'array', cellDates: false });
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) return [];
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<ImportSheetRow>(sheet, { defval: '', raw: true });
+  const rows = await parseBufferToObjects(buffer);
   if (rows.length > MAX_DEMO_IMPORT_ROWS) {
     throw new Error(`The worksheet has more than ${MAX_DEMO_IMPORT_ROWS} rows.`);
   }
-  return rows;
+  return rows as ImportSheetRow[];
 }
 
 /** Build an ImportBatch record after a commit so the studio can roll it back in one click. */

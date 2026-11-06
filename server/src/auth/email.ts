@@ -1,12 +1,14 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { AppConfig, EmailTransportName } from '../config.ts';
+import nodemailer, { type Transporter } from 'nodemailer';
+import type { AppConfig, EmailConfig, EmailTransportName } from '../config.ts';
 import { generateToken } from './tokens.ts';
 
 export interface EmailMessage {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 }
 
 export interface EmailSender {
@@ -29,12 +31,11 @@ export class MemoryEmailSender implements EmailSender {
 
 /**
  * Development/test outbox. It writes the complete message (including the one-time link) to a
- * git-ignored local directory so a developer can complete the flow without a mail provider. It is
- * not production delivery; the Phase 3 completion report records the SMTP/provider decision.
+ * git-ignored local directory so a developer can complete the flow without a mail provider.
  */
 export class FileEmailSender implements EmailSender {
   readonly transport = 'file' as const;
-  private readonly directory: string;
+  readonly directory: string;
 
   constructor(directory: string) {
     this.directory = directory;
@@ -51,8 +52,73 @@ export class FileEmailSender implements EmailSender {
   }
 }
 
-export function createEmailSender(config: Pick<AppConfig, 'emailTransport' | 'emailOutboxDir'>): EmailSender {
-  return config.emailTransport === 'memory'
-    ? new MemoryEmailSender()
-    : new FileEmailSender(path.resolve(config.emailOutboxDir));
+/**
+ * Production SMTP / AWS SES delivery transport using nodemailer.
+ */
+export class SmtpEmailSender implements EmailSender {
+  readonly transport = 'smtp' as const;
+  readonly transporter: Transporter;
+  readonly from: string;
+
+  constructor(options: {
+    transporter?: Transporter;
+    host?: string;
+    port?: number;
+    secure?: boolean;
+    auth?: { user: string; pass: string };
+    from: string;
+  }) {
+    this.from = options.from;
+    this.transporter =
+      options.transporter ??
+      nodemailer.createTransport({
+        host: options.host ?? '127.0.0.1',
+        port: options.port ?? 587,
+        secure: options.secure ?? false,
+        auth: options.auth,
+      });
+  }
+
+  async send(message: EmailMessage): Promise<void> {
+    await this.transporter.sendMail({
+      from: this.from,
+      to: message.to,
+      subject: message.subject,
+      text: message.text,
+      html: message.html,
+    });
+  }
+}
+
+export function createEmailSender(
+  config: Partial<AppConfig> & {
+    emailTransport?: EmailTransportName;
+    emailOutboxDir?: string;
+    emailFrom?: string;
+    email?: EmailConfig;
+  },
+): EmailSender {
+  const mode = config.email?.mode ?? config.emailTransport ?? 'file';
+
+  // Retain deterministic JSON outbox file writing in test and file modes
+  if (config.nodeEnv === 'test' || mode === 'file') {
+    const dir = config.email?.outboxDir ?? config.emailOutboxDir ?? '.tmp/mail';
+    return new FileEmailSender(path.resolve(dir));
+  }
+
+  if (mode === 'memory') {
+    return new MemoryEmailSender();
+  }
+
+  if (mode === 'smtp') {
+    return new SmtpEmailSender({
+      host: config.email?.host,
+      port: config.email?.port,
+      secure: config.email?.secure,
+      auth: config.email?.auth,
+      from: config.email?.from ?? config.emailFrom ?? 'Fintuity Accounting Suite <no-reply@ledgervault.local>',
+    });
+  }
+
+  return new FileEmailSender(path.resolve(config.email?.outboxDir ?? config.emailOutboxDir ?? '.tmp/mail'));
 }

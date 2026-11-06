@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import * as XLSX from 'xlsx';
+import { downloadSpreadsheetFromCsv } from '../../core/import-export/xlsxEngine';
 import {
   Banknote,
   BookOpen,
@@ -333,9 +333,8 @@ export default function ReportsPage() {
         rowCount: 0,
       });
       const response = await reportsApi.exportCsv(companyId, reportKey(tab), reportExportQuery(report));
-      const workbook = XLSX.read(response.text, { type: 'string', raw: true });
       const base = (response.filename ?? `${tab.toLowerCase()}.csv`).replace(/\.csv$/i, '');
-      XLSX.writeFile(workbook, `${base}.xlsx`);
+      downloadSpreadsheetFromCsv(`${base}.xlsx`, response.text);
       setStatusMessage(L('XLSX exported from the same server report and audited.', 'একই সার্ভার রিপোর্ট থেকে এক্সএলএসএক্স রপ্তানি ও অডিট হয়েছে।'));
     } catch (caught) {
       setReportError(apiErrorMessage(caught));

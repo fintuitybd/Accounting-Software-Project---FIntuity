@@ -91,17 +91,38 @@ const environmentSchema = z.object({
   ARGON2_TIME_COST: z.coerce.number().int().min(1).max(10).default(2),
   ARGON2_PARALLELISM: z.coerce.number().int().min(1).max(16).default(1),
 
-  // Phase 3 email delivery is deliberately adapter-based. A production SMTP adapter is not part
-  // of this phase; the completion report records that as an external blocker.
-  EMAIL_TRANSPORT: z.enum(['file', 'memory']).default('file'),
+  // Email delivery configuration (file, memory, or production SMTP / AWS SES)
+  EMAIL_MODE: z.enum(['file', 'memory', 'smtp']).optional(),
+  EMAIL_TRANSPORT: z.enum(['file', 'memory', 'smtp']).default('file'),
   EMAIL_OUTBOX_DIR: z.string().min(1).default('.tmp/mail'),
   EMAIL_FROM: z.string().min(1).max(320).default('Fintuity Accounting Suite <no-reply@ledgervault.local>'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),
+  SMTP_SECURE: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === 'true')),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
 });
 
 export type NodeEnvironment = z.infer<typeof environmentSchema>['NODE_ENV'];
 export type LogLevel = z.infer<typeof environmentSchema>['LOG_LEVEL'];
 
-export type EmailTransportName = 'file' | 'memory';
+export type EmailTransportName = 'file' | 'memory' | 'smtp';
+
+export interface EmailConfig {
+  mode: EmailTransportName;
+  host?: string;
+  port?: number;
+  secure?: boolean;
+  auth?: {
+    user: string;
+    pass: string;
+  };
+  from: string;
+  outboxDir: string;
+}
 
 export interface AppConfig {
   nodeEnv: NodeEnvironment;
@@ -138,6 +159,7 @@ export interface AppConfig {
   emailTransport: EmailTransportName;
   emailOutboxDir: string;
   emailFrom: string;
+  email: EmailConfig;
 }
 
 export class ConfigurationError extends Error {
@@ -206,8 +228,20 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
     argon2MemoryKib: env.ARGON2_MEMORY_KIB,
     argon2TimeCost: env.ARGON2_TIME_COST,
     argon2Parallelism: env.ARGON2_PARALLELISM,
-    emailTransport: env.EMAIL_TRANSPORT,
+    emailTransport: (env.EMAIL_MODE ?? env.EMAIL_TRANSPORT) as EmailTransportName,
     emailOutboxDir: env.EMAIL_OUTBOX_DIR,
     emailFrom: env.EMAIL_FROM,
+    email: {
+      mode: (env.EMAIL_MODE ?? env.EMAIL_TRANSPORT) as EmailTransportName,
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: env.SMTP_SECURE,
+      auth:
+        env.SMTP_USER && env.SMTP_PASS
+          ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
+          : undefined,
+      from: env.EMAIL_FROM,
+      outboxDir: env.EMAIL_OUTBOX_DIR,
+    },
   };
 }

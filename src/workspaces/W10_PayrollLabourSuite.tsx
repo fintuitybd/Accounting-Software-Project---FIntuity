@@ -26,7 +26,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { downloadSpreadsheetWorkbook } from '../core/import-export/xlsxEngine';
 
 import { LedgerLensModal } from '../components/signature/LedgerLensModal';
 import { useWorkspaceNav } from '../components/layout/WorkspaceNav';
@@ -61,13 +61,7 @@ function defaultOvertimeHours(row: PayrollEmployeeRow): string {
 }
 
 function downloadWorkbook(fileName: string, sheets: Array<{ name: string; rows: Array<Array<string | number>>; widths?: number[] }>): void {
-  const workbook = XLSX.utils.book_new();
-  for (const sheet of sheets) {
-    const worksheet = XLSX.utils.aoa_to_sheet(sheet.rows);
-    if (sheet.widths) worksheet['!cols'] = sheet.widths.map((wch) => ({ wch }));
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name.slice(0, 31));
-  }
-  XLSX.writeFile(workbook, fileName);
+  downloadSpreadsheetWorkbook(fileName, sheets);
 }
 
 export default function W10_PayrollLabourSuite() {
