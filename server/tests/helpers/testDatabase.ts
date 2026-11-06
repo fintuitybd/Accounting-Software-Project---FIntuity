@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { randomUUID } from 'node:crypto';
 import { Client, Pool } from 'pg';
 
@@ -9,8 +10,8 @@ export interface TestDatabase {
 }
 
 export function testDatabaseUrl(): string | undefined {
-  const value = process.env.TEST_DATABASE_URL?.trim();
-  return value ? value : undefined;
+  const value = process.env.TEST_DATABASE_URL?.trim() || process.env.DATABASE_URL?.replace(/\/ledgervault$/, '/postgres');
+  return value ? value : 'postgresql://postgres:postgres@127.0.0.1:5432/postgres';
 }
 
 function databaseName(): string {

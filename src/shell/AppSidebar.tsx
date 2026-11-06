@@ -1,10 +1,11 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Banknote,
   BookOpen,
   Boxes,
   Building2,
+  CalendarClock,
   ChevronLeft,
   ClipboardCheck,
   Database,
@@ -46,6 +47,7 @@ const ICONS: Record<NavigationIcon, typeof LayoutDashboard> = {
   reports: FileBarChart,
   close: ClipboardCheck,
   audit: ShieldCheck,
+  compliance: CalendarClock,
   setup: Settings2,
   team: UserCog,
   account: Users,

@@ -1253,7 +1253,8 @@
     @apply bg-ql-success-soft text-ql-success;
   }
 
-  .ql-badge-warning {
+  .ql-badge-warning,
+  .ql-badge-warn {
     @apply bg-ql-warning-soft text-ql-warning;
   }
 

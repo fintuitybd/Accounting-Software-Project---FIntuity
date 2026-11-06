@@ -1759,3 +1759,52 @@ export const demoRequests = pgTable(
     index('demo_requests_status_created_idx').on(table.status, table.createdAt),
   ],
 );
+
+/**
+ * Bangladesh Gazetted Holidays and Compliance Calendar Events (Phase 17).
+ */
+export const bdGazettedHolidays = pgTable(
+  'bd_gazetted_holidays',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id').references(() => companies.id, { onDelete: 'cascade' }),
+    holidayDate: date('holiday_date').notNull(),
+    nameEn: text('name_en').notNull(),
+    nameBn: text('name_bn').notNull(),
+    holidayType: text('holiday_type').notNull(), // 'NATIONAL' | 'EID' | 'RELIGIOUS' | 'BANK_HOLIDAY' | 'EXECUTIVE_ORDER'
+    isConfirmed: boolean('is_confirmed').notNull().default(true),
+  },
+  (t) => [index('bd_holidays_date_idx').on(t.holidayDate)],
+);
+
+export const complianceCalendarEvents = pgTable(
+  'compliance_calendar_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'restrict' }),
+    branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'restrict' }),
+    periodId: uuid('period_id').references(() => periods.id, { onDelete: 'restrict' }),
+    fiscalYearId: uuid('fiscal_year_id').notNull().references(() => fiscalYears.id, { onDelete: 'restrict' }),
+    titleEn: text('title_en').notNull(),
+    titleBn: text('title_bn').notNull(),
+    statutoryBody: text('statutory_body').notNull(), // 'NBR_VAT' | 'NBR_TAX' | 'RJSC' | 'MOLE'
+    category: text('category').notNull(), // 'VAT_91' | 'VDS_DEPOSIT' | 'TDS_MONTHLY' | 'TDS_177' | 'AIT_Q' | 'ANNUAL_TAX' | 'RJSC_ANNUAL'
+    statutoryDeadline: date('statutory_deadline').notNull(),
+    adjustedDeadline: date('adjusted_deadline').notNull(),
+    estimatedLiabilityPoisha: bigint('estimated_liability_poisha', { mode: 'bigint' }).notNull().default(0n),
+    status: text('status').notNull().default('PENDING'), // 'PENDING' | 'PREPARED' | 'FILED' | 'OVERDUE'
+    autoLockPeriodOnExpiry: boolean('auto_lock_period_on_expiry').notNull().default(false),
+    filedAt: timestamp('filed_at', { withTimezone: true, mode: 'date' }),
+    filingReference: text('filing_reference'),
+    challanId: uuid('challan_id').references(() => treasuryChallans.id, { onDelete: 'set null' }),
+    assignedUserId: uuid('assigned_user_id').references(() => users.id, { onDelete: 'set null' }),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('comp_cal_company_deadline_idx').on(t.companyId, t.adjustedDeadline),
+    unique('comp_cal_company_period_cat_uniq').on(t.companyId, t.periodId, t.category),
+  ],
+);
+

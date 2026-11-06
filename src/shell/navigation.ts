@@ -1,4 +1,4 @@
-﻿// Production navigation for the server-backed application.
+// Production navigation for the server-backed application.
 //
 // This module is deliberately free of React and API imports so the role-aware navigation can be
 // unit-tested. The server remains the authority for every action; these rules only decide which
@@ -20,6 +20,7 @@ export type NavigationIcon =
   | 'reports'
   | 'close'
   | 'audit'
+  | 'compliance'
   | 'setup'
   | 'team'
   | 'account';
@@ -36,6 +37,7 @@ export type SectionKey =
   | 'REPORTS'
   | 'CLOSE'
   | 'AUDIT'
+  | 'COMPLIANCE'
   | 'SETUP'
   | 'TEAM'
   | 'ACCOUNT';
@@ -204,6 +206,17 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
     labelBn: 'অডিট লগ',
     descriptionEn: 'Append-only evidence of material actions.',
     descriptionBn: 'গুরুত্বপূর্ণ কার্যক্রমের সংযোজন-শুধু প্রমাণ।',
+    permission: { companyAll: ['VIEW_REPORTS'] },
+  },
+  {
+    key: 'COMPLIANCE',
+    path: '/app/compliance',
+    group: 'CONTROL',
+    icon: 'compliance',
+    labelEn: 'Statutory compliance',
+    labelBn: 'সংবিধিবদ্ধ সম্মতি',
+    descriptionEn: 'Calendar engine, gazetted holidays and NBR / RJSC filing deadlines.',
+    descriptionBn: 'ক্যালেন্ডার ইঞ্জিন, সরকারি ছুটি ও এনবিআর / আরজেএসসি দাখিল সময়সীমা।',
     permission: { companyAll: ['VIEW_REPORTS'] },
   },
   {

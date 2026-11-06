@@ -1,6 +1,7 @@
-﻿import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  CalendarClock,
   ChevronDown,
   CircleHelp,
   Languages,
@@ -18,6 +19,7 @@ import { ROLE_LABELS } from '../auth/roles';
 import { usePreferences } from '../preferences/AppPreferences';
 import { Dialog } from '../components/ui/Dialog';
 import { navigationGroup, resolveNavigationPath } from './navigation';
+import { complianceApi, type ComplianceCalendarEvent } from '../compliance/api';
 
 export interface AppTopBarProps {
   currentPath: string;
@@ -33,7 +35,47 @@ export function AppTopBar({ currentPath, onOpenMenu, onOpenPalette }: AppTopBarP
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [nextDeadline, setNextDeadline] = useState<ComplianceCalendarEvent | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!auth.activeCompany?.id) return;
+    let mounted = true;
+    complianceApi
+      .getSummary(auth.activeCompany.id)
+      .then((res) => {
+        if (mounted && res.summary?.nextDeadline) {
+          setNextDeadline(res.summary.nextDeadline);
+        }
+      })
+      .catch(() => {
+        // silent fallback
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [auth.activeCompany?.id]);
+
+  const shortObligationLabel = (cat: string) => {
+    switch (cat) {
+      case 'VAT_91':
+        return 'Mushak 9.1';
+      case 'VDS_DEPOSIT':
+        return 'VDS Deposit';
+      case 'TDS_MONTHLY':
+        return 'Monthly TDS';
+      case 'TDS_177':
+        return 'Sec 177';
+      case 'AIT_Q':
+        return 'Quarterly AIT';
+      case 'ANNUAL_TAX':
+        return 'Tax Day Return';
+      case 'RJSC_ANNUAL':
+        return 'RJSC Form X';
+      default:
+        return 'Statutory Return';
+    }
+  };
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -100,7 +142,35 @@ export function AppTopBar({ currentPath, onOpenMenu, onOpenPalette }: AppTopBarP
           ) : null}
         </div>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1.5">
+          {nextDeadline ? (
+            <Link
+              to="/app/compliance"
+              className={`hidden sm:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium transition-all hover:opacity-90 ${
+                nextDeadline.daysRemaining > 7
+                  ? 'ql-badge-success border-emerald-300 dark:border-emerald-800'
+                  : nextDeadline.daysRemaining >= 0
+                    ? 'ql-badge-warn border-amber-300 dark:border-amber-800 animate-pulse'
+                    : 'ql-badge-danger border-rose-300 dark:border-rose-800 animate-pulse'
+              }`}
+              title={L(
+                `Next statutory deadline: ${nextDeadline.titleEn} due on ${nextDeadline.adjustedDeadline}`,
+                `পরবর্তী সংবিধিবদ্ধ সময়সীমা: ${nextDeadline.titleBn} দাখিল ${nextDeadline.adjustedDeadline}`,
+              )}
+            >
+              <CalendarClock size={13} aria-hidden />
+              <span className="font-semibold">{shortObligationLabel(nextDeadline.category)}</span>
+              <span className="opacity-60">•</span>
+              <span>
+                {nextDeadline.daysRemaining > 0
+                  ? L(`Due in ${nextDeadline.daysRemaining}d`, `${nextDeadline.daysRemaining} দিনে বাকি`)
+                  : nextDeadline.daysRemaining === 0
+                    ? L('Due today', 'আজকে জমা দিতে হবে')
+                    : L(`Overdue by ${Math.abs(nextDeadline.daysRemaining)}d`, `${Math.abs(nextDeadline.daysRemaining)} দিন বিলম্বিত`)}
+              </span>
+            </Link>
+          ) : null}
+
           <button
             type="button"
             onClick={onOpenPalette}

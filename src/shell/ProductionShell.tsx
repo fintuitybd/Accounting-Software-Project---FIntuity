@@ -34,6 +34,7 @@ const MasterDataPage = lazy(() => import('../pages/masters/MasterDataPage'));
 const ReportsPage = lazy(() => import('../pages/reports/ReportsPage'));
 const ClosePage = lazy(() => import('../pages/close/ClosePage'));
 const AuditLogPage = lazy(() => import('../pages/audit/AuditLogPage'));
+const ComplianceCalendarPage = lazy(() => import('../pages/compliance/ComplianceCalendarPage'));
 const CompanySetupPage = lazy(() => import('../pages/setup/CompanySetupPage'));
 const TeamAccessPage = lazy(() => import('../pages/TeamAccessPage'));
 const AccountPage = lazy(() => import('../pages/AccountPage'));
@@ -50,6 +51,7 @@ const PAGES: Record<SectionKey, LazyExoticComponent<ComponentType>> = {
   REPORTS: ReportsPage,
   CLOSE: ClosePage,
   AUDIT: AuditLogPage,
+  COMPLIANCE: ComplianceCalendarPage,
   SETUP: CompanySetupPage,
   TEAM: TeamAccessPage,
   ACCOUNT: AccountPage,
