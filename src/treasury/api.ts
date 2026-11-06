@@ -95,7 +95,7 @@ export interface TreasuryCertificate {
   supplierInvoiceNo: string | null;
   paymentId: string | null;
   paymentNumber: string | null;
-  liabilityId: string;
+  liabilityId: string | null;
   challanId: string | null;
   challanNumber: string | null;
   certificateDate: string;
@@ -248,6 +248,21 @@ export const treasuryApi = {
     apiRequest<{ certificate: TreasuryCertificate }>(
       `/companies/${companyId}/treasury/certificates/${certificateId}/reissue`,
       { method: 'POST', body: { reason, evidenceReference: evidenceReference ?? null } },
+    ),
+  recordCustomerCertificate: (
+    companyId: string,
+    input: {
+      partyId: string;
+      certificateNumber: string;
+      certificateDate: string;
+      basePoisha: string;
+      taxPoisha: string;
+      evidenceReference?: string | null;
+    },
+  ) =>
+    apiRequest<{ certificate: TreasuryCertificate }>(
+      `/companies/${companyId}/treasury/certificates/customer`,
+      { method: 'POST', body: input },
     ),
   proof: (companyId: string, asOf: string) =>
     apiRequest<{ proof: TreasuryProof }>(`/companies/${companyId}/treasury/proof${queryString({ asOf })}`),

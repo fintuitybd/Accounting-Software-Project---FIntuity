@@ -27,6 +27,14 @@ import {
   getProfitAndLossReport,
   getTrialBalanceReport,
 } from '../reports/statements.ts';
+import {
+  exportSection177Excel,
+  generateSection177Return,
+  getSection177Return,
+  getStatementDrillDown,
+  submitSection177Return,
+  verifySection177Return,
+} from '../reports/withholdingService.ts';
 import type { JournalListingDto, ReportEnvelope, VatRegisterReportDto } from '../reports/types.ts';
 
 const companyParams = z.object({ companyId: z.string().uuid() });
@@ -73,6 +81,29 @@ const exportAuditSchema = z.object({
   branchId: branchSchema.nullable(),
   accountId: z.string().uuid().optional().nullable(),
   rowCount: z.number().int().min(0).max(1_000_000).optional(),
+});
+
+const section177GenerateSchema = z.object({
+  taxYear: z.string().min(4).max(10),
+  taxPeriod: z.string().regex(/^[0-9]{4}-[0-9]{2}$/),
+});
+
+const section177GetQuery = z.object({
+  period: z.string().optional(),
+  returnId: z.string().uuid().optional(),
+});
+
+const section177ReturnParams = z.object({
+  companyId: z.string().uuid(),
+  returnId: z.string().uuid(),
+});
+
+const drillDownQuery = z.object({
+  noteRef: z.string().optional(),
+  accountCode: z.string().optional(),
+  accountId: z.string().uuid().optional(),
+  from: z.string().min(10).max(10),
+  to: z.string().min(10).max(10),
 });
 
 type ScopeQuery = z.infer<typeof scopeQuery>;
@@ -515,6 +546,88 @@ export const reportRoutes: FastifyPluginAsync = async (app) => {
         reportKey: body.reportKey,
         format: body.format,
         reviewStatus: reportReviewStatusFor(body.reportKey),
+      };
+    },
+  );
+
+  app.post(
+    '/companies/:companyId/reports/withholding/section177/generate',
+    { config: { auth: { mode: 'company', permission: 'VIEW_REPORTS' } } },
+    async (request, reply) => {
+      const { companyId } = parseInput(companyParams, request.params);
+      const body = parseInput(section177GenerateSchema, request.body);
+      const auth = getAuth(request);
+      const result = await generateSection177Return(app.db, companyId, {
+        taxYear: body.taxYear,
+        taxPeriod: body.taxPeriod,
+        actorUserId: auth.user.id,
+      });
+      reply.status(201);
+      return { return: result };
+    },
+  );
+
+  app.get(
+    '/companies/:companyId/reports/withholding/section177',
+    { config: { auth: { mode: 'company', permission: 'VIEW_REPORTS' } } },
+    async (request) => {
+      const { companyId } = parseInput(companyParams, request.params);
+      const query = parseInput(section177GetQuery, request.query);
+      const identifier = query.returnId ?? query.period;
+      if (!identifier) {
+        throw new AppError(400, 'PARAM_REQUIRED', 'Provide either period or returnId to fetch Section 177 return.');
+      }
+      return { return: await getSection177Return(app.db, companyId, identifier) };
+    },
+  );
+
+  app.post(
+    '/companies/:companyId/reports/withholding/section177/:returnId/verify',
+    { config: { auth: { mode: 'company', permission: 'VIEW_REPORTS' } } },
+    async (request) => {
+      const params = parseInput(section177ReturnParams, request.params);
+      return { return: await verifySection177Return(app.db, params.companyId, params.returnId) };
+    },
+  );
+
+  app.post(
+    '/companies/:companyId/reports/withholding/section177/:returnId/submit',
+    { config: { auth: { mode: 'company', permission: 'VIEW_REPORTS' } } },
+    async (request) => {
+      const params = parseInput(section177ReturnParams, request.params);
+      const auth = getAuth(request);
+      return { return: await submitSection177Return(app.db, params.companyId, params.returnId, auth.user.id) };
+    },
+  );
+
+  app.get(
+    '/companies/:companyId/reports/withholding/section177/:returnId/export',
+    { config: { auth: { mode: 'company', permission: 'EXPORT_DATA' } } },
+    async (request, reply) => {
+      const params = parseInput(section177ReturnParams, request.params);
+      const returnData = await getSection177Return(app.db, params.companyId, params.returnId);
+      const buffer = await exportSection177Excel(returnData);
+      reply
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="Section177_${returnData.taxPeriod}.xlsx"`)
+        .send(buffer);
+    },
+  );
+
+  app.get(
+    '/companies/:companyId/reports/statements/drill-down',
+    { config: { auth: { mode: 'company', permission: 'VIEW_REPORTS' } } },
+    async (request) => {
+      const { companyId } = parseInput(companyParams, request.params);
+      const query = parseInput(drillDownQuery, request.query);
+      return {
+        drillDown: await getStatementDrillDown(app.db, companyId, {
+          noteRef: query.noteRef,
+          accountCode: query.accountCode,
+          accountId: query.accountId,
+          fromDate: query.from,
+          toDate: query.to,
+        }),
       };
     },
   );

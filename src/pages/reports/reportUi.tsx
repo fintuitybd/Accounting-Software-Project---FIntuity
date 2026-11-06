@@ -146,6 +146,7 @@ export function SectionTable({
   comparativeLabel,
   currentLabel,
   onDrillAccount,
+  onDrillDown,
 }: {
   section: ReportSection;
   locale: 'en-BD' | 'bn-BD';
@@ -153,6 +154,7 @@ export function SectionTable({
   comparativeLabel: string;
   currentLabel: string;
   onDrillAccount?: (accountId: string) => void;
+  onDrillDown?: (target: { noteRef?: string; accountCode?: string; accountId?: string; title?: string }) => void;
 }) {
   return (
     <section className="overflow-hidden rounded-xl border border-line">
@@ -183,7 +185,23 @@ export function SectionTable({
                 <tr key={`${section.key}:${line.accountId ?? line.accountNameEn}`}>
                   <td>
                     <span className="font-mono text-[12px] text-ink-500">{line.accountCode ?? '—'}</span>{' '}
-                    {line.accountId && onDrillAccount ? (
+                    {onDrillDown ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onDrillDown({
+                            noteRef: line.note ?? undefined,
+                            accountCode: line.accountCode ?? undefined,
+                            accountId: line.accountId ?? undefined,
+                            title: line.accountNameEn,
+                          })
+                        }
+                        className="text-left font-medium text-ink-900 hover:text-brand-bright hover:underline cursor-pointer"
+                        title="Click to drill down (IAS/IFRS Studio)"
+                      >
+                        {localized(locale, line.accountNameEn, line.accountNameBn ?? line.accountNameEn)}
+                      </button>
+                    ) : line.accountId && onDrillAccount ? (
                       <button
                         type="button"
                         onClick={() => onDrillAccount(line.accountId!)}
@@ -194,6 +212,21 @@ export function SectionTable({
                     ) : (
                       <span className="text-ink-900">{localized(locale, line.accountNameEn, line.accountNameBn ?? line.accountNameEn)}</span>
                     )}
+                    {line.note && onDrillDown ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onDrillDown({
+                            noteRef: line.note!,
+                            title: `${line.note} Drill-Down`,
+                          })
+                        }
+                        className="ml-2 rounded-full border border-ql-border bg-surface-2 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400 hover:bg-surface-3 cursor-pointer"
+                        title={`Click to inspect ${line.note} underlying GL & documents`}
+                      >
+                        {line.note}
+                      </button>
+                    ) : null}
                     {line.kind === 'DERIVED' ? (
                       <span className="ml-1.5 rounded-full bg-vault-50 px-1.5 py-0.5 text-[12px] font-semibold text-vault-700">
                         {localized(locale, 'Derived', 'উৎপন্ন')}

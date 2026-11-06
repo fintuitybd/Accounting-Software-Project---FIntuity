@@ -611,15 +611,53 @@ export function PaymentsPanel({
         </div>
 
         {preview ? (
-          <div className="mt-4 rounded-xl border border-line bg-surface-2/40 p-4">
-            <div className="grid gap-2 text-[13px] sm:grid-cols-4">
-              <div><p className="text-ink-400">Gross allocated</p><p className="mt-1 font-mono font-semibold">{preview.totalAllocationBdt}</p></div>
-              <div><p className="text-ink-400">VDS withheld</p><p className="mt-1 font-mono font-semibold">{preview.totalVdsBdt}</p></div>
-              <div><p className="text-ink-400">TDS withheld</p><p className="mt-1 font-mono font-semibold">{preview.totalTdsBdt}</p></div>
-              <div><p className="text-ink-400">Cash to pay</p><p className="mt-1 font-mono font-semibold">{preview.totalCashBdt}</p></div>
+          <div className="ql-card mt-4 border border-ql-border bg-ql-surface/95 p-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ql-border pb-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[12px] font-bold uppercase tracking-wider text-ink-500">
+                  Live Statutory Split Breakdown (Settlement &amp; Withholding)
+                </span>
+                {(() => {
+                  const supplier = suppliers.find((s) => s.id === partyId);
+                  const hasTin = supplier?.tin && /^\d{12}$/.test(supplier.tin.trim());
+                  return !hasTin && BigInt(preview.totalTdsPoisha) > 0n ? (
+                    <span className="ql-badge ql-badge-danger text-[11px]">
+                      +50% Sec 134 No e-TIN Penalty
+                    </span>
+                  ) : null;
+                })()}
+                <span className="ql-badge ql-badge-neutral text-[11px]">
+                  Economic Code: 1/1141/0010/0311
+                </span>
+              </div>
+              <span className="font-mono text-[11px] text-ink-400">
+                Treasury Obligation: ৳{((Number(preview.totalVdsPoisha) + Number(preview.totalTdsPoisha)) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4 text-[12px]">
+              <div>
+                <span className="text-ink-400">Gross AP Allocation</span>
+                <p className="mt-0.5 font-mono text-[15px] font-bold text-ink-900">৳{preview.totalAllocationBdt}</p>
+              </div>
+              <div>
+                <span className="text-ink-400">- VDS Withheld at Source</span>
+                <p className="mt-0.5 font-mono text-[15px] font-bold text-amber-700 dark:text-amber-400">৳{preview.totalVdsBdt}</p>
+                <span className="text-[10px] text-ink-400">Mushak 6.6 A-Challan</span>
+              </div>
+              <div>
+                <span className="text-ink-400">- TDS Withheld at Source</span>
+                <p className="mt-0.5 font-mono text-[15px] font-bold text-purple-700 dark:text-purple-400">৳{preview.totalTdsBdt}</p>
+                <span className="text-[10px] text-ink-400">Sec 177 Schedules</span>
+              </div>
+              <div className="rounded-lg bg-surface-2 p-2">
+                <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">= Net Cash Payable</span>
+                <p className="font-mono text-[16px] font-bold text-emerald-700 dark:text-emerald-400">৳{preview.totalCashBdt}</p>
+              </div>
+            </div>
+
             <label className="mt-3 block max-w-xs">
-              <span className="mb-1 block text-[12px] font-semibold text-ink-700">Cash amount (server preview)</span>
+              <span className="mb-1 block text-[12px] font-semibold text-ink-700">Cash disbursement amount (server preview)</span>
               <input className={INPUT_CLASS} value={cashAmount} readOnly />
             </label>
             <p className="mt-2 text-[12px] leading-relaxed text-ink-500">

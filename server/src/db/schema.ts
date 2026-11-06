@@ -1069,6 +1069,7 @@ export const purchaseDocumentLines = pgTable(
     vatPoisha: bigint('vat_poisha', { mode: 'bigint' }).notNull(),
     vatClaimablePoisha: bigint('vat_claimable_poisha', { mode: 'bigint' }).notNull(),
     vatDisallowedPoisha: bigint('vat_disallowed_poisha', { mode: 'bigint' }).notNull(),
+    nonRebatableVatPoisha: bigint('non_rebatable_vat_poisha', { mode: 'bigint' }).notNull().default(0n),
     costPoisha: bigint('cost_poisha', { mode: 'bigint' }).notNull(),
     supplierPayablePoisha: bigint('supplier_payable_poisha', { mode: 'bigint' }).notNull(),
     taxRateBps: integer('tax_rate_bps').notNull(),
@@ -1807,4 +1808,100 @@ export const complianceCalendarEvents = pgTable(
     unique('comp_cal_company_period_cat_uniq').on(t.companyId, t.periodId, t.category),
   ],
 );
+
+/**
+ * Phase 18: Document sequences, Section 177 Withholding Tax Returns, and Deductee Lines.
+ */
+export const documentSequences = pgTable(
+  'document_sequences',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'restrict' }),
+    branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'restrict' }),
+    fiscalYearId: uuid('fiscal_year_id')
+      .notNull()
+      .references(() => fiscalYears.id, { onDelete: 'restrict' }),
+    docType: text('doc_type').notNull(), // 'MUSHAK_6_3' | 'MUSHAK_6_5' | 'MUSHAK_6_6' | 'MUSHAK_6_7' | 'MUSHAK_4_3' | 'CHALLAN' | 'TDS_CERTIFICATE'
+    prefix: text('prefix').notNull(),
+    currentValue: bigint('current_value', { mode: 'bigint' }).notNull().default(0n),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('doc_seq_company_unique').on(t.companyId, t.id),
+  ],
+);
+
+export const withholdingTaxReturns = pgTable(
+  'withholding_tax_returns',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'restrict' }),
+    fiscalYearId: uuid('fiscal_year_id')
+      .notNull()
+      .references(() => fiscalYears.id, { onDelete: 'restrict' }),
+    returnType: text('return_type').notNull(), // 'MONTHLY_177' | 'HALF_YEARLY_177' | 'ANNUAL_177'
+    periodStart: date('period_start').notNull(),
+    periodEnd: date('period_end').notNull(),
+    totalGrossPaidPoisha: bigint('total_gross_paid_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalTdsDeductedPoisha: bigint('total_tds_deducted_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalTdsDepositedPoisha: bigint('total_tds_deposited_poisha', { mode: 'bigint' }).notNull().default(0n),
+    status: text('status').notNull().default('DRAFT'), // 'DRAFT' | 'VERIFIED' | 'SUBMITTED'
+    submissionAckNumber: text('submission_ack_number'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true, mode: 'date' }),
+    preparedBy: uuid('prepared_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    verifiedBy: uuid('verified_by').references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('wht_returns_company_unique').on(t.companyId, t.id),
+    unique('wht_returns_company_type_period_uniq').on(t.companyId, t.returnType, t.periodStart, t.periodEnd),
+    index('wht_returns_company_period_idx').on(t.companyId, t.periodStart, t.periodEnd),
+    index('wht_returns_company_status_idx').on(t.companyId, t.status),
+  ],
+);
+
+export const withholdingReturnLines = pgTable(
+  'withholding_return_lines',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'restrict' }),
+    returnId: uuid('return_id')
+      .notNull()
+      .references(() => withholdingTaxReturns.id, { onDelete: 'cascade' }),
+    scheduleCode: text('schedule_code').notNull(), // 'SCHED_A_SALARY' | 'SCHED_B_GOODS' | 'SCHED_C_RENT' | 'SCHED_D_PROF'
+    partyId: uuid('party_id').references(() => parties.id, { onDelete: 'restrict' }),
+    sourceDocumentId: uuid('source_document_id'),
+    deducteeName: text('deductee_name').notNull(),
+    deducteeTin: text('deductee_tin'),
+    deducteeBin: text('deductee_bin'),
+    hasEtinPenaltyUpscale: boolean('has_etin_penalty_upscale').notNull().default(false),
+    sectionCode: text('section_code').notNull(), // 'SEC_86' | 'SEC_89' | 'SEC_90' | 'SEC_91' | 'SEC_92' | 'SEC_109'
+    economicCode: text('economic_code').notNull(), // 13-digit Bangladesh Bank code
+    grossAmountPoisha: bigint('gross_amount_poisha', { mode: 'bigint' }).notNull(),
+    paidAmountPoisha: bigint('paid_amount_poisha', { mode: 'bigint' }).notNull(),
+    tdsRateBps: integer('tds_rate_bps').notNull(),
+    tdsAmountPoisha: bigint('tds_amount_poisha', { mode: 'bigint' }).notNull(),
+    paymentDate: date('payment_date').notNull(),
+    challanId: uuid('challan_id').references(() => treasuryChallans.id, { onDelete: 'set null' }),
+    challanNumber: text('challan_number'),
+    challanDate: date('challan_date'),
+    bankName: text('bank_name'),
+    anomalyFlags: text('anomaly_flags'), // JSON array: ['MISSING_ETIN', 'LATE_CHALLAN_DEPOSIT', 'UNDEPOSITED_TDS']
+  },
+  (t) => [
+    unique('wht_lines_company_unique').on(t.companyId, t.id),
+    index('wht_lines_return_idx').on(t.companyId, t.returnId),
+    index('wht_lines_schedule_idx').on(t.companyId, t.returnId, t.scheduleCode),
+  ],
+);
+
 

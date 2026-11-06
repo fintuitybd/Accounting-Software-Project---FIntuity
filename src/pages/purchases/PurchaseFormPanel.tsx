@@ -241,6 +241,87 @@ export function PurchaseFormPanel({
       vdsApplicable,
     ],
   );
+  const selectedSupplier = useMemo(
+    () => refs.suppliers.find((p) => p.id === partyId),
+    [refs.suppliers, partyId],
+  );
+
+  const statutorySplit = useMemo(() => {
+    let baseTotal = 0;
+    let vatTotal = 0;
+
+    for (const line of lines) {
+      const q = parseFloat(line.quantity) || 0;
+      const p = parseFloat(line.unitPrice) || 0;
+      const d = parseFloat(line.discount) || 0;
+      const lineBase = Math.max(0, q * p - d);
+      baseTotal += lineBase;
+
+      let vatRate = 0;
+      if (line.taxCategory === 'STANDARD_15') vatRate = 0.15;
+      else if (line.taxCategory === 'TRADING_5') vatRate = 0.05;
+      else if (line.taxCategory === 'PROCUREMENT_7_5') vatRate = 0.075;
+      vatTotal += lineBase * vatRate;
+    }
+
+    const hasValidBin = Boolean(selectedSupplier?.bin && /^\d{13}$/.test(selectedSupplier.bin.trim()));
+    const hasMushak63 = Boolean(supplierMushak63Serial?.trim() && supplierMushak63Date);
+    const isSec46Eligible = hasValidBin && hasMushak63 && (baseTotal <= 100000 || paymentMethod !== 'CASH');
+
+    const vdsAmount = vdsApplicable ? vatTotal : 0;
+
+    const hasTin = Boolean(selectedSupplier?.tin && /^\d{12}$/.test(selectedSupplier.tin.trim()));
+    const penaltyApplied = supplierTinMissing || !hasTin;
+
+    let tdsRateBps = 0;
+    let sectionLabel = 'None';
+    if (tdsNature === 'SUPPLY_OF_GOODS') {
+      tdsRateBps = penaltyApplied ? 450 : 300;
+      sectionLabel = 'Sec 89 Goods';
+    } else if (tdsNature === 'PROFESSIONAL_OR_TECHNICAL_SERVICES') {
+      tdsRateBps = penaltyApplied ? 1500 : 1000;
+      sectionLabel = 'Sec 90 Service';
+    } else if (tdsNature === 'TRANSPORT_OR_LOGISTICS') {
+      tdsRateBps = penaltyApplied ? 450 : 300;
+      sectionLabel = 'Sec 91 Transport';
+    } else if (tdsNature === 'ADVERTISING_OR_MEDIA') {
+      tdsRateBps = penaltyApplied ? 750 : 500;
+      sectionLabel = 'Sec 92 Media';
+    } else if (tdsNature === 'COMMERCIAL_RENT') {
+      tdsRateBps = penaltyApplied ? 750 : 500;
+      sectionLabel = 'Sec 109 Rent';
+    } else if (tdsNature === 'CONTRACTOR_OR_SUBCONTRACTOR') {
+      tdsRateBps = penaltyApplied ? 450 : 300;
+      sectionLabel = 'Sec 88 Contract';
+    }
+
+    const tdsAmount = (baseTotal * tdsRateBps) / 10000;
+    const netPayable = baseTotal + vatTotal - vdsAmount - tdsAmount;
+    const treasuryObligation = vdsAmount + tdsAmount;
+
+    return {
+      baseTotal,
+      vatTotal,
+      isSec46Eligible,
+      vdsAmount,
+      tdsAmount,
+      tdsRateBps,
+      sectionLabel,
+      penaltyApplied,
+      netPayable,
+      treasuryObligation,
+    };
+  }, [
+    lines,
+    selectedSupplier,
+    supplierMushak63Serial,
+    supplierMushak63Date,
+    paymentMethod,
+    vdsApplicable,
+    tdsNature,
+    supplierTinMissing,
+  ]);
+
   const fingerprint = useMemo(() => JSON.stringify(payload), [payload]);
   const validationErrors = useMemo(() => {
     const next: Array<{ field: string; message: string }> = [];
@@ -644,6 +725,71 @@ export function PurchaseFormPanel({
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="ql-card mt-4 border border-ql-border bg-ql-surface/95 p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ql-border pb-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[12px] font-bold uppercase tracking-wider text-ink-500">
+              Live Statutory Split Waterfall (VAT Act 2012 &amp; ITA 2023)
+            </span>
+            {statutorySplit.isSec46Eligible ? (
+              <span className="ql-badge ql-badge-success text-[11px]">
+                ✓ Sec 46 Eligible (Acct 1140)
+              </span>
+            ) : (
+              <span className="ql-badge ql-badge-warn text-[11px]">
+                Capitalized to Cost - Sec 46(2) Non-Rebatable
+              </span>
+            )}
+            {statutorySplit.penaltyApplied && statutorySplit.tdsRateBps > 0 ? (
+              <span className="ql-badge ql-badge-danger text-[11px]">
+                +50% Sec 134 No e-TIN Penalty
+              </span>
+            ) : null}
+          </div>
+          <span className="font-mono text-[11px] text-ink-400">Economic Code: 1/1141/0010/0311</span>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5 text-[12px]">
+          <div>
+            <span className="text-ink-400">Taxable Base</span>
+            <p className="mt-0.5 font-mono text-[14px] font-bold text-ink-900">
+              ৳{statutorySplit.baseTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-ink-400">+ Input VAT (15%)</span>
+            <p className="mt-0.5 font-mono text-[14px] font-bold text-ink-900">
+              ৳{statutorySplit.vatTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-ink-400">- VDS at Source</span>
+            <p className="mt-0.5 font-mono text-[14px] font-bold text-amber-700 dark:text-amber-400">
+              ৳{statutorySplit.vdsAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-ink-400">- TDS ({statutorySplit.sectionLabel})</span>
+            <p className="mt-0.5 font-mono text-[14px] font-bold text-purple-700 dark:text-purple-400">
+              ৳{statutorySplit.tdsAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+
+          <div className="col-span-2 sm:col-span-1 rounded-lg bg-surface-2 p-2">
+            <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">= Net Payable</span>
+            <p className="font-mono text-[15px] font-bold text-emerald-700 dark:text-emerald-400">
+              ৳{statutorySplit.netPayable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <span className="text-[10px] text-ink-400">
+              Treasury: ৳{statutorySplit.treasuryObligation.toFixed(2)}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ql-border bg-ql-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">

@@ -1006,10 +1006,10 @@ async function insertDocumentLines(
          id, company_id, document_id, line_no, item_id, description_en, description_bn,
          quantity, unit, unit_price_poisha, discount_poisha, tax_category, account_id,
          warehouse_id, line_base_poisha, vat_poisha, vat_claimable_poisha,
-         vat_disallowed_poisha, cost_poisha, supplier_payable_poisha, tax_rate_bps,
+         vat_disallowed_poisha, non_rebatable_vat_poisha, cost_poisha, supplier_payable_poisha, tax_rate_bps,
          vds_rate_bps, tax_rule_id, tax_decision_state
        ) VALUES (
-         $1,$2,$3,$4,$5,$6,$7,$8::numeric,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24
+         $1,$2,$3,$4,$5,$6,$7,$8::numeric,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
        )`,
       [
         line.id,
@@ -1029,6 +1029,7 @@ async function insertDocumentLines(
         line.lineBasePoisha.toString(),
         line.vatPoisha.toString(),
         line.vatClaimablePoisha.toString(),
+        line.vatDisallowedPoisha.toString(),
         line.vatDisallowedPoisha.toString(),
         line.costPoisha.toString(),
         line.supplierPayablePoisha.toString(),
@@ -1051,7 +1052,7 @@ async function updateDocumentLineTax(
     await client.query(
       `UPDATE purchase_document_lines
           SET line_base_poisha = $4, vat_poisha = $5, vat_claimable_poisha = $6,
-              vat_disallowed_poisha = $7, cost_poisha = $8, supplier_payable_poisha = $9,
+              vat_disallowed_poisha = $7, non_rebatable_vat_poisha = $7, cost_poisha = $8, supplier_payable_poisha = $9,
               tax_rate_bps = $10, vds_rate_bps = $11, tax_rule_id = $12, tax_decision_state = $13
         WHERE company_id = $1 AND document_id = $2 AND id = $3`,
       [

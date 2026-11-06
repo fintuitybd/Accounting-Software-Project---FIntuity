@@ -5,6 +5,8 @@ import {
   FileCheck2,
   FileClock,
   Landmark,
+  Plus,
+  Printer,
   RefreshCw,
   RotateCcw,
   ShieldCheck,
@@ -14,6 +16,7 @@ import { localized } from '../../core/i18n';
 import { useAuth } from '../../auth/AuthContext';
 import { usePreferences } from '../../preferences/AppPreferences';
 import { setupApi, type BankAccount } from '../../setup/api';
+import { masterApi, type Party } from '../../masters/api';
 import type {
   TreasuryCertificate,
   TreasuryCertificateStatus,
@@ -115,6 +118,72 @@ export default function TreasuryPage() {
         )}
         tone="warning"
       />
+
+      {/* 3-Step Visual Statutory Pipeline */}
+      <div className="ql-card p-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div
+            onClick={() => setTab('PENDING')}
+            className={`flex-1 flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
+              tab === 'PENDING'
+                ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/20'
+                : 'border-ql-border bg-surface-1 hover:bg-surface-2'
+            }`}
+          >
+            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-bold ${
+              tab === 'PENDING' ? 'bg-brand-500 text-white' : 'bg-surface-3 text-ink-600'
+            }`}>
+              1
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-ink-900">1. Unremitted VDS/TDS Queue</p>
+              <p className="text-[11px] text-ink-500">Matured from bills &amp; partial payments</p>
+            </div>
+          </div>
+
+          <span className="hidden sm:block text-ink-300 font-bold">→</span>
+
+          <div
+            onClick={() => setTab('PENDING')}
+            className={`flex-1 flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
+              tab === 'PENDING'
+                ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/20'
+                : 'border-ql-border bg-surface-1 hover:bg-surface-2'
+            }`}
+          >
+            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-bold ${
+              tab === 'PENDING' ? 'bg-brand-500 text-white' : 'bg-surface-3 text-ink-600'
+            }`}>
+              2
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-ink-900">2. Batch A-Challan Assembly</p>
+              <p className="text-[11px] text-ink-500">Code 1/1141/0010/0311 deposit</p>
+            </div>
+          </div>
+
+          <span className="hidden sm:block text-ink-300 font-bold">→</span>
+
+          <div
+            onClick={() => setTab('CERTIFICATES')}
+            className={`flex-1 flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
+              tab === 'CERTIFICATES' || tab === 'CHALLANS'
+                ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/20'
+                : 'border-ql-border bg-surface-1 hover:bg-surface-2'
+            }`}
+          >
+            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-bold ${
+              tab === 'CERTIFICATES' || tab === 'CHALLANS' ? 'bg-brand-500 text-white' : 'bg-surface-3 text-ink-600'
+            }`}>
+              3
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-ink-900">3. Issued Mushak 6.6 &amp; Register</p>
+              <p className="text-[11px] text-ink-500">Gapless sequence (6.6/2026-27/xxxxx)</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <nav className="flex flex-wrap gap-1.5" aria-label={L('Treasury sections', 'ট্রেজারি বিভাগসমূহ')}>
         {tabs.map((entry) => {
@@ -708,6 +777,23 @@ function CertificatesPanel({
   const [reason, setReason] = useState('');
   const [evidence, setEvidence] = useState('');
   const [loading, setLoading] = useState(false);
+  const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [customers, setCustomers] = useState<Party[]>([]);
+  const [customerPartyId, setCustomerPartyId] = useState('');
+  const [customerCertNo, setCustomerCertNo] = useState('');
+  const [customerCertDate, setCustomerCertDate] = useState(todayIso());
+  const [customerBaseBdt, setCustomerBaseBdt] = useState('');
+  const [customerTaxBdt, setCustomerTaxBdt] = useState('');
+  const [customerEvidence, setCustomerEvidence] = useState('');
+
+  useEffect(() => {
+    if (!companyId) return;
+    masterApi
+      .parties(companyId, { type: 'CUSTOMER', pageSize: 100 })
+      .then((res) => setCustomers(res.parties))
+      .catch(() => {});
+  }, [companyId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -769,15 +855,52 @@ function CertificatesPanel({
     }
   };
 
+  const handleRecordCustomer = async () => {
+    if (!customerPartyId || !customerCertNo.trim() || !customerTaxBdt) return;
+    onBusy(true);
+    onError(null);
+    try {
+      const basePoisha = Math.round((parseFloat(customerBaseBdt) || 0) * 100);
+      const taxPoisha = Math.round((parseFloat(customerTaxBdt) || 0) * 100);
+      await treasuryApi.recordCustomerCertificate(companyId, {
+        partyId: customerPartyId,
+        certificateNumber: customerCertNo.trim(),
+        certificateDate: customerCertDate,
+        basePoisha: basePoisha.toString(),
+        taxPoisha: taxPoisha.toString(),
+        evidenceReference: customerEvidence.trim() || null,
+      });
+      setCustomerModalOpen(false);
+      setCustomerCertNo('');
+      setCustomerBaseBdt('');
+      setCustomerTaxBdt('');
+      await load();
+      onNotice('Customer Mushak 6.6 certificate recorded successfully. Linked to Mushak 9.1 Note 29 decreasing adjustment.');
+    } catch (caught) {
+      onError(apiErrorMessage(caught));
+    } finally {
+      onBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <SectionCard
         title="Withholding certificates"
         kicker="Derived from the deposited VDS/TDS liability, never from a multiplier"
         action={
-          <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
-            <RefreshCw size={15} /> Refresh
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="lv-btn lv-btn-primary min-h-11 text-[13px]"
+              onClick={() => setCustomerModalOpen(true)}
+            >
+              <Plus size={15} /> Record Customer Mushak 6.6 (Note 29)
+            </button>
+            <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
+              <RefreshCw size={15} /> Refresh
+            </button>
+          </div>
         }
       >
         <Notice
@@ -871,7 +994,18 @@ function CertificatesPanel({
         <SectionCard
           title={`Certificate ${selected.certificateNumber}`}
           kicker={`${selected.certificateType} · ${selected.direction} · ${selected.partyNameEn}`}
-          action={statusChip(selected.status)}
+          action={
+            <div className="flex items-center gap-2">
+              {statusChip(selected.status)}
+              <button
+                type="button"
+                className="lv-btn lv-btn-secondary min-h-9 px-2.5 text-[12px]"
+                onClick={() => setPrintModalOpen(true)}
+              >
+                <Printer size={13} /> Mushak 6.6 Preview
+              </button>
+            </div>
+          }
         >
           <div className="grid gap-2 text-[13px] sm:grid-cols-4">
             <div className="rounded-lg border border-line bg-surface-2/40 px-3 py-2"><p className="text-[12px] text-ink-400">Source bill</p><p className="mt-1 text-ink-900">{selected.originalDocumentNo ?? '—'}</p></div>
@@ -917,6 +1051,243 @@ function CertificatesPanel({
             </div>
           ) : null}
         </SectionCard>
+      ) : null}
+
+      {/* Record Customer Mushak 6.6 Modal (Note 29) */}
+      {customerModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="ql-card w-full max-w-lg p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-ql-border pb-3">
+              <div>
+                <span className="ql-badge ql-badge-neutral text-[11px] font-bold uppercase">Mushak 9.1 Note 29</span>
+                <h3 className="mt-1 text-[16px] font-bold text-ink-900">
+                  Record Customer Mushak 6.6 Certificate
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCustomerModalOpen(false)}
+                className="lv-btn lv-btn-ghost min-h-8 px-2 text-ink-500"
+              >
+                <XCircle size={18} />
+              </button>
+            </div>
+
+            <p className="text-[12px] leading-relaxed text-ink-500">
+              Record the VDS certificate issued by your customer upon making payment. This certificate backs your decreasing adjustment claim in Note 29 of the Mushak 9.1 VAT Return.
+            </p>
+
+            <div className="space-y-3 text-[13px]">
+              <label className="block">
+                <span className="mb-1 block font-semibold text-ink-700">Customer</span>
+                <select
+                  className={INPUT_CLASS}
+                  value={customerPartyId}
+                  onChange={(e) => setCustomerPartyId(e.target.value)}
+                >
+                  <option value="">Select Customer</option>
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} — {c.nameEn} {c.bin ? `(BIN: ${c.bin})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-1 block font-semibold text-ink-700">Certificate #</span>
+                  <input
+                    className={INPUT_CLASS}
+                    placeholder="e.g. 6.6/2026-27/00142"
+                    value={customerCertNo}
+                    onChange={(e) => setCustomerCertNo(e.target.value)}
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block font-semibold text-ink-700">Issue Date</span>
+                  <input
+                    type="date"
+                    className={INPUT_CLASS}
+                    value={customerCertDate}
+                    onChange={(e) => setCustomerCertDate(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-1 block font-semibold text-ink-700">Taxable Base (BDT)</span>
+                  <input
+                    className={INPUT_CLASS}
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={customerBaseBdt}
+                    onChange={(e) => setCustomerBaseBdt(e.target.value)}
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block font-semibold text-ink-700">VDS Deducted (BDT)</span>
+                  <input
+                    className={INPUT_CLASS}
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={customerTaxBdt}
+                    onChange={(e) => setCustomerTaxBdt(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="mb-1 block font-semibold text-ink-700">Scan / Evidence Reference</span>
+                <input
+                  className={INPUT_CLASS}
+                  placeholder="e.g. evidence/customer-mushak66.pdf"
+                  value={customerEvidence}
+                  onChange={(e) => setCustomerEvidence(e.target.value)}
+                />
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-ql-border pt-4">
+              <button
+                type="button"
+                onClick={() => setCustomerModalOpen(false)}
+                className="lv-btn lv-btn-ghost min-h-10 text-[13px]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!customerPartyId || !customerCertNo.trim() || !customerTaxBdt}
+                onClick={() => void handleRecordCustomer()}
+                className="lv-btn lv-btn-primary min-h-10 text-[13px]"
+              >
+                Save Certificate
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Bilingual Mushak 6.6 PDF / Print Preview Modal */}
+      {printModalOpen && selected ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-3xl rounded-xl bg-white p-8 text-black shadow-2xl space-y-6 my-8">
+            <div className="flex items-center justify-between border-b border-gray-300 pb-3">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-gray-500">
+                Statutory Certificate Preview · NBR Rule 40(1)(f)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="lv-btn lv-btn-primary min-h-9 px-3 text-[12px]"
+                >
+                  <Printer size={13} /> Print / Save PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrintModalOpen(false)}
+                  className="lv-btn lv-btn-ghost min-h-9 px-2 text-gray-600"
+                >
+                  <XCircle size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Official NBR Mushak 6.6 Header */}
+            <div className="text-center space-y-1">
+              <p className="text-[14px] font-semibold">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</p>
+              <p className="text-[12px]">জাতীয় রাজস্ব বোর্ড</p>
+              <h2 className="text-[16px] font-bold mt-2">উৎসে কর কর্তন সনদপত্র</h2>
+              <p className="text-[11px] text-gray-600">[ বিধি ৪০ এর উপ-বিধি (১) এর দফা (চ) দ্রষ্টব্য ]</p>
+              <p className="text-[14px] font-mono font-bold text-gray-800 mt-1">মূসক-৬.৬</p>
+            </div>
+
+            <div className="flex justify-between text-[12px] border-b border-gray-200 pb-2">
+              <div>
+                <p>সনদপত্র নম্বর (Certificate No): <strong className="font-mono">{selected.certificateNumber}</strong></p>
+              </div>
+              <div>
+                <p>ইস্যুর তারিখ (Issue Date): <strong>{selected.certificateDate}</strong></p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-[12px] bg-gray-50 p-4 rounded-lg">
+              <div>
+                <p className="font-bold text-gray-700">উৎসে কর কর্তনকারী কর্তৃপক্ষ (Deduction Authority):</p>
+                <p className="mt-1 font-semibold">Fintuity Suite Demo Company Ltd.</p>
+                <p className="text-gray-600">বিআইএন (BIN): 001234567-0101</p>
+                <p className="text-gray-600">ঠিকানা: গুলশান-২, ঢাকা-১২১২</p>
+              </div>
+              <div>
+                <p className="font-bold text-gray-700">সরবরাহকারী / পক্ষ (Supplier / Party):</p>
+                <p className="mt-1 font-semibold">{selected.partyNameEn}</p>
+                <p className="text-gray-600">কোড (Code): {selected.partyCode}</p>
+                <p className="text-gray-600">দিক (Direction): {selected.direction}</p>
+              </div>
+            </div>
+
+            {/* Table of Deduction Details */}
+            <table className="w-full border border-gray-300 text-[11px] text-left">
+              <thead className="bg-gray-100 border-b border-gray-300">
+                <tr>
+                  <th className="border-r border-gray-300 p-2 text-center">ক্রমিক</th>
+                  <th className="border-r border-gray-300 p-2">চালানপত্র / বিল নং</th>
+                  <th className="border-r border-gray-300 p-2">তারিখ</th>
+                  <th className="border-r border-gray-300 p-2 text-right">মূল্য (কর ব্যতীত)</th>
+                  <th className="border-r border-gray-300 p-2 text-right">কর্তিত মূসক</th>
+                  <th className="p-2">ট্রেজারি চালান ও কোড</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border-r border-gray-300 p-2 text-center font-mono">১</td>
+                  <td className="border-r border-gray-300 p-2 font-mono">
+                    {selected.originalDocumentNo ?? selected.paymentNumber ?? '—'}
+                  </td>
+                  <td className="border-r border-gray-300 p-2">{selected.certificateDate}</td>
+                  <td className="border-r border-gray-300 p-2 text-right font-mono font-semibold">
+                    ৳{selected.baseBdt}
+                  </td>
+                  <td className="border-r border-gray-300 p-2 text-right font-mono font-bold text-black">
+                    ৳{selected.taxBdt}
+                  </td>
+                  <td className="p-2 font-mono text-[10px]">
+                    {selected.challanNumber ? (
+                      <div>
+                        <strong>{selected.challanNumber}</strong>
+                        <div className="text-gray-500">1/1141/0010/0311</div>
+                      </div>
+                    ) : (
+                      'Pending Deposit'
+                    )}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div className="text-[12px] space-y-1 text-gray-700 bg-gray-50 p-3 rounded">
+              <p>
+                প্রত্যয়ন করা যাইতেছে যে, উপরোল্লিখিত বিলের বিপরীতে প্রযোজ্য মূসক আইন, ২০১২ এর ধারা ৪৯ অনুযায়ী নির্ধারিত হারে উৎসে কর কর্তনপূর্বক সরকারি ট্রেজারিতে জমা প্রদান করা হইয়াছে।
+              </p>
+            </div>
+
+            <div className="flex justify-between pt-12 text-[12px]">
+              <div className="text-center">
+                <div className="border-t border-gray-400 w-44 pt-1 font-semibold">প্রস্তুতকারী (Prepared By)</div>
+                <div className="text-[10px] text-gray-500">{selected.createdByName}</div>
+              </div>
+              <div className="text-center">
+                <div className="border-t border-gray-400 w-44 pt-1 font-semibold">দায়িত্বপ্রাপ্ত কর্মকর্তা (Officer)</div>
+                <div className="text-[10px] text-gray-500">সিলমোহর ও স্বাক্ষর</div>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

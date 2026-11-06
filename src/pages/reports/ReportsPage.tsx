@@ -46,6 +46,8 @@ import { PageHeader } from '../../shell/PageHeader';
 import { ReportAmount, CheckList, ExceptionList, SectionTable, TemplateBadge, ReportEmpty } from './reportUi';
 import { ReportPrintModal } from './ReportPrintModal';
 import { JournalEvidenceModal } from './JournalEvidenceModal';
+import { WithholdingReturnPage } from './WithholdingReturnPage';
+import { StatementDrillDownDrawer } from './StatementDrillDownDrawer';
 import { formatDate as formatLedgerDate } from '../ledger/ledgerUi';
 
 type TabKey =
@@ -62,6 +64,7 @@ type TabKey =
   | 'VAT_PURCHASE_REGISTER'
   | 'VAT_RETURN_DRAFT'
   | 'WITHHOLDING_REGISTER'
+  | 'SECTION_177_RETURN'
   | 'JOURNAL_LISTING';
 
 type Preset = 'MONTH' | 'QUARTER' | 'YTD' | 'YEAR' | 'CUSTOM';
@@ -80,6 +83,7 @@ const TABS: Array<{ key: TabKey; en: string; bn: string; icon: typeof FileText; 
   { key: 'VAT_PURCHASE_REGISTER', en: 'VAT purchase register', bn: 'ভ্যাট ক্রয় রেজিস্টার', icon: FileText, group: 'Registers' },
   { key: 'VAT_RETURN_DRAFT', en: 'VAT 9.1 draft', bn: 'ভ্যাট ৯.১ খসড়া', icon: ShieldCheck, group: 'Registers' },
   { key: 'WITHHOLDING_REGISTER', en: 'VDS/TDS register', bn: 'ভিডিএস/টিডিএস রেজিস্টার', icon: ScrollText, group: 'Registers' },
+  { key: 'SECTION_177_RETURN', en: 'Sec 177 TDS Return', bn: 'সেকশন ১৭৭ রিটার্ন', icon: ShieldCheck, group: 'Registers' },
   { key: 'JOURNAL_LISTING', en: 'Journal listing', bn: 'জার্নাল তালিকা', icon: BookOpen, group: 'Audit' },
 ];
 
@@ -91,6 +95,7 @@ function tabFromQuery(value: string | null): TabKey | null {
 }
 
 function reportKey(tab: TabKey): ReportKey {
+  if (tab === 'SECTION_177_RETURN') return 'WITHHOLDING_REGISTER';
   return tab as ReportKey;
 }
 
@@ -133,6 +138,12 @@ export default function ReportsPage() {
   const [printOpen, setPrintOpen] = useState(false);
   const [printReport, setPrintReport] = useState<ReportEnvelope | null>(null);
   const [evidenceJournalId, setEvidenceJournalId] = useState<string | null>(null);
+  const [drillDownTarget, setDrillDownTarget] = useState<{
+    noteRef?: string;
+    accountCode?: string;
+    accountId?: string;
+    title?: string;
+  } | null>(null);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -244,6 +255,7 @@ export default function ReportsPage() {
 
   const loadReport = useCallback(async () => {
     if (!companyId) return;
+    if (tab === 'SECTION_177_RETURN') return;
     if (!periodId && !from && !to && !asOf) return;
     if (tab === 'GENERAL_LEDGER' && !glAccountId) {
       setReportError(L('Choose an account before loading the general-ledger detail.', 'জিএল বিবরণ লোড করার আগে একটি হিসাব নির্বাচন করুন।'));
@@ -554,7 +566,9 @@ export default function ReportsPage() {
       {statusMessage ? <Notice message={statusMessage} tone="info" /> : null}
       {loadingReport ? <Notice message={L('Loading the report from posted journals…', 'পোস্টকৃত জার্নাল থেকে রিপোর্ট লোড হচ্ছে…')} tone="info" /> : null}
 
-      {report ? (
+      {tab === 'SECTION_177_RETURN' ? (
+        <WithholdingReturnPage />
+      ) : report ? (
         <section className="lv-card p-4 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -620,6 +634,7 @@ export default function ReportsPage() {
                 setTab('GENERAL_LEDGER');
               }}
               onOpenJournal={(journalId) => setEvidenceJournalId(journalId)}
+              onDrillDown={(target) => setDrillDownTarget(target)}
             />
           </div>
 
@@ -651,6 +666,18 @@ export default function ReportsPage() {
         money={money}
         onClose={() => setEvidenceJournalId(null)}
       />
+
+      {drillDownTarget ? (
+        <StatementDrillDownDrawer
+          companyId={companyId}
+          target={drillDownTarget}
+          period={{
+            from: from || (periodId ? (selectedPeriod?.startDate ?? '2026-01-01') : '2026-01-01'),
+            to: to || (periodId ? (selectedPeriod?.endDate ?? '2026-12-31') : '2026-12-31'),
+          }}
+          onClose={() => setDrillDownTarget(null)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -665,6 +692,7 @@ function ReportBody({
   accounts,
   onDrillAccount,
   onOpenJournal,
+  onDrillDown,
 }: {
   tab: TabKey;
   report: ReportEnvelope;
@@ -675,6 +703,7 @@ function ReportBody({
   accounts: SetupAccount[];
   onDrillAccount: (accountId: string) => void;
   onOpenJournal: (journalId: string) => void;
+  onDrillDown?: (target: { noteRef?: string; accountCode?: string; accountId?: string; title?: string }) => void;
 }) {
   const L = (en: string, bn: string) => localized(locale, en, bn);
   if (tab === 'PROFIT_AND_LOSS' || tab === 'BALANCE_SHEET' || tab === 'CASH_FLOW') {
@@ -698,6 +727,7 @@ function ReportBody({
             currentLabel={L('Current', 'চলতি')}
             comparativeLabel={L('Comparative', 'তুলনামূলক')}
             onDrillAccount={onDrillAccount}
+            onDrillDown={onDrillDown}
           />
         ))}
         {tab === 'CASH_FLOW' ? (

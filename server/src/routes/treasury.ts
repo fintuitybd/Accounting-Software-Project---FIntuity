@@ -14,6 +14,7 @@ import {
   listTreasuryChallans,
   listTreasuryLiabilities,
   postTreasuryChallan,
+  recordCustomerMushak66,
   reissueTreasuryCertificate,
   reverseTreasuryChallan,
   setTreasuryLiabilityEconomicCode,
@@ -86,6 +87,14 @@ const certificateListQuery = z.object({
 const certificateReasonSchema = z.object({ reason: z.string().trim().min(3).max(500) });
 const reissueSchema = z.object({
   reason: z.string().trim().min(3).max(500),
+  evidenceReference: z.string().trim().max(500).optional().nullable(),
+});
+const recordCustomerMushak66Schema = z.object({
+  partyId: z.string().uuid(),
+  certificateNumber: z.string().trim().min(1).max(100),
+  certificateDate: z.string().min(10).max(10),
+  basePoisha: z.string().regex(/^[0-9]+$/),
+  taxPoisha: z.string().regex(/^[0-9]+$/),
   evidenceReference: z.string().trim().max(500).optional().nullable(),
 });
 
@@ -257,6 +266,29 @@ export const treasuryRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const params = parseInput(certificateParams, request.params);
       return { certificate: await getTreasuryCertificate(app.db, params.companyId, params.certificateId) };
+    },
+  );
+
+  app.post(
+    '/companies/:companyId/treasury/certificates/customer',
+    { config: { auth: { mode: 'company', permission: 'POST_TO_GL' } } },
+    async (request, reply) => {
+      const ctx = context(request);
+      requireVerifiedEmail(ctx.auth);
+      const params = parseInput(companyParams, request.params);
+      const body = parseInput(recordCustomerMushak66Schema, request.body);
+      const certificate = await recordCustomerMushak66(app.db, {
+        companyId: params.companyId,
+        actorUserId: ctx.auth.user.id,
+        partyId: body.partyId,
+        certificateNumber: body.certificateNumber,
+        certificateDate: body.certificateDate,
+        basePoisha: BigInt(body.basePoisha),
+        taxPoisha: BigInt(body.taxPoisha),
+        evidenceReference: body.evidenceReference,
+      });
+      reply.status(201);
+      return { certificate };
     },
   );
 

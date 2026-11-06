@@ -327,6 +327,140 @@ export type ReportKey =
   | 'WITHHOLDING_REGISTER'
   | 'JOURNAL_LISTING';
 
+export type WithholdingSchedule = 'SCHEDULE_A' | 'SCHEDULE_B' | 'SCHEDULE_C' | 'SCHEDULE_D';
+export type WithholdingReturnStatus = 'DRAFT' | 'VERIFIED' | 'SUBMITTED';
+export type WithholdingAnomaly = 'MISSING_ETIN' | 'UNDEPOSITED_TDS' | 'LATE_CHALLAN_DEPOSIT';
+
+export interface WithholdingReturnLine {
+  id: string;
+  schedule: WithholdingSchedule;
+  sectionCode: string;
+  partyId: string | null;
+  partyName: string;
+  partyTin: string | null;
+  grossPaymentPoisha: string;
+  grossPaymentBdt: string;
+  taxableBasePoisha: string;
+  taxableBaseBdt: string;
+  rateBps: number;
+  tdsAmountPoisha: string;
+  tdsAmountBdt: string;
+  penaltyApplied: boolean;
+  challanNumber: string | null;
+  challanDate: string | null;
+  economicCode: string | null;
+  anomalies: WithholdingAnomaly[];
+  liabilityId: string | null;
+}
+
+export interface WithholdingReturn {
+  id: string;
+  companyId: string;
+  taxYear: string;
+  taxPeriod: string;
+  status: WithholdingReturnStatus;
+  totalDeductedPoisha: string;
+  totalDeductedBdt: string;
+  totalDepositedPoisha: string;
+  totalDepositedBdt: string;
+  anomalyCount: number;
+  schedulesSummary: Record<
+    WithholdingSchedule,
+    {
+      count: number;
+      basePoisha: string;
+      baseBdt: string;
+      tdsPoisha: string;
+      tdsBdt: string;
+      anomalyCount: number;
+    }
+  >;
+  lines: WithholdingReturnLine[];
+  submittedAt: string | null;
+  submittedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StatementDrillDownLevel1Account {
+  accountId: string;
+  accountCode: string;
+  accountName: string;
+  subCategory: string;
+  ifrsCategory: string;
+  openingPoisha: string;
+  openingBdt: string;
+  debitPoisha: string;
+  debitBdt: string;
+  creditPoisha: string;
+  creditBdt: string;
+  closingPoisha: string;
+  closingBdt: string;
+}
+
+export interface StatementDrillDownLevel2Journal {
+  journalId: string;
+  journalNumber: string;
+  postingDate: string;
+  sourceModule: string;
+  narration: string;
+  accountCode: string;
+  debitPoisha: string;
+  debitBdt: string;
+  creditPoisha: string;
+  creditBdt: string;
+  partyReference: string | null;
+  partyName: string | null;
+  chainHash: string;
+  verifiedChain: boolean;
+}
+
+export interface StatementDrillDownLevel3SourceDoc {
+  journalId: string;
+  sourceDocId: string | null;
+  sourceDocRef: string | null;
+  sourceModule: string;
+  documentType: string;
+  documentNo: string | null;
+  documentDate: string | null;
+  mushak63Serial: string | null;
+  mushak66Certificate: string | null;
+  challanNumber: string | null;
+  economicCode: string | null;
+  basePoisha: string | null;
+  baseBdt: string | null;
+  taxPoisha: string | null;
+  taxBdt: string | null;
+}
+
+export interface StatementDrillDown {
+  target: {
+    noteRef?: string;
+    accountCode?: string;
+    accountId?: string;
+  };
+  period: {
+    fromDate: string;
+    toDate: string;
+  };
+  level1: {
+    accounts: StatementDrillDownLevel1Account[];
+    totalOpeningPoisha: string;
+    totalDebitPoisha: string;
+    totalCreditPoisha: string;
+    totalClosingPoisha: string;
+  };
+  level2: {
+    journals: StatementDrillDownLevel2Journal[];
+    count: number;
+    tamperEvidentChainVerified: boolean;
+  };
+  level3: {
+    sourceDocuments: StatementDrillDownLevel3SourceDoc[];
+    count: number;
+  };
+}
+
 export interface ReportQuery {
   periodId?: string;
   from?: string;
@@ -347,9 +481,9 @@ export interface ReportQuery {
   offset?: number;
 }
 
-function queryString(query: ReportQuery): string {
+function queryString(query: Record<string, unknown> | ReportQuery | Record<string, any>): string {
   const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
+  for (const [key, value] of Object.entries(query as Record<string, unknown>)) {
     if (value === undefined || value === null || value === '') continue;
     params.set(key, String(value));
   }
@@ -424,4 +558,38 @@ export const reportsApi = {
       method: 'POST',
       body: input,
     }),
+
+  generateSection177: (companyId: string, input: { taxYear: string; taxPeriod: string }) =>
+    apiRequest<{ return: WithholdingReturn }>(`/companies/${companyId}/reports/withholding/section177/generate`, {
+      method: 'POST',
+      body: input,
+    }),
+
+  getSection177: (companyId: string, query: { period?: string; returnId?: string }) =>
+    apiRequest<{ return: WithholdingReturn }>(
+      `/companies/${companyId}/reports/withholding/section177${queryString(query)}`,
+    ),
+
+  verifySection177: (companyId: string, returnId: string) =>
+    apiRequest<{ return: WithholdingReturn }>(
+      `/companies/${companyId}/reports/withholding/section177/${returnId}/verify`,
+      { method: 'POST' },
+    ),
+
+  submitSection177: (companyId: string, returnId: string) =>
+    apiRequest<{ return: WithholdingReturn }>(
+      `/companies/${companyId}/reports/withholding/section177/${returnId}/submit`,
+      { method: 'POST' },
+    ),
+
+  exportSection177Url: (companyId: string, returnId: string) =>
+    `${API_BASE}/companies/${companyId}/reports/withholding/section177/${returnId}/export`,
+
+  statementDrillDown: (
+    companyId: string,
+    query: { noteRef?: string; accountCode?: string; accountId?: string; from: string; to: string },
+  ) =>
+    apiRequest<{ drillDown: StatementDrillDown }>(
+      `/companies/${companyId}/reports/statements/drill-down${queryString(query)}`,
+    ),
 };

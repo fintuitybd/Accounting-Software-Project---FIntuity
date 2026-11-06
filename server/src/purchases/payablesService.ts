@@ -329,10 +329,15 @@ interface BillRow {
   due_date: Date;
   gross_poisha: string;
   subtotal_poisha: string;
+  vds_poisha: string;
+  tds_poisha: string;
+  net_payable_poisha: string;
   withholding_entity: boolean;
   tds_nature: string;
   supplier_tin_missing: boolean;
   allocated_poisha: string;
+  prior_vds_poisha: string;
+  prior_tds_poisha: string;
 }
 
 interface WithholdingComputation {
@@ -496,13 +501,27 @@ async function lockBills(
     `SELECT d.id, d.document_no, d.supplier_invoice_no, d.doc_type, d.status, d.party_id,
             p.code AS party_code, p.name_en AS party_name_en, d.doc_date, d.due_date,
             d.gross_poisha::text AS gross_poisha, d.subtotal_poisha::text AS subtotal_poisha,
+            d.vds_poisha::text AS vds_poisha, d.tds_poisha::text AS tds_poisha,
+            d.net_payable_poisha::text AS net_payable_poisha,
             d.withholding_entity, d.tds_nature, d.supplier_tin_missing,
             COALESCE((
               SELECT sum(al.amount_poisha)
                 FROM purchase_payment_allocations al
                 JOIN purchase_payments pay ON pay.company_id = al.company_id AND pay.id = al.payment_id
                WHERE al.company_id = d.company_id AND al.document_id = d.id AND pay.status = 'POSTED'
-            ), 0)::bigint::text AS allocated_poisha
+            ), 0)::bigint::text AS allocated_poisha,
+            COALESCE((
+              SELECT sum(al.vds_poisha)
+                FROM purchase_payment_allocations al
+                JOIN purchase_payments pay ON pay.company_id = al.company_id AND pay.id = al.payment_id
+               WHERE al.company_id = d.company_id AND al.document_id = d.id AND pay.status = 'POSTED'
+            ), 0)::bigint::text AS prior_vds_poisha,
+            COALESCE((
+              SELECT sum(al.tds_poisha)
+                FROM purchase_payment_allocations al
+                JOIN purchase_payments pay ON pay.company_id = al.company_id AND pay.id = al.payment_id
+               WHERE al.company_id = d.company_id AND al.document_id = d.id AND pay.status = 'POSTED'
+            ), 0)::bigint::text AS prior_tds_poisha
        FROM purchase_documents d
        JOIN parties p ON p.company_id = d.company_id AND p.id = d.party_id
       WHERE d.company_id = $1 AND d.id = ANY($2::uuid[])
@@ -543,13 +562,27 @@ async function loadBillsForPreview(
     `SELECT d.id, d.document_no, d.supplier_invoice_no, d.doc_type, d.status, d.party_id,
             p.code AS party_code, p.name_en AS party_name_en, d.doc_date, d.due_date,
             d.gross_poisha::text AS gross_poisha, d.subtotal_poisha::text AS subtotal_poisha,
+            d.vds_poisha::text AS vds_poisha, d.tds_poisha::text AS tds_poisha,
+            d.net_payable_poisha::text AS net_payable_poisha,
             d.withholding_entity, d.tds_nature, d.supplier_tin_missing,
             COALESCE((
               SELECT sum(al.amount_poisha)
                 FROM purchase_payment_allocations al
                 JOIN purchase_payments pay ON pay.company_id = al.company_id AND pay.id = al.payment_id
                WHERE al.company_id = d.company_id AND al.document_id = d.id AND pay.status = 'POSTED'
-            ), 0)::bigint::text AS allocated_poisha
+            ), 0)::bigint::text AS allocated_poisha,
+            COALESCE((
+              SELECT sum(al.vds_poisha)
+                FROM purchase_payment_allocations al
+                JOIN purchase_payments pay ON pay.company_id = al.company_id AND pay.id = al.payment_id
+               WHERE al.company_id = d.company_id AND al.document_id = d.id AND pay.status = 'POSTED'
+            ), 0)::bigint::text AS prior_vds_poisha,
+            COALESCE((
+              SELECT sum(al.tds_poisha)
+                FROM purchase_payment_allocations al
+                JOIN purchase_payments pay ON pay.company_id = al.company_id AND pay.id = al.payment_id
+               WHERE al.company_id = d.company_id AND al.document_id = d.id AND pay.status = 'POSTED'
+            ), 0)::bigint::text AS prior_tds_poisha
        FROM purchase_documents d
        JOIN parties p ON p.company_id = d.company_id AND p.id = d.party_id
       WHERE d.company_id = $1 AND d.id = ANY($2::uuid[])`,
@@ -583,16 +616,58 @@ async function computeAllocationWithholding(
   bill: BillRow,
   allocationPoisha: bigint,
 ): Promise<WithholdingComputation> {
-  const gross = BigInt(bill.gross_poisha);
-  const subtotal = BigInt(bill.subtotal_poisha);
-  if (gross <= 0n) {
+  const totalGross = BigInt(bill.gross_poisha);
+  const totalSubtotal = BigInt(bill.subtotal_poisha);
+  const totalVds = bill.withholding_entity ? BigInt(bill.vds_poisha ?? 0) : 0n;
+  const totalTds = bill.withholding_entity ? BigInt(bill.tds_poisha ?? 0) : 0n;
+  const totalNetPayable = BigInt(bill.net_payable_poisha ?? (totalGross - totalVds - totalTds));
+
+  const priorGross = BigInt(bill.allocated_poisha ?? 0);
+  const priorVds = BigInt(bill.prior_vds_poisha ?? 0);
+  const priorTds = BigInt(bill.prior_tds_poisha ?? 0);
+  const priorCash = priorGross - priorVds - priorTds;
+
+  const remainingGross = totalGross - priorGross;
+  const remainingNetPayable = totalNetPayable - priorCash;
+
+  if (totalGross <= 0n) {
     throw new AppError(409, 'PURCHASE_PAYMENT_BILL_INVALID', 'The supplier bill has no payable value.');
   }
   if (allocationPoisha <= 0n) {
     throw new AppError(400, 'PURCHASE_PAYMENT_ALLOCATION_INVALID', 'Every allocation must clear a positive amount.');
   }
-  const full = allocationPoisha >= gross;
-  const baseShare = full ? subtotal : divideRoundHalfUp(subtotal * allocationPoisha, gross);
+
+  const isFinal = allocationPoisha >= remainingGross;
+  let vdsThis: bigint;
+  let tdsThis: bigint;
+  let cashThis: bigint;
+
+  if (isFinal) {
+    vdsThis = totalVds - priorVds;
+    tdsThis = totalTds - priorTds;
+    cashThis = remainingNetPayable;
+  } else {
+    if (totalVds === 0n && totalTds === 0n) {
+      vdsThis = 0n;
+      tdsThis = 0n;
+      cashThis = allocationPoisha;
+    } else {
+      const c = totalGross > 0n ? divideRoundHalfUp(allocationPoisha * totalNetPayable, totalGross) : 0n;
+      if (c >= remainingNetPayable) {
+        vdsThis = totalVds - priorVds;
+        tdsThis = totalTds - priorTds;
+        cashThis = remainingNetPayable;
+      } else {
+        vdsThis = totalNetPayable > 0n ? divideRoundHalfUp(totalVds * c, totalNetPayable) : 0n;
+        tdsThis = totalNetPayable > 0n ? divideRoundHalfUp(totalTds * c, totalNetPayable) : 0n;
+        cashThis = allocationPoisha - vdsThis - tdsThis;
+      }
+    }
+  }
+
+  const baseShare = isFinal
+    ? (totalSubtotal - (priorGross > 0n && totalGross > 0n ? (totalSubtotal * priorGross) / totalGross : 0n))
+    : divideRoundHalfUp(totalSubtotal * allocationPoisha, totalGross);
 
   const lineResult = await database.query<{
     line_no: number;
@@ -617,7 +692,9 @@ async function computeAllocationWithholding(
     const lineBase = BigInt(line.line_base_poisha);
     return {
       lineBase,
-      share: full ? lineBase : divideRoundHalfUp(lineBase * allocationPoisha, gross),
+      share: isFinal
+        ? lineBase - (totalGross > 0n && priorGross > 0n ? divideRoundHalfUp(lineBase * priorGross, totalGross) : 0n)
+        : divideRoundHalfUp(lineBase * allocationPoisha, totalGross),
       vdsRateBps: bill.withholding_entity ? line.vds_rate_bps : 0,
       taxCategory: line.tax_category,
     };
@@ -643,7 +720,7 @@ async function computeAllocationWithholding(
     }
   }
   const vdsLines: WithholdingComputation['vdsLines'] = [];
-  let vdsTotal = 0n;
+  let calculatedVdsTotal = 0n;
   for (const line of lineShares) {
     if (line.vdsRateBps <= 0 || line.share <= 0n) continue;
     const amount = divideRoundHalfUp(line.share * BigInt(line.vdsRateBps), 10_000n);
@@ -662,10 +739,21 @@ async function computeAllocationWithholding(
         amountPoisha: amount,
       });
     }
-    vdsTotal += amount;
+    calculatedVdsTotal += amount;
   }
-  const tds = tdsRateBps > 0 ? divideRoundHalfUp(baseShare * BigInt(tdsRateBps), 10_000n) : 0n;
-  if (vdsTotal + tds > allocationPoisha) {
+
+  if (vdsLines.length > 0 && vdsThis > 0n && calculatedVdsTotal !== vdsThis) {
+    const vdsDelta = vdsThis - calculatedVdsTotal;
+    let largestVdsIdx = 0;
+    for (let i = 1; i < vdsLines.length; i += 1) {
+      if (vdsLines[i]!.amountPoisha > vdsLines[largestVdsIdx]!.amountPoisha) {
+        largestVdsIdx = i;
+      }
+    }
+    vdsLines[largestVdsIdx]!.amountPoisha += vdsDelta;
+  }
+
+  if (vdsThis + tdsThis > allocationPoisha) {
     throw new AppError(
       409,
       'PURCHASE_PAYMENT_WITHHOLDING_EXCEEDS_ALLOCATION',
@@ -674,9 +762,9 @@ async function computeAllocationWithholding(
   }
   return {
     basePoisha: baseShare,
-    vdsPoisha: vdsTotal,
-    tdsPoisha: tds,
-    cashPoisha: allocationPoisha - vdsTotal - tds,
+    vdsPoisha: vdsThis,
+    tdsPoisha: tdsThis,
+    cashPoisha: allocationPoisha - vdsThis - tdsThis,
     tdsRateBps,
     tdsNature: bill.tds_nature,
     vdsLines,

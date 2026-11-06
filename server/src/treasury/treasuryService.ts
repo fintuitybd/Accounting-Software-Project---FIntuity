@@ -110,7 +110,7 @@ export interface TreasuryCertificateDto {
   supplierInvoiceNo: string | null;
   paymentId: string | null;
   paymentNumber: string | null;
-  liabilityId: string;
+  liabilityId: string | null;
   challanId: string | null;
   challanNumber: string | null;
   certificateDate: string;
@@ -318,6 +318,45 @@ async function allocateTreasuryNumber(
   const number = `${sequence.prefix}${year}-${value.toString().padStart(sequence.pad, '0')}`;
   await client.query(
     `UPDATE number_sequences SET next_value = $3, version = version + 1 WHERE company_id = $1 AND id = $2`,
+    [companyId, sequence.id, (value + 1n).toString()],
+  );
+  return number;
+}
+
+export async function allocateDocumentSequenceNumber(
+  client: PoolClient,
+  companyId: string,
+  fiscalYearId: string,
+  fiscalStart: Date,
+  docType: string,
+  prefix: string = '6.6',
+  pad: number = 5,
+): Promise<string> {
+  await client.query(
+    `INSERT INTO document_sequences (company_id, fiscal_year_id, doc_type, prefix, pad, next_value)
+     VALUES ($1, $2, $3, $4, $5, 1)
+     ON CONFLICT (company_id, fiscal_year_id, doc_type) DO NOTHING`,
+    [companyId, fiscalYearId, docType, prefix, pad],
+  );
+
+  const result = await client.query<{ id: string; prefix: string; pad: number; next_value: string }>(
+    `SELECT id, prefix, pad, next_value::text AS next_value
+       FROM document_sequences
+      WHERE company_id = $1 AND fiscal_year_id = $2 AND doc_type = $3
+      FOR UPDATE`,
+    [companyId, fiscalYearId, docType],
+  );
+  const sequence = result.rows[0];
+  if (!sequence) {
+    throw new AppError(500, 'SEQUENCE_ALLOCATION_FAILED', `Could not allocate sequence for ${docType}`);
+  }
+  const value = BigInt(sequence.next_value);
+  const startYear = fiscalStart.getFullYear();
+  const endYearSuffix = String((startYear + 1) % 100).padStart(2, '0');
+  const fyCode = `${startYear}-${endYearSuffix}`;
+  const number = `${sequence.prefix}/${fyCode}/${value.toString().padStart(sequence.pad, '0')}`;
+  await client.query(
+    `UPDATE document_sequences SET next_value = $3, version = version + 1, updated_at = now() WHERE company_id = $1 AND id = $2`,
     [companyId, sequence.id, (value + 1n).toString()],
   );
   return number;
@@ -674,13 +713,25 @@ export async function postTreasuryChallan(
       }
       if (item.liability.tax_type === 'VDS' || item.liability.tax_type === 'TDS') {
         const certificateId = randomUUID();
-        const certificateNumber = await allocateTreasuryNumber(
-          client,
-          input.companyId,
-          period.fiscal_year_id,
-          period.fiscal_start,
-          'TREASURY_CERTIFICATE',
-        );
+        const isMushak66 =
+          item.liability.tax_type === 'VDS' &&
+          (item.economicCode === '1/1141/0010/0311' || item.economicCode?.includes('1141'));
+        const certificateNumber = isMushak66
+          ? await allocateDocumentSequenceNumber(
+              client,
+              input.companyId,
+              period.fiscal_year_id,
+              period.fiscal_start,
+              'MUSHAK_6_6',
+              '6.6',
+            )
+          : await allocateTreasuryNumber(
+              client,
+              input.companyId,
+              period.fiscal_year_id,
+              period.fiscal_start,
+              'TREASURY_CERTIFICATE',
+            );
         await client.query(
           `INSERT INTO treasury_certificates (
              id, company_id, certificate_type, certificate_number, direction, party_id,
@@ -1408,13 +1459,23 @@ export async function reissueTreasuryCertificate(
       });
     }
     const period = await resolvePeriod(client, input.companyId, formatDatabaseDate(certificate.certificate_date));
-    const certificateNumber = await allocateTreasuryNumber(
-      client,
-      input.companyId,
-      period.fiscal_year_id,
-      period.fiscal_start,
-      'TREASURY_CERTIFICATE',
-    );
+    const isMushak66 = certificate.certificate_number.startsWith('6.6/');
+    const certificateNumber = isMushak66
+      ? await allocateDocumentSequenceNumber(
+          client,
+          input.companyId,
+          period.fiscal_year_id,
+          period.fiscal_start,
+          'MUSHAK_6_6',
+          '6.6',
+        )
+      : await allocateTreasuryNumber(
+          client,
+          input.companyId,
+          period.fiscal_year_id,
+          period.fiscal_start,
+          'TREASURY_CERTIFICATE',
+        );
     const newId = randomUUID();
     await client.query(
       `INSERT INTO treasury_certificates (
@@ -1558,3 +1619,54 @@ export async function getTreasuryProof(
     },
   };
 }
+
+export interface RecordCustomerMushak66Input {
+  companyId: string;
+  actorUserId: string;
+  partyId: string;
+  certificateNumber: string;
+  certificateDate: string;
+  basePoisha: bigint;
+  taxPoisha: bigint;
+  evidenceReference?: string | null;
+  salesReceiptId?: string | null;
+  salesDocumentId?: string | null;
+}
+
+export async function recordCustomerMushak66(
+  database: Queryable,
+  input: RecordCustomerMushak66Input,
+): Promise<TreasuryCertificateDto> {
+  if (!isValidIsoDate(input.certificateDate)) {
+    throw new AppError(400, 'INVALID_DATE', 'Use a real certificate date in YYYY-MM-DD format.');
+  }
+  const certNumber = input.certificateNumber.trim();
+  if (!certNumber) {
+    throw new AppError(400, 'CERTIFICATE_NUMBER_REQUIRED', 'Customer Mushak 6.6 certificate number is required.');
+  }
+  if (input.taxPoisha <= 0n) {
+    throw new AppError(400, 'CERTIFICATE_TAX_INVALID', 'Tax amount must be greater than zero.');
+  }
+
+  const certificateId = randomUUID();
+  await database.query(
+    `INSERT INTO treasury_certificates (
+       id, company_id, certificate_type, certificate_number, direction, party_id,
+       certificate_date, base_poisha, tax_poisha, status, evidence_reference, created_by
+     ) VALUES ($1, $2, 'VDS', $3, 'RECEIVED', $4, $5, $6, $7, 'DRAFT', $8, $9)`,
+    [
+      certificateId,
+      input.companyId,
+      certNumber,
+      input.partyId,
+      input.certificateDate,
+      input.basePoisha.toString(),
+      input.taxPoisha.toString(),
+      input.evidenceReference ?? null,
+      input.actorUserId,
+    ],
+  );
+
+  return certificateById(database, input.companyId, certificateId);
+}
+

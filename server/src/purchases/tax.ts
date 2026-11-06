@@ -48,6 +48,8 @@ export interface PurchaseTaxLineDecision {
   vatPoisha: bigint;
   vatClaimablePoisha: bigint;
   vatDisallowedPoisha: bigint;
+  nonRebatableVatPoisha: bigint;
+  isRebatable: boolean;
   costPoisha: bigint;
   supplierPayablePoisha: bigint;
   vdsPoisha: bigint;
@@ -70,6 +72,7 @@ export interface PurchaseTaxDecision {
   reverseChargeVatPoisha: bigint;
   vatClaimablePoisha: bigint;
   vatDisallowedPoisha: bigint;
+  nonRebatableVatPoisha: bigint;
   costPoisha: bigint;
   grossPoisha: bigint;
   vdsPoisha: bigint;
@@ -354,6 +357,8 @@ export function calculatePurchaseTax(input: {
       vatPoisha: vat,
       vatClaimablePoisha: claimable,
       vatDisallowedPoisha: disallowed,
+      nonRebatableVatPoisha: disallowed,
+      isRebatable: claimable > 0n && disallowed === 0n,
       costPoisha: lineCost,
       supplierPayablePoisha: supplierPayable,
       vdsPoisha: lineVds,
@@ -419,6 +424,7 @@ export function calculatePurchaseTax(input: {
     reverseChargeVatPoisha,
     vatClaimablePoisha,
     vatDisallowedPoisha,
+    nonRebatableVatPoisha: vatDisallowedPoisha,
     costPoisha,
     grossPoisha,
     vdsPoisha,
@@ -428,6 +434,30 @@ export function calculatePurchaseTax(input: {
     netPayablePoisha,
     warnings: [...new Set(warnings)],
   };
+}
+
+export const SECTION_TDS_SPECS = {
+  SEC_89_GOODS: { baseBps: 300, penaltyBps: 450, section: 'SEC_89', economicCode: '1/1141/0010/0111', schedule: 'SCHED_B_GOODS' },
+  SEC_90_SERVICE: { baseBps: 1000, penaltyBps: 1500, section: 'SEC_90', economicCode: '1/1141/0010/0111', schedule: 'SCHED_D_PROF' },
+  SEC_91_TRANSPORT: { baseBps: 300, penaltyBps: 450, section: 'SEC_91', economicCode: '1/1141/0010/0111', schedule: 'SCHED_D_PROF' },
+  SEC_92_MEDIA: { baseBps: 500, penaltyBps: 750, section: 'SEC_92', economicCode: '1/1141/0010/0111', schedule: 'SCHED_D_PROF' },
+  SEC_109_RENT: { baseBps: 500, penaltyBps: 750, section: 'SEC_109', economicCode: '1/1141/0010/0111', schedule: 'SCHED_C_RENT' },
+  SEC_86_SALARY: { baseBps: 0, penaltyBps: 0, section: 'SEC_86', economicCode: '1/1141/0010/0112', schedule: 'SCHED_A_SALARY' },
+} as const;
+
+export function evaluateSection46Rebate(input: {
+  vatRateBps: number;
+  hasValid13DigitBin: boolean;
+  hasMushak63: boolean;
+  basePoisha: bigint;
+  isPaidViaBank: boolean;
+}): boolean {
+  return (
+    input.vatRateBps === 1500 &&
+    input.hasValid13DigitBin &&
+    input.hasMushak63 &&
+    (input.basePoisha <= 10000000n || input.isPaidViaBank)
+  );
 }
 
 export function assertPostablePurchaseTax(decision: PurchaseTaxDecision): void {
@@ -455,6 +485,7 @@ export function purchaseTaxDecisionJson(decision: PurchaseTaxDecision): Record<s
     reverseChargeVatPoisha: decision.reverseChargeVatPoisha.toString(),
     vatClaimablePoisha: decision.vatClaimablePoisha.toString(),
     vatDisallowedPoisha: decision.vatDisallowedPoisha.toString(),
+    nonRebatableVatPoisha: decision.nonRebatableVatPoisha.toString(),
     costPoisha: decision.costPoisha.toString(),
     grossPoisha: decision.grossPoisha.toString(),
     vdsPoisha: decision.vdsPoisha.toString(),
@@ -474,6 +505,8 @@ export function purchaseTaxDecisionJson(decision: PurchaseTaxDecision): Record<s
       vatPoisha: line.vatPoisha.toString(),
       vatClaimablePoisha: line.vatClaimablePoisha.toString(),
       vatDisallowedPoisha: line.vatDisallowedPoisha.toString(),
+      nonRebatableVatPoisha: line.nonRebatableVatPoisha.toString(),
+      isRebatable: line.isRebatable,
       costPoisha: line.costPoisha.toString(),
       supplierPayablePoisha: line.supplierPayablePoisha.toString(),
       vdsPoisha: line.vdsPoisha.toString(),
