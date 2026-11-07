@@ -137,7 +137,7 @@ describe('Transactional Email Delivery Provider', () => {
         port: 587,
         secure: true,
         auth: {
-          user: 'AKIAIOSFODNN7EXAMPLE',
+          user: 'MOCK_SES_TEST_USER_KEY',
           pass: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
         },
         from: 'noreply@fintuity.test',

@@ -30,6 +30,8 @@ const patterns = [
         host === 'localhost' ||
         host === '127.0.0.1' ||
         host === '::1' ||
+        host === 'postgres' ||
+        host === 'db' ||
         host.endsWith('.test') ||
         host.endsWith('.local') ||
         host.endsWith('example.test') ||

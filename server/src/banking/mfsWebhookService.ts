@@ -111,7 +111,15 @@ export function getWebhookSecret(provider: string, overrideSecret?: string): str
   if (overrideSecret && overrideSecret.trim()) return overrideSecret.trim();
   const upper = provider.toUpperCase();
   const providerKey = `${upper}_WEBHOOK_SECRET`;
-  return process.env[providerKey] || process.env.MFS_WEBHOOK_SECRET || 'fintuity_mfs_secret_token_2026';
+  const secret = process.env[providerKey] || process.env.MFS_WEBHOOK_SECRET;
+  if (!secret || !secret.trim()) {
+    throw new AppError(
+      500,
+      'MFS_WEBHOOK_SECRET_NOT_CONFIGURED',
+      `Webhook secret is not configured for provider ${provider}. Set ${providerKey} or MFS_WEBHOOK_SECRET in environment variables.`,
+    );
+  }
+  return secret.trim();
 }
 
 /**
@@ -373,7 +381,7 @@ export async function processMfsWebhook(
   const signatureVerified = verifyWebhookSignature(rawPayload, input.signature, secret);
 
   if (!signatureVerified) {
-    throw new AppError(401, 'INVALID_WEBHOOK_SIGNATURE', 'Invalid or missing webhook signature.');
+    throw new AppError(401, 'INVALID_WEBHOOK_SIGNATURE', 'Webhook signature verification failed');
   }
 
   const externalTrxId = String(
