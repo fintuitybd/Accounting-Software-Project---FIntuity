@@ -2124,5 +2124,3 @@ export const productionBatches = pgTable(
 );
 
 
-
-
