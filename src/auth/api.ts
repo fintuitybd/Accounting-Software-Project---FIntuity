@@ -55,7 +55,7 @@ function dispatchAuthFailure(code: string): void {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   /** Extra request headers, e.g. Idempotency-Key for posting commands. */
   headers?: Record<string, string>;

@@ -6,10 +6,11 @@
 
 import type { ServerPermission } from '../auth/types';
 
-export type NavigationGroupKey = 'OVERVIEW' | 'REVENUE' | 'SPEND' | 'CASH' | 'ACCOUNTING' | 'CONTROL' | 'ADMIN';
+export type NavigationGroupKey = 'OVERVIEW' | 'OPERATIONS' | 'REVENUE' | 'SPEND' | 'CASH' | 'ACCOUNTING' | 'CONTROL' | 'ADMIN';
 
 export type NavigationIcon =
   | 'home'
+  | 'payroll'
   | 'sales'
   | 'purchases'
   | 'banking'
@@ -27,6 +28,7 @@ export type NavigationIcon =
 
 export type SectionKey =
   | 'HOME'
+  | 'PAYROLL'
   | 'SALES'
   | 'PURCHASES'
   | 'BANKING'
@@ -78,6 +80,7 @@ export interface NavigationAccess {
 
 export const NAVIGATION_GROUPS: readonly NavigationGroup[] = [
   { key: 'OVERVIEW', labelEn: 'Overview', labelBn: 'সারসংক্ষেপ' },
+  { key: 'OPERATIONS', labelEn: 'Operations', labelBn: 'অপারেশনস' },
   { key: 'REVENUE', labelEn: 'Sales', labelBn: 'বিক্রয়' },
   { key: 'SPEND', labelEn: 'Purchases', labelBn: 'ক্রয়' },
   { key: 'CASH', labelEn: 'Cash & treasury', labelBn: 'নগদ ও কোষাগার' },
@@ -97,6 +100,17 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
     descriptionEn: 'What needs attention today.',
     descriptionBn: 'আজ কী মনোযোগ প্রয়োজন।',
     permission: {},
+  },
+  {
+    key: 'PAYROLL',
+    path: '/app/payroll',
+    group: 'OPERATIONS',
+    icon: 'payroll',
+    labelEn: 'Payroll & Labour Act',
+    labelBn: 'পে-রোল ও শ্রম আইন',
+    descriptionEn: 'Labour Act 2026 payroll runs, overtime, festival bonuses, PF, TDS and BEFTN payouts.',
+    descriptionBn: 'শ্রম আইন ২০২৬ পে-রোল, ওভারটাইম, উৎসব ভাতা, পিএফ, টিডিএস ও বিইএফটিএন পরিশোধ।',
+    permission: { companyAny: ['POST_TO_GL', 'VIEW_REPORTS'] },
   },
   {
     key: 'SALES',
@@ -285,6 +299,9 @@ export interface NavigationResult {
 
 const FIXED_ALIASES: Readonly<Record<string, string>> = {
   '/app/sales/new': '/app/sales?new=1',
+  '/app/payroll/new': '/app/payroll?tab=RUNS&new=1',
+  '/app/payroll/employees': '/app/payroll?tab=EMPLOYEES',
+  '/app/payroll/runs': '/app/payroll?tab=RUNS',
   '/app/sales/invoices': '/app/sales?tab=INVOICES',
   '/app/sales/credit-notes': '/app/sales?tab=CREDIT_NOTES',
   '/app/sales/credit-notes/new': '/app/sales?tab=CREDIT_NOTES&new=credit',
@@ -304,6 +321,11 @@ const FIXED_ALIASES: Readonly<Record<string, string>> = {
 };
 
 const DOCUMENT_ALIASES: ReadonlyArray<{ pattern: RegExp; section: SectionKey; target: (id: string) => string }> = [
+  {
+    pattern: /^\/app\/payroll\/runs\/([^/]+)$/,
+    section: 'PAYROLL',
+    target: (id) => `/app/payroll?run=${encodeURIComponent(id)}`,
+  },
   {
     pattern: /^\/app\/sales\/invoices\/([^/]+)$/,
     section: 'SALES',

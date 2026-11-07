@@ -92,7 +92,7 @@ describe('role-aware navigation', () => {
 
   it('never exposes a demo-only module in the production navigation', () => {
     const labels = NAVIGATION_SECTIONS.map((section) => `${section.labelEn} ${section.path}`).join(' ');
-    expect(labels).not.toMatch(/payroll|secretarial|practice|firm cockpit/i);
+    expect(labels).not.toMatch(/secretarial|practice|firm cockpit/i);
   });
 
   it('requires every permission in a companyAll rule', () => {

@@ -207,7 +207,7 @@ export async function generateSection177Return(
   database: Queryable,
   companyId: string,
   input: {
-    taxYear: string;
+    taxYear?: string;
     taxPeriod: string;
     actorUserId: string;
   },
@@ -291,7 +291,7 @@ export async function generateSection177Return(
   const linesToInsert: Array<{
     id: string;
     scheduleCode: string;
-    partyId: string;
+    partyId: string | null;
     sourceDocumentId: string;
     deducteeName: string;
     deducteeTin: string | null;
@@ -377,6 +377,72 @@ export async function generateSection177Return(
     });
   }
 
+  // Automatically feed Section 177 SCHED_A_SALARY from posted payroll runs
+  const payrollQuery = await database.query<{
+    run_id: string;
+    batch_date: Date;
+    gross_pay_poisha: string;
+    net_pay_poisha: string;
+    tds_poisha: string;
+    employee_code: string;
+    name_en: string;
+    etin: string | null;
+  }>(
+    `SELECT r.id AS run_id, r.batch_date, l.gross_pay_poisha::text AS gross_pay_poisha,
+            l.net_pay_poisha::text AS net_pay_poisha, l.tds_poisha::text AS tds_poisha,
+            e.employee_code, e.name_en, e.etin
+       FROM payroll_runs r
+       JOIN payroll_run_lines l ON l.company_id = r.company_id AND l.run_id = r.id
+       JOIN payroll_employees e ON e.company_id = r.company_id AND e.id = l.employee_id
+       JOIN periods p ON p.company_id = r.company_id AND p.id = r.period_id
+      WHERE r.company_id = $1 AND r.status IN ('POSTED', 'DISBURSED')
+        AND p.code = $2 AND l.tds_poisha > 0
+      ORDER BY e.employee_code ASC`,
+    [companyId, input.taxPeriod],
+  );
+
+  for (const pRow of payrollQuery.rows) {
+    const grossPoisha = BigInt(pRow.gross_pay_poisha);
+    const paidPoisha = BigInt(pRow.net_pay_poisha);
+    const tdsPoisha = BigInt(pRow.tds_poisha);
+
+    const anomalies: WithholdingAnomaly[] = [];
+    const tinValid = Boolean(pRow.etin && /^\d{12}$/.test(pRow.etin.trim()));
+    if (!tinValid) {
+      anomalies.push('MISSING_ETIN');
+    }
+    anomalies.push('UNDEPOSITED_TDS');
+
+    totalGross += grossPoisha;
+    totalDeducted += tdsPoisha;
+
+    const rateBps = grossPoisha > 0n ? Number((tdsPoisha * 10000n) / grossPoisha) : 0;
+    const paymentDateStr = formatDatabaseDate(pRow.batch_date);
+
+    linesToInsert.push({
+      id: randomUUID(),
+      scheduleCode: 'SCHED_A_SALARY',
+      partyId: null,
+      sourceDocumentId: pRow.run_id,
+      deducteeName: pRow.name_en,
+      deducteeTin: pRow.etin,
+      deducteeBin: null,
+      penaltyApplied: false,
+      sectionCode: 'SEC_86',
+      economicCode: '1/1141/0010/0112',
+      grossAmountPoisha: grossPoisha.toString(),
+      paidAmountPoisha: paidPoisha.toString(),
+      rateBps,
+      tdsAmountPoisha: tdsPoisha.toString(),
+      paymentDateStr,
+      challanId: null,
+      challanNumber: null,
+      challanDateStr: null,
+      bankName: null,
+      anomalies,
+    });
+  }
+
   // Insert parent return FIRST to satisfy foreign key constraint
   await database.query(
     `INSERT INTO withholding_tax_returns (
@@ -436,6 +502,8 @@ export async function generateSection177Return(
 
   return getSection177Return(database, companyId, returnId);
 }
+
+export const generateWithholdingReturn = generateSection177Return;
 
 export async function getSection177Return(
   database: Queryable,

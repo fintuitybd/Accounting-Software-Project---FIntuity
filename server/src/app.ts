@@ -24,6 +24,7 @@ import { reportRoutes } from './routes/reports.ts';
 import { closeRoutes } from './routes/close.ts';
 import { auditRoutes } from './routes/audit.ts';
 import { complianceRoutes } from './routes/compliance.ts';
+import { payrollRoutes } from './routes/payroll.ts';
 import { organisationRoutes } from './routes/organisations.ts';
 import { healthRoutes } from './routes/health.ts';
 import { metaRoutes } from './routes/meta.ts';
@@ -148,6 +149,7 @@ export async function buildApp(options: BuildAppOptions) {
   await app.register(closeRoutes, { prefix: '/api/v1' });
   await app.register(auditRoutes, { prefix: '/api/v1' });
   await app.register(complianceRoutes, { prefix: '/api/v1' });
+  await app.register(payrollRoutes, { prefix: '/api/v1' });
 
   if (config.nodeEnv === 'production' && config.emailTransport === 'file') {
     logger.warn(

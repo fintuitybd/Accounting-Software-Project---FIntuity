@@ -1904,4 +1904,112 @@ export const withholdingReturnLines = pgTable(
   ],
 );
 
+// 4. LABOUR ACT 2026 PAYROLL TABLES
+export const payrollEmployees = pgTable(
+  'payroll_employees',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'restrict' }),
+    branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'restrict' }),
+    employeeCode: text('employee_code').notNull(),
+    nameEn: text('name_en').notNull(),
+    nameBn: text('name_bn'),
+    workerClassification: text('worker_classification').notNull(), // 'PERMANENT' | 'PROBATIONARY' | 'CONTRACTUAL' | 'PIECE_RATE' | 'APPRENTICE'
+    nidNumber: text('nid_number'),
+    etin: text('etin'),
+    joiningDate: date('joining_date').notNull(),
+    basicSalaryPoisha: bigint('basic_salary_poisha', { mode: 'bigint' }).notNull(),
+    hraPoisha: bigint('hra_poisha', { mode: 'bigint' }).notNull(),
+    medicalPoisha: bigint('medical_poisha', { mode: 'bigint' }).notNull(),
+    conveyancePoisha: bigint('conveyance_poisha', { mode: 'bigint' }).notNull(),
+    pfEnrolled: boolean('pf_enrolled').notNull().default(true),
+    pfRateBps: integer('pf_rate_bps').notNull().default(1000),
+    paymentChannel: text('payment_channel').notNull().default('BANK'), // 'BANK' | 'BKASH' | 'NAGAD' | 'CASH'
+    bankName: text('bank_name'),
+    bankAccountNumber: text('bank_account_number'),
+    bankRoutingNumber: text('bank_routing_number'),
+    mfsNumber: text('mfs_number'),
+    status: text('status').notNull().default('ACTIVE'), // 'ACTIVE' | 'INACTIVE' | 'TERMINATED'
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('payroll_emp_company_unique').on(t.companyId, t.id),
+    unique('payroll_emp_company_code_uniq').on(t.companyId, t.employeeCode),
+    index('payroll_emp_company_status_idx').on(t.companyId, t.status),
+    index('payroll_emp_company_branch_idx').on(t.companyId, t.branchId),
+  ],
+);
+
+export const payrollRuns = pgTable(
+  'payroll_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'restrict' }),
+    periodId: uuid('period_id')
+      .notNull()
+      .references(() => periods.id, { onDelete: 'restrict' }),
+    batchDate: date('batch_date').notNull(),
+    totalBasicPoisha: bigint('total_basic_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalGrossPoisha: bigint('total_gross_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalOtPoisha: bigint('total_ot_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalBonusPoisha: bigint('total_bonus_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalTdsPoisha: bigint('total_tds_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalPfEmployeePoisha: bigint('total_pf_employee_poisha', { mode: 'bigint' }).notNull().default(0n),
+    totalPfEmployerPoisha: bigint('total_pf_employer_poisha', { mode: 'bigint' }).notNull().default(0n),
+    netPayablePoisha: bigint('net_payable_poisha', { mode: 'bigint' }).notNull().default(0n),
+    journalId: uuid('journal_id').references(() => journals.id, { onDelete: 'restrict' }),
+    status: text('status').notNull().default('DRAFT'), // 'DRAFT' | 'APPROVED' | 'POSTED' | 'DISBURSED'
+    approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'restrict' }),
+    approvedAt: timestamp('approved_at', { withTimezone: true, mode: 'date' }),
+    postedBy: uuid('posted_by').references(() => users.id, { onDelete: 'restrict' }),
+    postedAt: timestamp('posted_at', { withTimezone: true, mode: 'date' }),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('payroll_runs_company_unique').on(t.companyId, t.id),
+    unique('payroll_runs_company_period_uniq').on(t.companyId, t.periodId),
+    index('payroll_runs_company_status_idx').on(t.companyId, t.status),
+  ],
+);
+
+export const payrollRunLines = pgTable(
+  'payroll_run_lines',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'restrict' }),
+    runId: uuid('run_id')
+      .notNull()
+      .references(() => payrollRuns.id, { onDelete: 'cascade' }),
+    employeeId: uuid('employee_id')
+      .notNull()
+      .references(() => payrollEmployees.id, { onDelete: 'restrict' }),
+    basicPoisha: bigint('basic_poisha', { mode: 'bigint' }).notNull(),
+    hraPoisha: bigint('hra_poisha', { mode: 'bigint' }).notNull(),
+    medicalPoisha: bigint('medical_poisha', { mode: 'bigint' }).notNull(),
+    conveyancePoisha: bigint('conveyance_poisha', { mode: 'bigint' }).notNull(),
+    otHoursScaled: integer('ot_hours_scaled').notNull().default(0),
+    otAmountPoisha: bigint('ot_amount_poisha', { mode: 'bigint' }).notNull().default(0n),
+    festivalBonusPoisha: bigint('festival_bonus_poisha', { mode: 'bigint' }).notNull().default(0n),
+    grossPayPoisha: bigint('gross_pay_poisha', { mode: 'bigint' }).notNull(),
+    pfEmployeePoisha: bigint('pf_employee_poisha', { mode: 'bigint' }).notNull().default(0n),
+    pfEmployerPoisha: bigint('pf_employer_poisha', { mode: 'bigint' }).notNull().default(0n),
+    tdsPoisha: bigint('tds_poisha', { mode: 'bigint' }).notNull().default(0n),
+    netPayPoisha: bigint('net_pay_poisha', { mode: 'bigint' }).notNull(),
+  },
+  (t) => [
+    unique('payroll_run_lines_company_unique').on(t.companyId, t.id),
+    index('payroll_lines_run_idx').on(t.companyId, t.runId),
+    index('payroll_lines_employee_idx').on(t.companyId, t.employeeId),
+  ],
+);
+
+
 
