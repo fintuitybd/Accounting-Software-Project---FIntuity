@@ -746,7 +746,7 @@ function ReportBody({
     const equity = report as ChangesInEquityReport;
     return (
       <div className="space-y-3">
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="ql-table w-full min-w-[900px] text-[12px]">
             <caption className="sr-only">{L('Statement of changes in equity', 'ইকুইটির পরিবর্তনের বিবরণী')}</caption>
             <thead>
@@ -773,6 +773,19 @@ function ReportBody({
             </tbody>
           </table>
         </div>
+        <div className="md:hidden space-y-3">
+          {equity.rows.map((row) => (
+            <div key={row.key} className={`ql-card p-3 text-[12px] space-y-1.5 ${row.kind === 'CLOSING' ? 'border-ql-brand font-semibold' : ''}`}>
+              <p className="font-semibold text-ink-900">{L(row.labelEn, row.labelBn)}</p>
+              <div className="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
+                <div><span className="text-ink-400">{L('Share Cap:', 'মূলধন:')} </span><span className="ql-mono"><ReportAmount value={row.shareCapitalPoisha} money={money} /></span></div>
+                <div><span className="text-ink-400">{L('Retained:', 'মুনাফা:')} </span><span className="ql-mono"><ReportAmount value={row.retainedEarningsPoisha} money={money} /></span></div>
+                <div><span className="text-ink-400">{L('Reserves:', 'সঞ্চিতি:')} </span><span className="ql-mono"><ReportAmount value={row.reservesPoisha} money={money} /></span></div>
+                <div><span className="text-ink-400">{L('Total:', 'মোট:')} </span><span className="ql-mono font-bold"><ReportAmount value={row.totalPoisha} money={money} /></span></div>
+              </div>
+            </div>
+          ))}
+        </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {[
             [L('Opening equity', 'প্রারম্ভিক ইকুইটি'), equity.openingEquityPoisha],
@@ -793,51 +806,73 @@ function ReportBody({
   if (tab === 'TRIAL_BALANCE') {
     const trial = report as TrialBalanceReport;
     return (
-      <div className="overflow-x-auto">
-        <table className="ql-table w-full min-w-[1000px] text-[12px]">
-          <caption className="sr-only">{L('Trial balance by account', 'হিসাব অনুযায়ী রেওয়ামিল')}</caption>
-          <thead>
-            <tr>
-              <th scope="col" className="text-left">{L('Code', 'কোড')}</th>
-              <th scope="col" className="text-left">{L('Account', 'হিসাব')}</th>
-              <th scope="col" className="text-right">{L('Opening Dr', 'উদ্বোধনী ডেবিট')}</th>
-              <th scope="col" className="text-right">{L('Opening Cr', 'উদ্বোধনী ক্রেডিট')}</th>
-              <th scope="col" className="text-right">{L('Period Dr', 'মেয়াদ ডেবিট')}</th>
-              <th scope="col" className="text-right">{L('Period Cr', 'মেয়াদ ক্রেডিট')}</th>
-              <th scope="col" className="text-right">{L('Closing Dr', 'সমাপনী ডেবিট')}</th>
-              <th scope="col" className="text-right">{L('Closing Cr', 'সমাপনী ক্রেডিট')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trial.trialBalance.rows.map((row) => (
-              <tr key={row.accountId}>
-                <td className="font-mono text-ink-500">{row.accountCode}</td>
-                <td>
-                  <button type="button" onClick={() => onDrillAccount(row.accountId)} className="text-left font-medium text-ink-900 hover:text-brand-bright hover:underline">
-                    {localized(locale, row.accountNameEn, row.accountNameBn ?? row.accountNameEn)}
-                  </button>
-                </td>
-                <td className="text-right"><ReportAmount value={row.openingDebitPoisha} money={money} /></td>
-                <td className="text-right"><ReportAmount value={row.openingCreditPoisha} money={money} /></td>
-                <td className="text-right"><ReportAmount value={row.periodDebitPoisha} money={money} /></td>
-                <td className="text-right"><ReportAmount value={row.periodCreditPoisha} money={money} /></td>
-                <td className="text-right"><ReportAmount value={row.closingDebitPoisha} money={money} /></td>
-                <td className="text-right"><ReportAmount value={row.closingCreditPoisha} money={money} /></td>
+      <div className="space-y-3">
+        <div className="hidden md:block overflow-x-auto">
+          <table className="ql-table w-full min-w-[1000px] text-[12px]">
+            <caption className="sr-only">{L('Trial balance by account', 'হিসাব অনুযায়ী রেওয়ামিল')}</caption>
+            <thead>
+              <tr>
+                <th scope="col" className="text-left">{L('Code', 'কোড')}</th>
+                <th scope="col" className="text-left">{L('Account', 'হিসাব')}</th>
+                <th scope="col" className="text-right">{L('Opening Dr', 'উদ্বোধনী ডেবিট')}</th>
+                <th scope="col" className="text-right">{L('Opening Cr', 'উদ্বোধনী ক্রেডিট')}</th>
+                <th scope="col" className="text-right">{L('Period Dr', 'মেয়াদ ডেবিট')}</th>
+                <th scope="col" className="text-right">{L('Period Cr', 'মেয়াদ ক্রেডিট')}</th>
+                <th scope="col" className="text-right">{L('Closing Dr', 'সমাপনী ডেবিট')}</th>
+                <th scope="col" className="text-right">{L('Closing Cr', 'সমাপনী ক্রেডিট')}</th>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="font-semibold">
-              <td colSpan={2} className="text-right text-[12px] uppercase tracking-[0.04em] text-ink-500">{L('Totals', 'মোট')}</td>
-              <td className="text-right">{money(BigInt(trial.trialBalance.totals.openingDebitPoisha))}</td>
-              <td className="text-right">{money(BigInt(trial.trialBalance.totals.openingCreditPoisha))}</td>
-              <td className="text-right">{money(BigInt(trial.trialBalance.totals.periodDebitPoisha))}</td>
-              <td className="text-right">{money(BigInt(trial.trialBalance.totals.periodCreditPoisha))}</td>
-              <td className="text-right">{money(BigInt(trial.trialBalance.totals.closingDebitPoisha))}</td>
-              <td className="text-right">{money(BigInt(trial.trialBalance.totals.closingCreditPoisha))}</td>
-            </tr>
-          </tfoot>
-        </table>
+            </thead>
+            <tbody>
+              {trial.trialBalance.rows.map((row) => (
+                <tr key={row.accountId}>
+                  <td className="font-mono text-ink-500">{row.accountCode}</td>
+                  <td>
+                    <button type="button" onClick={() => onDrillAccount(row.accountId)} className="text-left font-medium text-ink-900 hover:text-brand-bright hover:underline">
+                      {localized(locale, row.accountNameEn, row.accountNameBn ?? row.accountNameEn)}
+                    </button>
+                  </td>
+                  <td className="text-right"><ReportAmount value={row.openingDebitPoisha} money={money} /></td>
+                  <td className="text-right"><ReportAmount value={row.openingCreditPoisha} money={money} /></td>
+                  <td className="text-right"><ReportAmount value={row.periodDebitPoisha} money={money} /></td>
+                  <td className="text-right"><ReportAmount value={row.periodCreditPoisha} money={money} /></td>
+                  <td className="text-right"><ReportAmount value={row.closingDebitPoisha} money={money} /></td>
+                  <td className="text-right"><ReportAmount value={row.closingCreditPoisha} money={money} /></td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="font-semibold">
+                <td colSpan={2} className="text-right text-[12px] uppercase tracking-[0.04em] text-ink-500">{L('Totals', 'মোট')}</td>
+                <td className="text-right">{money(BigInt(trial.trialBalance.totals.openingDebitPoisha))}</td>
+                <td className="text-right">{money(BigInt(trial.trialBalance.totals.openingCreditPoisha))}</td>
+                <td className="text-right">{money(BigInt(trial.trialBalance.totals.periodDebitPoisha))}</td>
+                <td className="text-right">{money(BigInt(trial.trialBalance.totals.periodCreditPoisha))}</td>
+                <td className="text-right">{money(BigInt(trial.trialBalance.totals.closingDebitPoisha))}</td>
+                <td className="text-right">{money(BigInt(trial.trialBalance.totals.closingCreditPoisha))}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div className="md:hidden space-y-3">
+          {trial.trialBalance.rows.map((row) => (
+            <div key={row.accountId} className="ql-card p-3 text-[12px] space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-mono text-ink-500 font-semibold">{row.accountCode}</span>
+                <button type="button" onClick={() => onDrillAccount(row.accountId)} className="text-left font-medium text-ink-900 hover:text-brand-bright hover:underline flex-1">
+                  {localized(locale, row.accountNameEn, row.accountNameBn ?? row.accountNameEn)}
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-[11px] pt-1 border-t border-line/60">
+                <div><span className="text-ink-400">{L('Op Dr:', 'উদ্বো ডে:')} </span><span className="ql-mono"><ReportAmount value={row.openingDebitPoisha} money={money} /></span></div>
+                <div><span className="text-ink-400">{L('Op Cr:', 'উদ্বো ক্রে:')} </span><span className="ql-mono"><ReportAmount value={row.openingCreditPoisha} money={money} /></span></div>
+                <div><span className="text-ink-400">{L('Period Dr:', 'মেয়াদ ডে:')} </span><span className="ql-mono"><ReportAmount value={row.periodDebitPoisha} money={money} /></span></div>
+                <div><span className="text-ink-400">{L('Period Cr:', 'মেয়াদ ক্রে:')} </span><span className="ql-mono"><ReportAmount value={row.periodCreditPoisha} money={money} /></span></div>
+                <div className="font-semibold"><span className="text-ink-500">{L('Close Dr:', 'সমাপনী ডে:')} </span><span className="ql-mono"><ReportAmount value={row.closingDebitPoisha} money={money} /></span></div>
+                <div className="font-semibold"><span className="text-ink-500">{L('Close Cr:', 'সমাপনী ক্রে:')} </span><span className="ql-mono"><ReportAmount value={row.closingCreditPoisha} money={money} /></span></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -850,7 +885,7 @@ function ReportBody({
           <span>{ledger.accountCode} — {localized(locale, ledger.accountNameEn, ledger.accountNameBn ?? ledger.accountNameEn)}</span>
           <span>{L('Opening', 'উদ্বোধনী')}: {money(BigInt(ledger.openingNetPoisha))} · {L('Closing', 'সমাপনী')}: {money(BigInt(ledger.closingNetPoisha))}</span>
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="ql-table w-full min-w-[900px] text-[12px]">
             <caption className="sr-only">{L('General ledger detail', 'সাধারণ খাতা বিবরণ')}</caption>
             <thead>
@@ -885,6 +920,26 @@ function ReportBody({
             </tbody>
           </table>
         </div>
+        <div className="md:hidden space-y-3">
+          {ledger.lines.length === 0 ? (
+            <div className="ql-card p-3 text-center text-ink-500 text-[12px]">{L('No posted lines in this range.', 'এই পরিসরে কোনো পোস্টকৃত লাইন নেই।')}</div>
+          ) : ledger.lines.map((line) => (
+            <div key={`${line.journalId}-${line.lineNo}`} className="ql-card p-3 text-[12px] space-y-1.5">
+              <div className="flex items-center justify-between border-b border-line/60 pb-1">
+                <span className="font-mono text-[11px] text-ink-500">{formatLedgerDate(line.postingDate, locale)}</span>
+                <button type="button" onClick={() => onOpenJournal(line.journalId)} className="font-mono text-brand-bright hover:underline text-[12px]">
+                  #{line.journalNumber ?? line.journalId.slice(0, 8)}
+                </button>
+              </div>
+              <p className="text-ink-900">{line.narration}</p>
+              <div className="grid grid-cols-3 gap-1 pt-1 text-[11px]">
+                <div><span className="text-ink-400">{L('Dr:', 'ডে:')} </span><span className="ql-mono"><ReportAmount value={line.debitPoisha} money={money} /></span></div>
+                <div><span className="text-ink-400">{L('Cr:', 'ক্রে:')} </span><span className="ql-mono"><ReportAmount value={line.creditPoisha} money={money} /></span></div>
+                <div className="text-right font-semibold"><span className="text-ink-400">{L('Run:', 'চলমান:')} </span><span className="ql-mono">{money(BigInt(line.runningNetPoisha))}</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
         <p className="text-[12px] text-ink-500">{L('Open the journal from the ledger workspace to see its audit trail and source document.', 'অডিট ট্রেইল ও উৎস ডকুমেন্ট দেখতে লেজার ওয়ার্কস্পেস থেকে জার্নাল খুলুন।')}</p>
         <p className="text-[12px] text-ink-400">{accounts.length} {L('accounts available for drill-down', 'হিসাব ড্রিল-ডাউনের জন্য উপলব্ধ')}</p>
       </div>
@@ -907,7 +962,7 @@ function ReportBody({
         <div className="rounded-xl border border-line bg-surface-2/30 p-3 text-[12px] text-ink-600">
           {L('Control proof', 'নিয়ন্ত্রণ প্রমাণ')}: {ageing.ageing.proof.controlAccountCode} {ageing.ageing.proof.controlAccountName} · {L('GL', 'জিএল')} {money(BigInt(ageing.ageing.proof.glBalancePoisha))} · {L('Subledger', 'সাবলেজার')} {money(BigInt(ageing.ageing.proof.subledgerPoisha))} · {L('Difference', 'পার্থক্য')} {money(BigInt(ageing.ageing.proof.differencePoisha))}
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="ql-table w-full min-w-[1000px] text-[12px]">
             <caption className="sr-only">{L('Ageing open items', 'এজিং খোলা আইটেম')}</caption>
             <thead>
@@ -936,6 +991,23 @@ function ReportBody({
             </tbody>
           </table>
         </div>
+        <div className="md:hidden space-y-3">
+          {rows.length === 0 ? (
+            <div className="ql-card p-3 text-center text-ink-500 text-[12px]">{L('No open items at this date.', 'এই তারিখে কোনো খোলা আইটেম নেই।')}</div>
+          ) : rows.map((row) => (
+            <div key={String(row.documentId)} className="ql-card p-3 text-[12px] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-semibold text-ink-900">{String(row.documentNo ?? row.supplierInvoiceNo ?? '—')}</span>
+                <span className="ql-badge ql-badge-neutral text-[10px]">{String(row.bucket ?? '')}</span>
+              </div>
+              <p className="font-medium text-ink-800">{String(row.partyNameEn ?? '')}</p>
+              <div className="flex items-center justify-between pt-1 border-t border-line/60 text-[11px]">
+                <span className="text-ink-400">{L('Due:', 'পরিশোধ:')} {String(row.dueDate ?? '')} ({String(row.daysOverdue ?? '0')}d)</span>
+                <span className="ql-mono font-bold text-ink-900"><ReportAmount value={String(row.outstandingPoisha ?? '0')} money={money} /></span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -949,7 +1021,7 @@ function ReportBody({
           {' · '}{L('Inventory GL', 'ইনভেন্টরি জিএল')}: {money(BigInt(String(stock.glProof.inventoryGlPoisha ?? '0')))}
           {' · '}{L('Difference', 'পার্থক্য')}: {money(BigInt(String(stock.glProof.differencePoisha ?? '0')))}
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="ql-table w-full min-w-[950px] text-[12px]">
             <caption className="sr-only">{L('Stock valuation by item and warehouse', 'আইটেম ও গুদাম অনুযায়ী স্টক মূল্যায়ন')}</caption>
             <thead>
@@ -976,6 +1048,22 @@ function ReportBody({
             </tbody>
           </table>
         </div>
+        <div className="md:hidden space-y-3">
+          {stock.rows.map((row) => (
+            <div key={`${row.itemId}-${row.warehouseId}`} className="ql-card p-3 text-[12px] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-ink-500">{row.sku}</span>
+                <span className="font-mono text-[11px] text-ink-600">{row.warehouseCode}</span>
+              </div>
+              <p className="font-semibold text-ink-900">{localized(locale, row.itemNameEn, row.itemNameBn ?? row.itemNameEn)}</p>
+              <div className="grid grid-cols-3 gap-1 pt-1 border-t border-line/60 text-[11px]">
+                <div><span className="text-ink-400">{L('Qty:', 'পরিমাণ:')} </span><span className="ql-mono font-bold">{row.quantity}</span></div>
+                <div><span className="text-ink-400">{L('Rate:', 'দর:')} </span><span className="ql-mono"><ReportAmount value={row.weightedUnitCostPoisha} money={money} /></span></div>
+                <div className="text-right font-semibold"><span className="text-ink-400">{L('Val:', 'মূল্য:')} </span><span className="ql-mono text-ink-900"><ReportAmount value={row.valuePoisha} money={money} /></span></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -997,7 +1085,7 @@ function ReportBody({
             <span className="ql-badge ql-badge-neutral">{L('Credit notes', 'ক্রেডিট নোট')} {money(BigInt(register.totals.creditNoteVatPoisha ?? '0'))}</span>
           )}
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="ql-table w-full min-w-[1150px] text-[12px]">
             <caption className="sr-only">{L('VAT register lines', 'ভ্যাট রেজিস্টার লাইন')}</caption>
             <thead>
@@ -1038,36 +1126,72 @@ function ReportBody({
             </tbody>
           </table>
         </div>
+        <div className="md:hidden space-y-3">
+          {register.rows.length === 0 ? (
+            <div className="ql-card p-3 text-center text-ink-500 text-[12px]">{L('No posted register lines in this period.', 'এই সময়কালে কোনো পোস্টকৃত রেজিস্টার লাইন নেই।')}</div>
+          ) : register.rows.map((row) => (
+            <div key={`${row.documentId}-${row.lineNo}`} className="ql-card p-3 text-[12px] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-semibold text-ink-900">{row.documentNo ?? '—'}</span>
+                <span className="text-ink-400 text-[11px]">{formatDate(row.documentDate, locale)}</span>
+              </div>
+              <p className="text-ink-800">{row.partyNameEn}</p>
+              <p className="text-[11px] text-ink-500">{row.taxCategory.replaceAll('_', ' ')} · {(row.rateBps / 100).toFixed(2)}%</p>
+              <div className="flex items-center justify-between pt-1 border-t border-line/60 text-[11px]">
+                <span>{L('Base:', 'বেস:')} <span className="ql-mono font-medium"><ReportAmount value={row.basePoisha} money={money} /></span></span>
+                <span>{L('VAT:', 'ভ্যাট:')} <span className="ql-mono font-bold text-ink-900"><ReportAmount value={row.vatPoisha} money={money} /></span></span>
+              </div>
+            </div>
+          ))}
+        </div>
         {register.summaryByCategory.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="ql-table w-full min-w-[700px] text-[12px]">
-              <caption className="sr-only">{L('VAT category summary', 'ভ্যাট শ্রেণি সারসংক্ষেপ')}</caption>
-              <thead>
-                <tr>
-                  <th scope="col" className="text-left">{L('Category', 'শ্রেণি')}</th>
-                  <th scope="col" className="text-right">{L('Rate', 'হার')}</th>
-                  <th scope="col" className="text-right">{L('Lines', 'লাইন')}</th>
-                  <th scope="col" className="text-right">{L('Base', 'বেস')}</th>
-                  <th scope="col" className="text-right">{L('VAT', 'ভ্যাট')}</th>
-                  <th scope="col" className="text-right">{L('Claimable', 'দাবিযোগ্য')}</th>
-                  <th scope="col" className="text-right">{L('Disallowed', 'বাতিল')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {register.summaryByCategory.map((row) => (
-                  <tr key={`${row.taxCategory}-${row.rateBps}`}>
-                    <td>{String(row.taxCategory).replaceAll('_', ' ')}</td>
-                    <td className="text-right font-mono">{(Number(row.rateBps) / 100).toFixed(2)}%</td>
-                    <td className="text-right">{String(row.lineCount)}</td>
-                    <td className="text-right"><ReportAmount value={String(row.basePoisha)} money={money} /></td>
-                    <td className="text-right"><ReportAmount value={String(row.vatPoisha)} money={money} /></td>
-                    <td className="text-right"><ReportAmount value={String(row.claimablePoisha)} money={money} /></td>
-                    <td className="text-right"><ReportAmount value={String(row.disallowedPoisha)} money={money} /></td>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="ql-table w-full min-w-[700px] text-[12px]">
+                <caption className="sr-only">{L('VAT category summary', 'ভ্যাট শ্রেণি সারসংক্ষেপ')}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" className="text-left">{L('Category', 'শ্রেণি')}</th>
+                    <th scope="col" className="text-right">{L('Rate', 'হার')}</th>
+                    <th scope="col" className="text-right">{L('Lines', 'লাইন')}</th>
+                    <th scope="col" className="text-right">{L('Base', 'বেস')}</th>
+                    <th scope="col" className="text-right">{L('VAT', 'ভ্যাট')}</th>
+                    <th scope="col" className="text-right">{L('Claimable', 'দাবিযোগ্য')}</th>
+                    <th scope="col" className="text-right">{L('Disallowed', 'বাতিল')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {register.summaryByCategory.map((row) => (
+                    <tr key={`${row.taxCategory}-${row.rateBps}`}>
+                      <td>{String(row.taxCategory).replaceAll('_', ' ')}</td>
+                      <td className="text-right font-mono">{(Number(row.rateBps) / 100).toFixed(2)}%</td>
+                      <td className="text-right">{String(row.lineCount)}</td>
+                      <td className="text-right"><ReportAmount value={String(row.basePoisha)} money={money} /></td>
+                      <td className="text-right"><ReportAmount value={String(row.vatPoisha)} money={money} /></td>
+                      <td className="text-right"><ReportAmount value={String(row.claimablePoisha)} money={money} /></td>
+                      <td className="text-right"><ReportAmount value={String(row.disallowedPoisha)} money={money} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="md:hidden space-y-3">
+              {register.summaryByCategory.map((row) => (
+                <div key={`${row.taxCategory}-${row.rateBps}`} className="ql-card p-3 text-[12px] space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-ink-900">{String(row.taxCategory).replaceAll('_', ' ')}</span>
+                    <span className="font-mono text-ink-600">{(Number(row.rateBps) / 100).toFixed(2)}% ({String(row.lineCount)} lines)</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 pt-1 border-t border-line/60 text-[11px]">
+                    <div><span className="text-ink-400">{L('Base:', 'বেস:')} </span><span className="ql-mono"><ReportAmount value={String(row.basePoisha)} money={money} /></span></div>
+                    <div><span className="text-ink-400">{L('VAT:', 'ভ্যাট:')} </span><span className="ql-mono font-bold"><ReportAmount value={String(row.vatPoisha)} money={money} /></span></div>
+                    <div><span className="text-ink-400">{L('Claim:', 'দাবিযোগ্য:')} </span><span className="ql-mono text-emerald-600"><ReportAmount value={String(row.claimablePoisha)} money={money} /></span></div>
+                    <div><span className="text-ink-400">{L('Disallow:', 'বাতিল:')} </span><span className="ql-mono text-rose-600"><ReportAmount value={String(row.disallowedPoisha)} money={money} /></span></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-ink-500">
           <span>{L('Page', 'পৃষ্ঠা')} {register.page}</span>
@@ -1144,7 +1268,7 @@ function ReportBody({
             </span>
           ))}
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="ql-table w-full min-w-[1050px] text-[12px]">
             <caption className="sr-only">{L('Withholding liabilities and challans', 'উৎসে কর দায় ও চালান')}</caption>
             <thead>
@@ -1179,6 +1303,23 @@ function ReportBody({
             </tbody>
           </table>
         </div>
+        <div className="md:hidden space-y-3">
+          {withholding.rows.length === 0 ? (
+            <div className="ql-card p-3 text-center text-ink-500 text-[12px]">{L('No withholding liabilities in this period.', 'এই সময়কালে কোনো উৎসে কর দায় নেই।')}</div>
+          ) : withholding.rows.map((row) => (
+            <div key={String(row.liabilityId)} className="ql-card p-3 text-[12px] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-ink-900">{String(row.taxType)} · {String(row.status)}</span>
+                <span className="font-mono text-[11px] text-ink-500">{String(row.taxPeriod)}</span>
+              </div>
+              <p className="text-ink-800">{String(row.partyNameEn)}</p>
+              <div className="flex items-center justify-between pt-1 border-t border-line/60 text-[11px]">
+                <span>{L('Base:', 'বেস:')} <span className="ql-mono"><ReportAmount value={String(row.basePoisha)} money={money} /></span> ({(Number(row.rateBps) / 100).toFixed(2)}%)</span>
+                <span>{L('Amount:', 'পরিমাণ:')} <span className="ql-mono font-bold text-ink-900"><ReportAmount value={String(row.amountPoisha)} money={money} /></span></span>
+              </div>
+            </div>
+          ))}
+        </div>
         {withholding.deposits.length > 0 ? (
           <div className="rounded-xl border border-line bg-surface-2/30 p-3 text-[12px] text-ink-600">
             {L('Treasury challans in the period', 'সময়কালের কোষাগার চালান')}: {withholding.deposits.map((entry) => `${entry.challanNumber} (${entry.depositDate}) ${money(BigInt(entry.totalPoisha))}`).join(' · ')}
@@ -1192,7 +1333,7 @@ function ReportBody({
     const listing = report as JournalListingReport;
     return (
       <div className="space-y-3">
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="ql-table w-full min-w-[1150px] text-[12px]">
             <caption className="sr-only">{L('Journal listing', 'জার্নাল তালিকা')}</caption>
             <thead>
@@ -1225,6 +1366,25 @@ function ReportBody({
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="md:hidden space-y-3">
+          {listing.entries.map((entry) => (
+            <div key={entry.id} className="ql-card p-3 text-[12px] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-bold text-brand-bright">#{entry.journalNumber ?? '—'}</span>
+                <span className="text-ink-400 text-[11px]">{formatDate(entry.postingDate, locale)}</span>
+              </div>
+              <p className="text-ink-800">{entry.narrationEn}</p>
+              <div className="flex items-center justify-between text-[11px] text-ink-500">
+                <span>{entry.sourceModule}{entry.sourceDocRef ? ` · ${entry.sourceDocRef}` : ''}</span>
+                <span className="ql-badge ql-badge-neutral text-[10px]">{entry.status}</span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-line/60 text-[11px]">
+                <span>{L('Dr:', 'ডে:')} <span className="ql-mono font-medium"><ReportAmount value={entry.totalDebitPoisha} money={money} /></span></span>
+                <span>{L('Cr:', 'ক্রে:')} <span className="ql-mono font-medium"><ReportAmount value={entry.totalCreditPoisha} money={money} /></span></span>
+              </div>
+            </div>
+          ))}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-ink-500">
           <span>{L('Showing', 'দেখানো হচ্ছে')} {listing.entries.length} / {listing.total}</span>

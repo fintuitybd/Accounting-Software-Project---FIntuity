@@ -145,6 +145,7 @@ export function PurchaseFormPanel({
     (initialDocument?.tdsNature as PurchaseTdsNature) ?? 'NONE',
   );
   const [lines, setLines] = useState<FormLine[]>(initialDocument ? fromDocument(initialDocument) : [blankLine()]);
+  const addLine = () => setLines((current) => [...current, blankLine()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -607,7 +608,7 @@ export function PurchaseFormPanel({
               return (
                 <tr key={line.key} className="rounded-xl bg-surface-2/40 align-top">
                   <td className="min-w-[280px] px-2 py-2">
-                    <select className={INPUT_CLASS} value={line.itemId} onChange={(event) => onItemChange(line.key, event.target.value)} aria-label="Item">
+                    <select id={`purchase-line-item-${index}`} className={INPUT_CLASS} value={line.itemId} onChange={(event) => onItemChange(line.key, event.target.value)} aria-label="Item">
                       <option value="">No master item</option>
                       {refs.items
                         .filter((entry) => entry.status === 'ACTIVE')
@@ -652,6 +653,15 @@ export function PurchaseFormPanel({
                       value={line.discount}
                       onChange={(event) => updateLine(line.key, { discount: event.target.value })}
                       aria-label="Discount"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey && index === lines.length - 1) {
+                          e.preventDefault();
+                          addLine();
+                          requestAnimationFrame(() => {
+                            document.getElementById(`purchase-line-item-${index + 1}`)?.focus();
+                          });
+                        }
+                      }}
                     />
                   </td>
                   <td className="w-[190px] px-2 py-2">
@@ -679,6 +689,15 @@ export function PurchaseFormPanel({
                         value={line.accountId}
                         onChange={(event) => updateLine(line.key, { accountId: event.target.value })}
                         aria-label="Inventory or expense account"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey && index === lines.length - 1) {
+                            e.preventDefault();
+                            addLine();
+                            requestAnimationFrame(() => {
+                              document.getElementById(`purchase-line-item-${index + 1}`)?.focus();
+                            });
+                          }
+                        }}
                       >
                         <option value="">Choose expense / asset account</option>
                         {lineAccounts.map((account) => (
@@ -696,6 +715,15 @@ export function PurchaseFormPanel({
                         value={line.warehouseId}
                         onChange={(event) => updateLine(line.key, { warehouseId: event.target.value })}
                         aria-label="Warehouse"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey && index === lines.length - 1) {
+                            e.preventDefault();
+                            addLine();
+                            requestAnimationFrame(() => {
+                              document.getElementById(`purchase-line-item-${index + 1}`)?.focus();
+                            });
+                          }
+                        }}
                       >
                         <option value="">Choose warehouse</option>
                         {refs.warehouses
@@ -793,7 +821,7 @@ export function PurchaseFormPanel({
       </div>
 
       <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ql-border bg-ql-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-        <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => setLines((current) => [...current, blankLine()])}>
+        <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={addLine}>
           <Plus size={15} /> Add line
         </button>
         <div className="flex flex-wrap gap-2">

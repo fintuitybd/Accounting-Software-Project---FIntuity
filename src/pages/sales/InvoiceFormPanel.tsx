@@ -95,6 +95,12 @@ export function InvoiceFormPanel({
   const [originalDocumentId, setOriginalDocumentId] = useState(initialDocument?.originalDocumentId ?? '');
   const [originalInvoices, setOriginalInvoices] = useState<Array<{ id: string; label: string }>>([]);
   const [lines, setLines] = useState<FormLine[]>(initialDocument ? fromDocument(initialDocument) : [blankLine()]);
+
+  const addLine = () => {
+    if (!isCredit) {
+      setLines((current) => [...current, blankLine()]);
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [loadingOriginal, setLoadingOriginal] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -557,10 +563,10 @@ export function InvoiceFormPanel({
                       </div>
                     ) : (
                       <div className="space-y-1.5">
-                        <select value={line.itemId} onChange={(event) => chooseItem(index, event.target.value)} className={SALES_SELECT} aria-label={L('Item', 'আইটেম')}>
+                        <select id={`invoice-line-item-${index}`} value={line.itemId} onChange={(event) => chooseItem(index, event.target.value)} className={SALES_SELECT} aria-label={L('Item', 'আইটেম')}>
                           <option value="">{L('No item / service line', 'আইটেম নেই / সার্ভিস লাইন')}</option>
                           {refs.items.filter((entry) => entry.status === 'ACTIVE').map((entry) => (
-                            <option key={entry.id} value={entry.id}>{entry.sku} Â· {entry.nameEn}</option>
+                            <option key={entry.id} value={entry.id}>{entry.sku} · {entry.nameEn}</option>
                           ))}
                         </select>
                         <input value={line.descriptionEn} onChange={(event) => updateLine(index, { descriptionEn: event.target.value })} className={SALES_INPUT} placeholder={L('Line description', 'লাইনের বিবরণ')} maxLength={500} />
@@ -578,7 +584,24 @@ export function InvoiceFormPanel({
                     {isCredit ? <span className="font-money text-[13px] text-ink-700">{line.unitPrice}</span> : <input value={line.unitPrice} onChange={(event) => updateLine(index, { unitPrice: event.target.value })} inputMode="decimal" className={SALES_INPUT} aria-label={L('Unit price', 'একক মূল্য')} />}
                   </td>
                   <td className="w-[120px]">
-                    {isCredit ? <span className="text-[13px] text-ink-400">â€”</span> : <input value={line.discount} onChange={(event) => updateLine(index, { discount: event.target.value })} inputMode="decimal" className={SALES_INPUT} aria-label={L('Discount', 'ছাড়')} />}
+                    {isCredit ? <span className="text-[13px] text-ink-400">—</span> : (
+                      <input
+                        value={line.discount}
+                        onChange={(event) => updateLine(index, { discount: event.target.value })}
+                        inputMode="decimal"
+                        className={SALES_INPUT}
+                        aria-label={L('Discount', 'ছাড়')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey && index === lines.length - 1) {
+                            e.preventDefault();
+                            addLine();
+                            requestAnimationFrame(() => {
+                              document.getElementById(`invoice-line-item-${index + 1}`)?.focus();
+                            });
+                          }
+                        }}
+                      />
+                    )}
                   </td>
                   <td className="w-[150px]">
                     {isCredit ? <span className="text-[13px] text-ink-700">{line.taxCategory}</span> : (
@@ -591,24 +614,52 @@ export function InvoiceFormPanel({
                   </td>
                   <td className="min-w-[190px]">
                     {isCredit ? <span className="text-[13px] text-ink-700">{line.revenueAccountId ? revenueAccounts.find((account) => account.id === line.revenueAccountId)?.nameEn ?? 'Original account' : 'Original account'}</span> : (
-                      <select value={line.revenueAccountId} onChange={(event) => updateLine(index, { revenueAccountId: event.target.value })} className={SALES_SELECT} aria-label={L('Revenue account', 'রাজস্ব হিসাব')}>
+                      <select
+                        value={line.revenueAccountId}
+                        onChange={(event) => updateLine(index, { revenueAccountId: event.target.value })}
+                        className={SALES_SELECT}
+                        aria-label={L('Revenue account', 'রাজস্ব হিসাব')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey && index === lines.length - 1) {
+                            e.preventDefault();
+                            addLine();
+                            requestAnimationFrame(() => {
+                              document.getElementById(`invoice-line-item-${index + 1}`)?.focus();
+                            });
+                          }
+                        }}
+                      >
                         <option value="">{L('Choose revenue account', 'রাজস্ব হিসাব নির্বাচন করুন')}</option>
                         {revenueAccounts.map((account) => (
-                          <option key={account.id} value={account.id}>{account.code} Â· {account.nameEn}</option>
+                          <option key={account.id} value={account.id}>{account.code} · {account.nameEn}</option>
                         ))}
                       </select>
                     )}
                   </td>
                   <td className="min-w-[150px]">
                     {item?.isStockItem && !isCredit ? (
-                      <select value={line.warehouseId} onChange={(event) => updateLine(index, { warehouseId: event.target.value })} className={SALES_SELECT} aria-label={L('Warehouse', 'গুদাম')}>
+                      <select
+                        value={line.warehouseId}
+                        onChange={(event) => updateLine(index, { warehouseId: event.target.value })}
+                        className={SALES_SELECT}
+                        aria-label={L('Warehouse', 'গুদাম')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey && index === lines.length - 1) {
+                            e.preventDefault();
+                            addLine();
+                            requestAnimationFrame(() => {
+                              document.getElementById(`invoice-line-item-${index + 1}`)?.focus();
+                            });
+                          }
+                        }}
+                      >
                         <option value="">{L('Choose warehouse', 'গুদাম নির্বাচন করুন')}</option>
                         {refs.warehouses.filter((warehouse) => warehouse.status === 'ACTIVE').map((warehouse) => (
-                          <option key={warehouse.id} value={warehouse.id}>{warehouse.code} Â· {warehouse.nameEn}</option>
+                          <option key={warehouse.id} value={warehouse.id}>{warehouse.code} · {warehouse.nameEn}</option>
                         ))}
                       </select>
                     ) : (
-                      <span className="text-[13px] text-ink-400">{isCredit ? line.originalLabel ?? 'â€”' : L('No stock movement', 'স্টক মুভমেন্ট নেই')}</span>
+                      <span className="text-[13px] text-ink-400">{isCredit ? line.originalLabel ?? '—' : L('No stock movement', 'স্টক মুভমেন্ট নেই')}</span>
                     )}
                   </td>
                   <td className="text-right">
@@ -631,7 +682,7 @@ export function InvoiceFormPanel({
 
       <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ql-border bg-ql-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
         {!isCredit ? (
-          <button type="button" onClick={() => setLines((current) => [...current, blankLine()])} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={addLine} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <Plus size={15} /> {L('Add line', 'লাইন যোগ')}
           </button>
         ) : <span />}

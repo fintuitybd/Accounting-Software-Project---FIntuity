@@ -164,7 +164,7 @@ export function SectionTable({
         </h3>
         <p className="font-money text-[12px] font-semibold text-ink-700">{money(BigInt(section.totalPoisha))}</p>
       </div>
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="ql-table w-full min-w-[560px] text-[12px]">
           <thead>
             <tr>
@@ -249,6 +249,80 @@ export function SectionTable({
             </tr>
           </tfoot>
         </table>
+      </div>
+      <div className="md:hidden space-y-2 p-2">
+        {section.lines.length === 0 ? (
+          <p className="text-center text-[12px] text-ink-500 py-2">
+            {localized(locale, 'No posted balance in this section.', 'এই অংশে কোনো পোস্টকৃত ব্যালেন্স নেই।')}
+          </p>
+        ) : (
+          section.lines.map((line) => (
+            <div key={`${section.key}:${line.accountId ?? line.accountNameEn}`} className="ql-card p-2.5 text-[12px] space-y-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <span className="font-mono text-[11px] text-ink-500">{line.accountCode ?? '—'}</span>{' '}
+                  {onDrillDown ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onDrillDown({
+                          noteRef: line.note ?? undefined,
+                          accountCode: line.accountCode ?? undefined,
+                          accountId: line.accountId ?? undefined,
+                          title: line.accountNameEn,
+                        })
+                      }
+                      className="text-left font-medium text-ink-900 hover:text-brand-bright hover:underline cursor-pointer"
+                      title="Click to drill down (IAS/IFRS Studio)"
+                    >
+                      {localized(locale, line.accountNameEn, line.accountNameBn ?? line.accountNameEn)}
+                    </button>
+                  ) : line.accountId && onDrillAccount ? (
+                    <button
+                      type="button"
+                      onClick={() => onDrillAccount(line.accountId!)}
+                      className="text-left font-medium text-ink-900 hover:text-brand-bright hover:underline"
+                    >
+                      {localized(locale, line.accountNameEn, line.accountNameBn ?? line.accountNameEn)}
+                    </button>
+                  ) : (
+                    <span className="text-ink-900">{localized(locale, line.accountNameEn, line.accountNameBn ?? line.accountNameEn)}</span>
+                  )}
+                  {line.note && onDrillDown ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onDrillDown({
+                          noteRef: line.note!,
+                          title: `${line.note} Drill-Down`,
+                        })
+                      }
+                      className="ml-2 rounded-full border border-ql-border bg-surface-2 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400 hover:bg-surface-3 cursor-pointer"
+                      title={`Click to inspect ${line.note} underlying GL & documents`}
+                    >
+                      {line.note}
+                    </button>
+                  ) : null}
+                  {line.kind === 'DERIVED' ? (
+                    <span className="ml-1.5 rounded-full bg-vault-50 px-1.5 py-0.5 text-[12px] font-semibold text-vault-700">
+                      {localized(locale, 'Derived', 'উৎপন্ন')}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-line/60">
+                <span className="text-ink-400 text-[11px]">{currentLabel}:</span>
+                <span className="ql-mono font-semibold text-ink-900"><ReportAmount value={line.amountPoisha} money={money} /></span>
+              </div>
+              {line.comparativePoisha ? (
+                <div className="flex items-center justify-between text-ink-500 text-[11px]">
+                  <span>{comparativeLabel}:</span>
+                  <span className="ql-mono"><ReportAmount value={line.comparativePoisha} money={money} muted /></span>
+                </div>
+              ) : null}
+            </div>
+          ))
+        )}
       </div>
     </section>
   );

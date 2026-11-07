@@ -1,14 +1,16 @@
-﻿// Fintuity Accounting Suite — shell entry.
+// Fintuity Accounting Suite — shell entry.
 //
 // Production loads only the server-backed shell. The synthetic demo is an explicit, separately
 // loaded chunk used when VITE_DEMO_MODE=true; it is never the default and cannot share real books.
 
-import { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { DEMO_MODE } from './auth/AuthContext';
 import type { WorkspaceKey } from './workspaces/registry';
 
 const ProductionShell = lazy(() => import('./shell/ProductionShell'));
-const DemoShell = lazy(() => import('./demo/DemoShell'));
+const DemoShell = React.lazy(() =>
+  import('./demo/DemoShell').then((m) => ({ default: m.DemoShell }))
+);
 
 function ShellLoading() {
   return (

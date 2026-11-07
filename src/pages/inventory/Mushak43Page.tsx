@@ -475,47 +475,113 @@ export function Mushak43Page({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="ql-table">
-                <thead>
-                  <tr>
-                    <th>{L('Declaration No.', 'ঘোষণা নং')}</th>
-                    <th>{L('Finished Item', 'উৎপাদিত পণ্য')}</th>
-                    <th>{L('Output Unit', 'সরবরাহ একক')}</th>
-                    <th>{L('RM Cost (BDT)', 'কাঁচামাল ব্যয়')}</th>
-                    <th>{L('Labor + Overhead', 'শ্রম ও উপরি ব্যয়')}</th>
-                    <th>{L('Total Cost', 'মোট উৎপাদন ব্যয়')}</th>
-                    <th>{L('Declared Price', 'ঘোষিত মূল্য')}</th>
-                    <th>{L('Status', 'অবস্থা')}</th>
-                    <th>{L('Effective From', 'কার্যকর তারিখ')}</th>
-                    <th className="text-right">{L('Actions', 'পদক্ষেপ')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {declarations.map((decl) => {
-                    const laborAndOverhead = (
-                      parseFloat(decl.directLaborCostBdt) +
-                      parseFloat(decl.manufacturingOverheadBdt) +
-                      parseFloat(decl.packagingCostBdt)
-                    ).toFixed(2);
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="ql-table">
+                  <thead>
+                    <tr>
+                      <th>{L('Declaration No.', 'ঘোষণা নং')}</th>
+                      <th>{L('Finished Item', 'উৎপাদিত পণ্য')}</th>
+                      <th>{L('Output Unit', 'সরবরাহ একক')}</th>
+                      <th>{L('RM Cost (BDT)', 'কাঁচামাল ব্যয়')}</th>
+                      <th>{L('Labor + Overhead', 'শ্রম ও উপরি ব্যয়')}</th>
+                      <th>{L('Total Cost', 'মোট উৎপাদন ব্যয়')}</th>
+                      <th>{L('Declared Price', 'ঘোষিত মূল্য')}</th>
+                      <th>{L('Status', 'অবস্থা')}</th>
+                      <th>{L('Effective From', 'কার্যকর তারিখ')}</th>
+                      <th className="text-right">{L('Actions', 'পদক্ষেপ')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {declarations.map((decl) => {
+                      const laborAndOverhead = (
+                        parseFloat(decl.directLaborCostBdt) +
+                        parseFloat(decl.manufacturingOverheadBdt) +
+                        parseFloat(decl.packagingCostBdt)
+                      ).toFixed(2);
 
-                    return (
-                      <tr key={decl.id}>
-                        <td className="font-mono font-bold text-ql-brand">{decl.declarationNumber}</td>
-                        <td>
-                          <div className="font-semibold text-ql-ink">{decl.finishedItemName}</div>
-                          <div className="font-mono text-[11px] text-ql-ink-muted">{decl.finishedItemSku}</div>
-                        </td>
-                        <td>
-                          {decl.outputQuantity} {decl.outputUnit}
-                        </td>
-                        <td className="font-mono font-medium">{decl.totalRawMaterialCostBdt}</td>
-                        <td className="font-mono">{laborAndOverhead}</td>
-                        <td className="font-mono font-bold text-ql-ink">{decl.totalCostOfProductionBdt}</td>
-                        <td className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                          {decl.declaredRetailPriceBdt}
-                        </td>
-                        <td>
+                      return (
+                        <tr key={decl.id}>
+                          <td className="font-mono font-bold text-ql-brand">{decl.declarationNumber}</td>
+                          <td>
+                            <div className="font-semibold text-ql-ink">{decl.finishedItemName}</div>
+                            <div className="font-mono text-[11px] text-ql-ink-muted">{decl.finishedItemSku}</div>
+                          </td>
+                          <td>
+                            {decl.outputQuantity} {decl.outputUnit}
+                          </td>
+                          <td className="font-mono font-medium">{decl.totalRawMaterialCostBdt}</td>
+                          <td className="font-mono">{laborAndOverhead}</td>
+                          <td className="font-mono font-bold text-ql-ink">{decl.totalCostOfProductionBdt}</td>
+                          <td className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                            {decl.declaredRetailPriceBdt}
+                          </td>
+                          <td>
+                            <span
+                              className={`ql-badge ${
+                                decl.status === 'APPROVED'
+                                  ? 'ql-badge-success'
+                                  : decl.status === 'SUBMITTED_TO_NBR'
+                                    ? 'ql-badge-brand'
+                                    : 'ql-badge-neutral'
+                              }`}
+                            >
+                              {decl.status}
+                            </span>
+                            {decl.hasAbnormalWastage ? (
+                              <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-amber-500/20 px-1 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                                <AlertTriangle size={10} /> &gt;10%
+                              </span>
+                            ) : null}
+                          </td>
+                          <td className="font-mono text-[12px]">{decl.effectiveFrom}</td>
+                          <td className="text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => openPrint(decl)}
+                                className="ql-btn ql-btn-secondary !p-1.5 text-[11px]"
+                                title={L('Print Mushak 4.3 Form', 'মূসক ৪.৩ ফর্ম প্রিন্ট করুন')}
+                              >
+                                <Printer size={13} />
+                              </button>
+
+                              {decl.status === 'DRAFT' && canDispatch ? (
+                                <button
+                                  type="button"
+                                  onClick={() => void handleSubmitNbr(decl.id, true)}
+                                  className="ql-btn ql-btn-primary !px-2 !py-1 text-[11px]"
+                                  title={L('Submit and Approve', 'দাখিল ও অনুমোদন করুন')}
+                                >
+                                  <Send size={12} className="mr-1" />
+                                  {L('Approve', 'অনুমোদন')}
+                                </button>
+                              ) : null}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="md:hidden space-y-3">
+                {declarations.map((decl) => {
+                  const laborAndOverhead = (
+                    parseFloat(decl.directLaborCostBdt) +
+                    parseFloat(decl.manufacturingOverheadBdt) +
+                    parseFloat(decl.packagingCostBdt)
+                  ).toFixed(2);
+
+                  return (
+                    <div key={decl.id} className="ql-card p-4 space-y-2">
+                      <div className="flex items-center justify-between border-b border-ql-border pb-2">
+                        <div>
+                          <span className="font-mono font-bold text-ql-brand">{decl.declarationNumber}</span>
+                          <span className="ml-2 font-mono text-[11px] text-ql-ink-muted">{decl.effectiveFrom}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
                           <span
                             className={`ql-badge ${
                               decl.status === 'APPROVED'
@@ -528,42 +594,65 @@ export function Mushak43Page({
                             {decl.status}
                           </span>
                           {decl.hasAbnormalWastage ? (
-                            <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-amber-500/20 px-1 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                            <span className="inline-flex items-center gap-0.5 rounded bg-amber-500/20 px-1 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
                               <AlertTriangle size={10} /> &gt;10%
                             </span>
                           ) : null}
-                        </td>
-                        <td className="font-mono text-[12px]">{decl.effectiveFrom}</td>
-                        <td className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => openPrint(decl)}
-                              className="ql-btn ql-btn-secondary !p-1.5 text-[11px]"
-                              title={L('Print Mushak 4.3 Form', 'মূসক ৪.৩ ফর্ম প্রিন্ট করুন')}
-                            >
-                              <Printer size={13} />
-                            </button>
+                        </div>
+                      </div>
 
-                            {decl.status === 'DRAFT' && canDispatch ? (
-                              <button
-                                type="button"
-                                onClick={() => void handleSubmitNbr(decl.id, true)}
-                                className="ql-btn ql-btn-primary !px-2 !py-1 text-[11px]"
-                                title={L('Submit and Approve', 'দাখিল ও অনুমোদন করুন')}
-                              >
-                                <Send size={12} className="mr-1" />
-                                {L('Approve', 'অনুমোদন')}
-                              </button>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                      <div>
+                        <p className="font-semibold text-ql-ink text-[13px]">{decl.finishedItemName}</p>
+                        <p className="font-mono text-[11px] text-ql-ink-muted">{decl.finishedItemSku} · {decl.outputQuantity} {decl.outputUnit}</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[12px] pt-1">
+                        <div>
+                          <span className="text-ql-ink-muted">{L('RM Cost:', 'কাঁচামাল ব্যয়:')} </span>
+                          <span className="ql-mono font-medium">{decl.totalRawMaterialCostBdt} BDT</span>
+                        </div>
+                        <div>
+                          <span className="text-ql-ink-muted">{L('Labor/OH:', 'শ্রম/উপরি:')} </span>
+                          <span className="ql-mono">{laborAndOverhead} BDT</span>
+                        </div>
+                        <div>
+                          <span className="text-ql-ink-muted">{L('Total Cost:', 'মোট ব্যয়:')} </span>
+                          <span className="ql-mono font-bold text-ql-ink">{decl.totalCostOfProductionBdt} BDT</span>
+                        </div>
+                        <div>
+                          <span className="text-ql-ink-muted">{L('Declared:', 'ঘোষিত:')} </span>
+                          <span className="ql-mono font-bold text-emerald-700 dark:text-emerald-400">{decl.declaredRetailPriceBdt} BDT</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-ql-border">
+                        <button
+                          type="button"
+                          onClick={() => openPrint(decl)}
+                          className="ql-btn ql-btn-secondary !p-1.5 text-[11px]"
+                          title={L('Print Mushak 4.3 Form', 'মূসক ৪.৩ ফর্ম প্রিন্ট করুন')}
+                        >
+                          <Printer size={13} className="mr-1" />
+                          {L('Print', 'প্রিন্ট')}
+                        </button>
+
+                        {decl.status === 'DRAFT' && canDispatch ? (
+                          <button
+                            type="button"
+                            onClick={() => void handleSubmitNbr(decl.id, true)}
+                            className="ql-btn ql-btn-primary !px-2.5 !py-1 text-[11px]"
+                            title={L('Submit and Approve', 'দাখিল ও অনুমোদন করুন')}
+                          >
+                            <Send size={12} className="mr-1" />
+                            {L('Approve', 'অনুমোদন')}
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       ) : null}
@@ -585,64 +674,114 @@ export function Mushak43Page({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="ql-table">
-                <thead>
-                  <tr>
-                    <th>{L('Batch No.', 'ব্যাচ নং')}</th>
-                    <th>{L('Date', 'তারিখ')}</th>
-                    <th>{L('Finished Item', 'উৎপাদিত পণ্য')}</th>
-                    <th>{L('Warehouse', 'ওয়্যারহাউস')}</th>
-                    <th>{L('Quantity', 'পরিমাণ')}</th>
-                    <th>{L('Total Cost (BDT)', 'মোট খরচ')}</th>
-                    <th>{L('Unit Cost (BDT)', 'একক খরচ')}</th>
-                    <th>{L('Wastage Clawback', 'অপচয় সমন্বয়')}</th>
-                    <th>{L('GL Journal', 'জিএল জার্নাল')}</th>
-                    <th>{L('Status', 'অবস্থা')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {batches.map((batch) => (
-                    <tr key={batch.id}>
-                      <td className="font-mono font-bold text-ql-brand">{batch.batchNumber}</td>
-                      <td className="font-mono text-[12px]">{batch.batchDate}</td>
-                      <td>
-                        <div className="font-semibold text-ql-ink">{batch.finishedItemName}</div>
-                        <div className="font-mono text-[11px] text-ql-ink-muted">{batch.finishedItemSku}</div>
-                      </td>
-                      <td>
-                        <span className="font-mono">{batch.warehouseCode}</span>
-                      </td>
-                      <td className="font-mono font-bold">{batch.batchQuantity}</td>
-                      <td className="font-mono font-bold text-ql-ink">{batch.totalCostBdt}</td>
-                      <td className="font-mono text-ql-ink-muted">{batch.unitCostBdt}</td>
-                      <td>
-                        {batch.hasAbnormalWastage ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300">
-                            <AlertTriangle size={12} />
-                            {batch.vatRebateClawbackBdt} BDT
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-ql-ink-muted">{L('Normal (≤10%)', 'স্বাভাবিক (≤১০%)')}</span>
-                        )}
-                      </td>
-                      <td>
-                        {batch.journalNumber ? (
-                          <span className="font-mono text-[12px] font-semibold text-ql-brand">
-                            #{batch.journalNumber}
-                          </span>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td>
-                        <span className="ql-badge ql-badge-success">{batch.status}</span>
-                      </td>
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="ql-table">
+                  <thead>
+                    <tr>
+                      <th>{L('Batch No.', 'ব্যাচ নং')}</th>
+                      <th>{L('Date', 'তারিখ')}</th>
+                      <th>{L('Finished Item', 'উৎপাদিত পণ্য')}</th>
+                      <th>{L('Warehouse', 'ওয়্যারহাউস')}</th>
+                      <th>{L('Quantity', 'পরিমাণ')}</th>
+                      <th>{L('Total Cost (BDT)', 'মোট খরচ')}</th>
+                      <th>{L('Unit Cost (BDT)', 'একক খরচ')}</th>
+                      <th>{L('Wastage Clawback', 'অপচয় সমন্বয়')}</th>
+                      <th>{L('GL Journal', 'জিএল জার্নাল')}</th>
+                      <th>{L('Status', 'অবস্থা')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {batches.map((batch) => (
+                      <tr key={batch.id}>
+                        <td className="font-mono font-bold text-ql-brand">{batch.batchNumber}</td>
+                        <td className="font-mono text-[12px]">{batch.batchDate}</td>
+                        <td>
+                          <div className="font-semibold text-ql-ink">{batch.finishedItemName}</div>
+                          <div className="font-mono text-[11px] text-ql-ink-muted">{batch.finishedItemSku}</div>
+                        </td>
+                        <td>
+                          <span className="font-mono">{batch.warehouseCode}</span>
+                        </td>
+                        <td className="font-mono font-bold">{batch.batchQuantity}</td>
+                        <td className="font-mono font-bold text-ql-ink">{batch.totalCostBdt}</td>
+                        <td className="font-mono text-ql-ink-muted">{batch.unitCostBdt}</td>
+                        <td>
+                          {batch.hasAbnormalWastage ? (
+                            <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+                              <AlertTriangle size={12} />
+                              {batch.vatRebateClawbackBdt} BDT
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-ql-ink-muted">{L('Normal (≤10%)', 'স্বাভাবিক (≤১০%)')}</span>
+                          )}
+                        </td>
+                        <td>
+                          {batch.journalNumber ? (
+                            <span className="font-mono text-[12px] font-semibold text-ql-brand">
+                              #{batch.journalNumber}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td>
+                          <span className="ql-badge ql-badge-success">{batch.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="md:hidden space-y-3">
+                {batches.map((batch) => (
+                  <div key={batch.id} className="ql-card p-4 space-y-2">
+                    <div className="flex items-center justify-between border-b border-ql-border pb-2">
+                      <div>
+                        <span className="font-mono font-bold text-ql-brand">{batch.batchNumber}</span>
+                        <span className="ml-2 font-mono text-[11px] text-ql-ink-muted">{batch.batchDate}</span>
+                      </div>
+                      <span className="ql-badge ql-badge-success">{batch.status}</span>
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-ql-ink text-[13px]">{batch.finishedItemName}</p>
+                      <p className="font-mono text-[11px] text-ql-ink-muted">{batch.finishedItemSku} · {L('WH:', 'গুদাম:')} {batch.warehouseCode}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[12px] pt-1">
+                      <div>
+                        <span className="text-ql-ink-muted">{L('Quantity:', 'পরিমাণ:')} </span>
+                        <span className="ql-mono font-bold">{batch.batchQuantity}</span>
+                      </div>
+                      <div>
+                        <span className="text-ql-ink-muted">{L('Unit Cost:', 'একক খরচ:')} </span>
+                        <span className="ql-mono text-ql-ink-muted">{batch.unitCostBdt} BDT</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-ql-ink-muted">{L('Total Cost:', 'মোট খরচ:')} </span>
+                        <span className="ql-mono font-bold text-ql-ink">{batch.totalCostBdt} BDT</span>
+                      </div>
+                    </div>
+
+                    {batch.hasAbnormalWastage ? (
+                      <div className="rounded bg-amber-500/10 p-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                        <AlertTriangle size={12} className="shrink-0" />
+                        <span>{L('Clawback:', 'সমন্বয়:')} <span className="ql-mono font-bold">{batch.vatRebateClawbackBdt} BDT</span></span>
+                      </div>
+                    ) : null}
+
+                    {batch.journalNumber ? (
+                      <div className="pt-2 border-t border-ql-border text-[11px] text-ql-ink-muted flex items-center justify-between">
+                        <span>{L('GL Journal', 'জিএল জার্নাল')}:</span>
+                        <span className="font-mono font-semibold text-ql-brand">#{batch.journalNumber}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       ) : null}

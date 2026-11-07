@@ -77,7 +77,7 @@ function readRail(): boolean {
   }
 }
 
-export default function DemoShell({ initialView = 'W01' }: { initialView?: WorkspaceKey } = {}) {
+export function DemoShell({ initialView = 'W01' }: { initialView?: WorkspaceKey } = {}) {
   // The isolated demo keeps its own vault presentation, but the server-backed pages reachable by
   // URL from the demo still need the lightweight preferences context and toast container.
   return (
@@ -583,3 +583,5 @@ function ToastStack() {
     </div>
   );
 }
+
+export default DemoShell;
