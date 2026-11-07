@@ -74,10 +74,10 @@ export function TrialBalancePanel({
   };
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{L('Trial balance', 'রেওয়ামিল')}</p>
+          <p className="ql-kicker">{L('Trial balance', 'রেওয়ামিল')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {L('Account-level proof', 'হিসাব-স্তরের প্রমাণ')}
           </h2>
@@ -91,7 +91,7 @@ export function TrialBalancePanel({
         <div className="flex flex-wrap items-center gap-2">
           <label className="text-[12px] font-semibold text-ink-600">
             <span className="sr-only">{L('Accounting period', 'হিসাবকাল')}</span>
-            <select value={periodId} onChange={(event) => setPeriodId(event.target.value)} className="lv-select min-h-11 text-[13px]">
+            <select value={periodId} onChange={(event) => setPeriodId(event.target.value)} className="ql-select min-h-11 text-[13px]">
               {periods.map((period) => (
                 <option key={period.id} value={period.id}>
                   {period.code} — {period.status}
@@ -99,7 +99,7 @@ export function TrialBalancePanel({
               ))}
             </select>
           </label>
-          <button type="button" onClick={() => void load()} disabled={loading} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={() => void load()} disabled={loading} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> {L('Refresh', 'রিফ্রেশ')}
           </button>
         </div>
@@ -113,13 +113,13 @@ export function TrialBalancePanel({
       {trialBalance && totals ? (
         <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className={`lv-chip ${trialBalance.balanced ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className={`ql-badge ${trialBalance.balanced ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               <Scale size={12} />
               {trialBalance.balanced
                 ? L('Debits equal credits', 'ডেবিট ও ক্রেডিট সমান')
                 : L('Out of balance', 'অসামঞ্জস্য')}
             </span>
-            <span className="lv-chip lv-chip-neutral">
+            <span className="ql-badge ql-badge-neutral">
               {selectedPeriod ? selectedPeriod.label : `${formatDate(trialBalance.from, locale)} – ${formatDate(trialBalance.to, locale)}`}
             </span>
             {!trialBalance.balanced ? (
@@ -130,7 +130,7 @@ export function TrialBalancePanel({
           </div>
 
           <div className="mt-4 overflow-x-auto">
-            <table className="lv-table w-full min-w-[900px] text-[13px]">
+            <table className="ql-table w-full min-w-[900px] text-[13px]">
               <caption className="sr-only">{L('Trial balance by account', 'হিসাব অনুযায়ী রেওয়ামিল')}</caption>
               <thead>
                 <tr>
@@ -202,12 +202,12 @@ export function TrialBalancePanel({
                     {L('Closing net', 'সমাপনী নিট')}: {poishaToBdtString(BigInt(drill.account.closingNetPoisha))}
                   </p>
                 </div>
-                <button type="button" onClick={() => { setDrill(null); setDrillAccountId(null); }} className="lv-btn lv-btn-ghost min-h-11 text-[13px]">
+                <button type="button" onClick={() => { setDrill(null); setDrillAccountId(null); }} className="ql-btn ql-btn-ghost min-h-11 text-[13px]">
                   {L('Close drill-down', 'ড্রিল-ডাউন বন্ধ')}
                 </button>
               </div>
               <div className="mt-3 overflow-x-auto">
-                <table className="lv-table w-full min-w-[720px] text-[13px]">
+                <table className="ql-table w-full min-w-[720px] text-[13px]">
                   <caption className="sr-only">{L('Journal lines for the selected account', 'নির্বাচিত হিসাবের জার্নাল লাইন')}</caption>
                   <thead>
                     <tr>

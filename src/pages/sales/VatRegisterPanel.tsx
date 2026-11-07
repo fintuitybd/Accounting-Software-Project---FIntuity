@@ -68,10 +68,10 @@ export function VatRegisterPanel({ companyId }: { companyId: string }) {
   };
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{L('Internal VAT evidence', 'অভ্যন্তরীণ ভ্যাট প্রমাণ')}</p>
+          <p className="ql-kicker">{L('Internal VAT evidence', 'অভ্যন্তরীণ ভ্যাট প্রমাণ')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">{L('Sales VAT register', 'বিক্রয় ভ্যাট রেজিস্টার')}</h2>
           <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">
             {L(
@@ -80,7 +80,7 @@ export function VatRegisterPanel({ companyId }: { companyId: string }) {
             )}
           </p>
         </div>
-        <button type="button" onClick={exportCsv} disabled={!register} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+        <button type="button" onClick={exportCsv} disabled={!register} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
           <FileText size={15} /> {L('Export CSV', 'সিএসভি রপ্তানি')}
         </button>
       </div>
@@ -94,7 +94,7 @@ export function VatRegisterPanel({ companyId }: { companyId: string }) {
           <input type="date" value={to} onChange={(event) => setTo(event.target.value)} className={`${SALES_INPUT} mt-1`} />
         </label>
         <div className="flex items-end">
-          <button type="button" onClick={() => void load()} disabled={loading} className="lv-btn lv-btn-secondary min-h-11 w-full text-[13px]">
+          <button type="button" onClick={() => void load()} disabled={loading} className="ql-btn ql-btn-secondary min-h-11 w-full text-[13px]">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> {L('Apply range', 'পরিসর প্রয়োগ')}
           </button>
         </div>
@@ -103,7 +103,7 @@ export function VatRegisterPanel({ companyId }: { companyId: string }) {
       {register ? (
         <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="lv-chip lv-chip-gold">{register.label}</span>
+            <span className="ql-badge ql-badge-warn">{register.label}</span>
             <span className="text-[12px] text-ink-500">{register.from} → {register.to}</span>
           </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -120,7 +120,7 @@ export function VatRegisterPanel({ companyId }: { companyId: string }) {
             <div className="mt-4"><EmptyState title={L('No posted sales tax evidence in this range', 'এই পরিসরে পোস্টকৃত বিক্রয় কর প্রমাণ নেই')} hint={L('Post a sales invoice or credit note to populate the internal register.', 'অভ্যন্তরীণ রেজিস্টার পূরণ করতে বিক্রয় চালান বা ক্রেডিট নোট পোস্ট করুন।')} /></div>
           ) : (
             <div className="mt-4 overflow-x-auto">
-              <table className="lv-table w-full min-w-[1050px] text-[13px]">
+              <table className="ql-table w-full min-w-[1050px] text-[13px]">
                 <caption className="sr-only">{L('Sales VAT register lines', 'বিক্রয় ভ্যাট রেজিস্টার লাইন')}</caption>
                 <thead>
                   <tr>

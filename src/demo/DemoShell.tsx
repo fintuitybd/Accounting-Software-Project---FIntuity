@@ -1,4 +1,4 @@
-// LedgerVault — application shell.
+// Fintuity Accounting Suite — application shell.
 //
 // A calm operating-system frame around twelve financial workspaces: a persistent (and collapsible)
 // navigation rail, a single floating control bar, the onboarding/access modal, the command palette
@@ -66,7 +66,7 @@ const BOOK_OPTIONS: Array<{ value: AppSettings['bookFilter']; en: string; bn: st
   { value: 'TAX_COMPUTATION', en: 'Tax computation', bn: 'কর হিসাব' },
 ];
 
-const RAIL_KEY = 'ledgervault.v2.nav.rail';
+const RAIL_KEY = 'fintuity.v2.nav.rail';
 
 function readRail(): boolean {
   if (typeof window === 'undefined') return false;
@@ -355,8 +355,8 @@ function DemoShellContent({ initialView = 'W01' }: { initialView?: WorkspaceKey 
 
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span
-                          className={`lv-chip ${
-                            vault.statements.balance_sheet.balanced ? 'lv-chip-emerald' : 'lv-chip-rose'
+                          className={`ql-badge ${
+                            vault.statements.balance_sheet.balanced ? 'ql-badge-success' : 'ql-badge-danger'
                           }`}
                         >
                           <Scale size={11} />
@@ -364,17 +364,17 @@ function DemoShellContent({ initialView = 'W01' }: { initialView?: WorkspaceKey 
                             ? L('Balanced to 0 poisha', '০ পয়সায় সুষম')
                             : L('Out of balance', 'অসুষম')}
                         </span>
-                        <span className="lv-chip lv-chip-neutral">
+                        <span className="ql-badge ql-badge-neutral">
                           <Hash size={11} />
                           <span className="font-money">
                             {vault.auditChain.checkedCount} {L('journals sealed', 'জার্নাল সিল')}
                           </span>
                         </span>
-                        <span className="lv-chip lv-chip-gold">
+                        <span className="ql-badge ql-badge-warn">
                           <ShieldCheck size={11} />
                           {vault.tenant.fiscal_year_label}
                         </span>
-                        <span className="lv-chip lv-chip-neutral">
+                        <span className="ql-badge ql-badge-neutral">
                           <span className="font-mono">{formatDate('2026-11-02', vault.locale)}</span>
                         </span>
                       </div>

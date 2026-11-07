@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle, CheckCircle2, CircleSlash, Clock3, FileQuestion, ShieldCheck } from 'lucide-react';
 
-export const BANK_INPUT = 'lv-input min-h-11 w-full text-[14px]';
-export const BANK_SELECT = 'lv-select min-h-11 w-full text-[14px]';
+export const BANK_INPUT = 'ql-input min-h-11 w-full text-[14px]';
+export const BANK_SELECT = 'ql-select min-h-11 w-full text-[14px]';
 
 export function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -31,48 +31,48 @@ export function formatDate(value: string | null): string {
 export function statusChip(status: string): ReactNode {
   if (status === 'MATCHED' || status === 'POSTED' || status === 'REVIEWED' || status === 'ACTIVE' || status === 'IMPORTED') {
     return (
-      <span className="lv-chip lv-chip-emerald">
+      <span className="ql-badge ql-badge-success">
         <CheckCircle2 size={12} /> {status.replaceAll('_', ' ')}
       </span>
     );
   }
   if (status === 'PARTIALLY_MATCHED' || status === 'PREPARED' || status === 'SUBMITTED') {
     return (
-      <span className="lv-chip lv-chip-gold">
+      <span className="ql-badge ql-badge-warn">
         <Clock3 size={12} /> {status.replaceAll('_', ' ')}
       </span>
     );
   }
   if (status === 'LOCKED' || status === 'REVERSED' || status === 'REJECTED' || status === 'INACTIVE' || status === 'EXCLUDED') {
     return (
-      <span className="lv-chip lv-chip-rose">
+      <span className="ql-badge ql-badge-danger">
         <CircleSlash size={12} /> {status.replaceAll('_', ' ')}
       </span>
     );
   }
   if (status === 'CATEGORIZED') {
     return (
-      <span className="lv-chip lv-chip-gold">
+      <span className="ql-badge ql-badge-warn">
         <FileQuestion size={12} /> {status}
       </span>
     );
   }
   if (status === 'UNMATCHED' || status === 'DRAFT') {
     return (
-      <span className="lv-chip lv-chip-rose">
+      <span className="ql-badge ql-badge-danger">
         <AlertTriangle size={12} /> {status}
       </span>
     );
   }
   if (status === 'PARTIAL') {
     return (
-      <span className="lv-chip lv-chip-gold">
+      <span className="ql-badge ql-badge-warn">
         <AlertTriangle size={12} /> {status}
       </span>
     );
   }
   return (
-    <span className="lv-chip lv-chip-neutral">
+    <span className="ql-badge ql-badge-neutral">
       <ShieldCheck size={12} /> {status.replaceAll('_', ' ')}
     </span>
   );
@@ -80,7 +80,7 @@ export function statusChip(status: string): ReactNode {
 
 export function boolChip(value: boolean, trueLabel: string, falseLabel: string): ReactNode {
   return (
-    <span className={`lv-chip ${value ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+    <span className={`ql-badge ${value ? 'ql-badge-success' : 'ql-badge-danger'}`}>
       {value ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
       {value ? trueLabel : falseLabel}
     </span>
@@ -107,8 +107,8 @@ export function StatCard({
           ? 'text-amber-700 dark:text-amber-300'
           : 'text-ink-900';
   return (
-    <article className="lv-card lv-card-pad">
-      <p className="lv-kicker">{label}</p>
+    <article className="ql-card ql-card-pad">
+      <p className="ql-kicker">{label}</p>
       <p className={`font-money mt-2 text-[20px] font-semibold ${toneClass}`}>{value}</p>
       {hint ? <p className="mt-1 text-[12px] leading-relaxed text-ink-400">{hint}</p> : null}
     </article>

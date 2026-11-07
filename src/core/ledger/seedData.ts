@@ -1,4 +1,4 @@
-// LedgerVault — Phase 2 self-balancing Bangladeshi seed dataset for Apex Delta Trading Ltd.
+// Fintuity Accounting Suite — Phase 2 self-balancing Bangladeshi seed dataset for Apex Delta Trading Ltd.
 //
 // Every journal in this file is produced by `buildBalancedJournal()`, which asserts
 // SUM(debit_poisha) === SUM(credit_poisha) and re-validates the two-line / positive-debit rules
@@ -2047,7 +2047,7 @@ export function createSeedDataset(personaKey: TenantEntity['persona_key'] = 'APE
       current_period: CURRENT_PERIOD,
       comparative_period: COMPARATIVE_PERIOD,
       opening_journal: OPENING_JOURNAL_NUMBER,
-      seed_version: 'lv-2026.2',
+      seed_version: 'ql-2026.2',
     },
   };
 }

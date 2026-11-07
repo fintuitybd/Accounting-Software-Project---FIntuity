@@ -111,10 +111,10 @@ export function AgeingAndStatementPanel({ companyId, refs }: { companyId: string
         kicker="Open supplier items derive from posted bills and payment allocations"
         action={
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void loadAgeing()}>
+            <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void loadAgeing()}>
               <RefreshCw size={15} /> Refresh
             </button>
-            <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" disabled={!ageing} onClick={exportAgeing}>
+            <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" disabled={!ageing} onClick={exportAgeing}>
               <Download size={15} /> CSV
             </button>
           </div>
@@ -136,7 +136,7 @@ export function AgeingAndStatementPanel({ companyId, refs }: { companyId: string
             </select>
           </label>
           <div className="flex items-end">
-            <button type="button" className="lv-btn lv-btn-primary min-h-11 w-full text-[13px]" onClick={() => void loadAgeing()}>
+            <button type="button" className="ql-btn ql-btn-primary min-h-11 w-full text-[13px]" onClick={() => void loadAgeing()}>
               <FileClock size={15} /> {loading ? 'Loading…' : 'Load ageing'}
             </button>
           </div>
@@ -195,7 +195,7 @@ export function AgeingAndStatementPanel({ companyId, refs }: { companyId: string
                         <td className="px-2 py-2 text-right font-mono">{row.allocatedBdt}</td>
                         <td className="px-2 py-2 text-right font-mono font-semibold">{row.outstandingBdt}</td>
                         <td className="px-2 py-2 text-right font-mono text-ink-500">{row.expectedWithholdingBdt}</td>
-                        <td className="px-2 py-2"><span className="lv-chip lv-chip-neutral">{row.bucket.replace('_', '–')}</span></td>
+                        <td className="px-2 py-2"><span className="ql-badge ql-badge-neutral">{row.bucket.replace('_', '–')}</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -226,7 +226,7 @@ export function AgeingAndStatementPanel({ companyId, refs }: { companyId: string
             <input type="date" className={INPUT_CLASS} value={to} onChange={(event) => setTo(event.target.value)} />
           </label>
         </div>
-        <button type="button" className="lv-btn lv-btn-secondary mt-3 min-h-11 text-[13px]" disabled={loadingStatement} onClick={() => void loadStatement()}>
+        <button type="button" className="ql-btn ql-btn-secondary mt-3 min-h-11 text-[13px]" disabled={loadingStatement} onClick={() => void loadStatement()}>
           {loadingStatement ? 'Loading…' : 'Load statement'}
         </button>
         {statement ? (
@@ -312,7 +312,7 @@ export function WithholdingPanel({ companyId }: { companyId: string }) {
       title="VDS / TDS / reverse-charge liability queue"
       kicker="Created from actual payments and reverse-charge bills"
       action={
-        <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
+        <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
           <RefreshCw size={15} /> Refresh
         </button>
       }
@@ -346,7 +346,7 @@ export function WithholdingPanel({ companyId }: { companyId: string }) {
           </select>
         </label>
         <div className="flex items-end">
-          <button type="button" className="lv-btn lv-btn-primary min-h-11 w-full text-[13px]" onClick={() => void load()}>
+          <button type="button" className="ql-btn ql-btn-primary min-h-11 w-full text-[13px]" onClick={() => void load()}>
             <ShieldCheck size={15} /> {loading ? 'Loading…' : 'Load queue'}
           </button>
         </div>
@@ -390,7 +390,7 @@ export function WithholdingPanel({ companyId }: { companyId: string }) {
                   <td className="px-2 py-2 text-right font-mono">{entry.baseBdt}</td>
                   <td className="px-2 py-2 text-right font-mono">{ratePercent(entry.rateBps)}</td>
                   <td className="px-2 py-2 text-right font-mono font-semibold">{entry.amountBdt}</td>
-                  <td className="px-2 py-2"><span className={`lv-chip ${entry.status === 'PENDING' ? 'lv-chip-gold' : entry.status === 'DEPOSITED' ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>{entry.status}</span></td>
+                  <td className="px-2 py-2"><span className={`ql-badge ${entry.status === 'PENDING' ? 'ql-badge-warn' : entry.status === 'DEPOSITED' ? 'ql-badge-success' : 'ql-badge-danger'}`}>{entry.status}</span></td>
                 </tr>
               ))}
             </tbody>

@@ -167,7 +167,7 @@ export default function CompanyProfileStep({
       </dl>
 
       {canManage ? (
-        <button type="submit" disabled={saving} className="lv-btn lv-btn-primary min-h-11 text-[14px]">
+        <button type="submit" disabled={saving} className="ql-btn ql-btn-primary min-h-11 text-[14px]">
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           Save company identity
         </button>

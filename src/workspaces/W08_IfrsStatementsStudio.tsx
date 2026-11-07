@@ -1,4 +1,4 @@
-// LedgerVault — W08 management-accounts workbench (IAS 1 / IFRS 18 / IAS 7 presentation).
+// Fintuity Accounting Suite — W08 management-accounts workbench (IAS 1 / IFRS 18 / IAS 7 presentation).
 //
 // One workbench, three control axes: the FRC reporting framework, the multi-book consolidation
 // scope and the P&L presentation basis. Every statement is generated live from the immutable
@@ -276,7 +276,7 @@ function SectionBlock({
         <span className="font-money text-[11px] font-semibold text-ink-500">{money(section.total_poisha)}</span>
       </div>
       <div className="overflow-x-auto">
-        <table className="lv-table w-full min-w-[520px]">
+        <table className="ql-table w-full min-w-[520px]">
           <thead>
             <tr>
               <th>{isBn ? 'বিবরণ' : 'Description'}</th>
@@ -440,15 +440,15 @@ function DrillDrawer({ target, entries, isBn, locale, money, onClose, onOpenLens
 
             <div className="grid grid-cols-3 gap-2 border-b border-ink-100 bg-ink-50/60 px-5 py-3">
               <div>
-                <p className="lv-kicker">{isBn ? 'ডেবিট' : 'Debits'}</p>
+                <p className="ql-kicker">{isBn ? 'ডেবিট' : 'Debits'}</p>
                 <p className="font-money mt-0.5 text-[12px] font-semibold text-ink-900">{money(debit)}</p>
               </div>
               <div>
-                <p className="lv-kicker">{isBn ? 'ক্রেডিট' : 'Credits'}</p>
+                <p className="ql-kicker">{isBn ? 'ক্রেডিট' : 'Credits'}</p>
                 <p className="font-money mt-0.5 text-[12px] font-semibold text-ink-900">{money(credit)}</p>
               </div>
               <div>
-                <p className="lv-kicker">{isBn ? 'নিট' : 'Net'}</p>
+                <p className="ql-kicker">{isBn ? 'নিট' : 'Net'}</p>
                 <p className={`font-money mt-0.5 border-b-2 border-double border-ink-400 pb-0.5 text-[12px] font-semibold ${net < 0n ? 'text-rose-600' : 'text-vault-800'}`}>
                   {money(net, { sign: true })}
                 </p>
@@ -478,7 +478,7 @@ function DrillDrawer({ target, entries, isBn, locale, money, onClose, onOpenLens
                             {formatDate(journal.posting_date, locale)} · {journal.book_type.replace(/_/g, ' ')} · {journal.status}
                           </p>
                         </div>
-                        <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[10px]" onClick={() => onOpenLens(journal)}>
+                        <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[10px]" onClick={() => onOpenLens(journal)}>
                           <ShieldCheck size={11} /> Ledger Lens
                         </button>
                       </div>
@@ -746,14 +746,14 @@ export default function W08_IfrsStatementsStudio() {
   return (
     <div className="space-y-5">
       {/* ---------------- Top control ribbon ---------------- */}
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><BookOpen size={12} /> {L('Executive statement workbench', 'নির্বাহী বিবরণী ওয়ার্কবেঞ্চ')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><BookOpen size={12} /> {L('Executive statement workbench', 'নির্বাহী বিবরণী ওয়ার্কবেঞ্চ')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">
               {L('Management accounts — unaudited', 'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়')} · {isBn ? statements.period.label_bn : statements.period.label_en}
             </h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L('Comparative', 'তুলনামূলক')}: {isBn ? statements.comparative.label_bn : statements.comparative.label_en} ·{' '}
               {bookScope} · {journals.length} {L('journals in scope', 'পরিসরের জার্নাল')}
             </p>
@@ -770,17 +770,17 @@ export default function W08_IfrsStatementsStudio() {
               <select
                 value={vault.statementPeriodCode}
                 onChange={(event) => vault.setStatementPeriodCode(event.target.value)}
-                className="lv-select mt-1 min-h-11 w-full text-[13px]"
+                className="ql-select mt-1 min-h-11 w-full text-[13px]"
               >
                 {vault.periods.map((period) => (
                   <option key={period.code} value={period.code}>{period.code} — {period.status}</option>
                 ))}
               </select>
             </label>
-            <button type="button" className="lv-btn lv-btn-secondary" onClick={() => setPrintOpen(true)}>
+            <button type="button" className="ql-btn ql-btn-secondary" onClick={() => setPrintOpen(true)}>
               <Printer size={14} /> {L('Print A4 management accounts (unaudited)', 'এ৪ ব্যবস্থাপনা হিসাব (নিরীক্ষিত নয়) প্রিন্ট')}
             </button>
-            <button type="button" className="lv-btn lv-btn-primary" onClick={exportWorkbook}>
+            <button type="button" className="ql-btn ql-btn-primary" onClick={exportWorkbook}>
               <FileSpreadsheet size={14} /> {L('Export 9-tab management workbook (.xlsx)', '৯-ট্যাব ব্যবস্থাপনা ওয়ার্কবুক রপ্তানি (.xlsx)')}
             </button>
           </div>
@@ -789,7 +789,7 @@ export default function W08_IfrsStatementsStudio() {
         {/* Framework selector */}
         <div className="border-t border-ink-100 px-5 py-4">
           <div className="flex items-center justify-between gap-2">
-            <p className="lv-kicker flex items-center gap-1.5"><BadgeCheck size={11} /> {L('FRC reporting framework', 'এফআরসি প্রতিবেদন কাঠামো')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><BadgeCheck size={11} /> {L('FRC reporting framework', 'এফআরসি প্রতিবেদন কাঠামো')}</p>
             <span className="text-[10px] text-ink-400">{L('Updates the formal compliance header and note disclosures', 'আনুষ্ঠানিক সম্মতি শিরোনাম ও নোট প্রকাশ পরিবর্তন করে')}</span>
           </div>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -818,18 +818,18 @@ export default function W08_IfrsStatementsStudio() {
         {/* Multi-book switcher */}
         <div className="border-t border-ink-100 px-5 py-4">
           <div className="flex items-center justify-between gap-2">
-            <p className="lv-kicker flex items-center gap-1.5"><Layers size={11} /> {L('Multi-book switcher', 'মাল্টি-বুক সুইচার')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Layers size={11} /> {L('Multi-book switcher', 'মাল্টি-বুক সুইচার')}</p>
             <span className="text-[10px] text-ink-400">
               {L('Statutory + IFRS adjustments + tax computation in one ledger', 'বিধিবদ্ধ + আইএফআরএস সমন্বয় + কর গণনা একই খতিয়ানে')}
             </span>
           </div>
-          <div className="lv-seg mt-2 flex-wrap">
+          <div className="ql-seg mt-2 flex-wrap">
             {BOOK_OPTIONS.map((entry) => (
               <button
                 key={entry.key}
                 type="button"
                 data-active={vault.bookFilter === entry.key}
-                className="lv-seg-item"
+                className="ql-seg-item"
                 onClick={() => vault.setBookFilter(entry.key)}
                 title={L(entry.detail_en, entry.detail_bn)}
               >
@@ -843,12 +843,12 @@ export default function W08_IfrsStatementsStudio() {
         {/* Presentation basis + proof */}
         <div className="grid gap-4 border-t border-ink-100 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Scale size={11} /> {L('P&L presentation basis', 'পিএল উপস্থাপন ভিত্তি')}</p>
-            <div className="lv-seg mt-2">
-              <button type="button" data-active={plBasis === 'IFRS18'} className="lv-seg-item" onClick={() => setPlBasis('IFRS18')}>
+            <p className="ql-kicker flex items-center gap-1.5"><Scale size={11} /> {L('P&L presentation basis', 'পিএল উপস্থাপন ভিত্তি')}</p>
+            <div className="ql-seg mt-2">
+              <button type="button" data-active={plBasis === 'IFRS18'} className="ql-seg-item" onClick={() => setPlBasis('IFRS18')}>
                 {L('IFRS 18 categories + MPM', 'আইএফআরএস ১৮ শ্রেণি + এমপিএম')}
               </button>
-              <button type="button" data-active={plBasis === 'IAS1'} className="lv-seg-item" onClick={() => setPlBasis('IAS1')}>
+              <button type="button" data-active={plBasis === 'IAS1'} className="ql-seg-item" onClick={() => setPlBasis('IAS1')}>
                 {L('Classic IAS 1', 'চিরাচরিত আইএএস ১')}
               </button>
             </div>
@@ -878,13 +878,13 @@ export default function W08_IfrsStatementsStudio() {
             </div>
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div>
-                <p className="lv-kicker">{L('Total assets', 'মোট সম্পদ')}</p>
+                <p className="ql-kicker">{L('Total assets', 'মোট সম্পদ')}</p>
                 <p className="font-money mt-0.5 border-b-4 border-double border-ink-900 pb-0.5 text-[13px] font-semibold text-ink-900">
                   {money(bs.total_assets_poisha)}
                 </p>
               </div>
               <div>
-                <p className="lv-kicker">{L('Total equity & liabilities', 'মোট ইকুইটি ও দায়')}</p>
+                <p className="ql-kicker">{L('Total equity & liabilities', 'মোট ইকুইটি ও দায়')}</p>
                 <p className="font-money mt-0.5 border-b-4 border-double border-ink-900 pb-0.5 text-[13px] font-semibold text-ink-900">
                   {money(bs.total_equity_and_liabilities_poisha)}
                 </p>
@@ -897,7 +897,7 @@ export default function W08_IfrsStatementsStudio() {
         <div className="border-t border-ink-100 bg-ink-50/50 px-5 py-3">
           <div className="flex flex-wrap items-start gap-3">
             <div className="min-w-0 flex-1">
-              <p className="lv-kicker">{L('Formal compliance header', 'আনুষ্ঠানিক সম্মতি শিরোনাম')}</p>
+              <p className="ql-kicker">{L('Formal compliance header', 'আনুষ্ঠানিক সম্মতি শিরোনাম')}</p>
               <p className="mt-1 text-[11px] leading-relaxed text-ink-700">{L(framework.legal_en, framework.legal_bn)}</p>
               <p className="mt-1 text-[10px] leading-relaxed text-ink-500">{L(framework.basis_en, framework.basis_bn)}</p>
             </div>
@@ -912,7 +912,7 @@ export default function W08_IfrsStatementsStudio() {
         <div className="grid gap-3 border-t border-ink-100 px-5 py-4 sm:grid-cols-2 xl:grid-cols-6">
           {headline.map((card) => (
             <div key={card.label} className="rounded-xl bg-ink-50/70 px-3 py-2.5">
-              <p className="lv-kicker flex items-center gap-1"><card.icon size={11} /> {card.label}</p>
+              <p className="ql-kicker flex items-center gap-1"><card.icon size={11} /> {card.label}</p>
               <p className={`font-money mt-1 text-[13px] font-semibold ${card.value < 0n ? 'text-rose-600' : 'text-ink-900'}`}>
                 {money(card.value)}
               </p>
@@ -921,9 +921,9 @@ export default function W08_IfrsStatementsStudio() {
         </div>
 
         {/* Tabs */}
-        <div className="lv-seg mx-5 mb-4 flex-wrap">
+        <div className="ql-seg mx-5 mb-4 flex-wrap">
           {TABS.map((entry) => (
-            <button key={entry.key} type="button" data-active={tab === entry.key} onClick={() => setTab(entry.key)} className="lv-seg-item">
+            <button key={entry.key} type="button" data-active={tab === entry.key} onClick={() => setTab(entry.key)} className="ql-seg-item">
               <entry.icon size={11} className="mr-1 inline" />
               {L(entry.en, entry.bn)}
             </button>
@@ -933,16 +933,16 @@ export default function W08_IfrsStatementsStudio() {
 
       {/* ---------------- Statement of financial position ---------------- */}
       {tab === 'SOFP' && (
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker">{L('IAS 1.54 · statement of financial position', 'আইএএস ১.৫৪ · আর্থিক অবস্থানের বিবরণী')}</p>
+              <p className="ql-kicker">{L('IAS 1.54 · statement of financial position', 'আইএএস ১.৫৪ · আর্থিক অবস্থানের বিবরণী')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Assets, equity and liabilities', 'সম্পদ, ইকুইটি ও দায়')}</h2>
-              <p className="lv-hint mt-1">
+              <p className="ql-hint mt-1">
                 {currentLabel} {L('vs', 'বনাম')} {comparativeLabel} · {L('click any line to drill into its journals', 'যেকোনো লাইনে ক্লিক করে জার্নাল দেখুন')}
               </p>
             </div>
-            <span className={`lv-chip ${balanced ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className={`ql-badge ${balanced ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               {balanced ? <CheckCircle2 size={12} /> : <CircleAlert size={12} />}
               {balanced ? L('Proof holds', 'প্রমাণ বহাল') : L('Out of balance', 'অসাম্য')}
             </span>
@@ -1040,21 +1040,21 @@ export default function W08_IfrsStatementsStudio() {
 
       {/* ---------------- Profit or loss ---------------- */}
       {tab === 'PL' && (
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker">{plBasis === 'IFRS18' ? L('IFRS 18 · categories and MPM', 'আইএফআরএস ১৮ · শ্রেণি ও এমপিএম') : L('IAS 1 · classic presentation', 'আইএএস ১ · চিরাচরিত উপস্থাপন')}</p>
+              <p className="ql-kicker">{plBasis === 'IFRS18' ? L('IFRS 18 · categories and MPM', 'আইএফআরএস ১৮ · শ্রেণি ও এমপিএম') : L('IAS 1 · classic presentation', 'আইএএস ১ · চিরাচরিত উপস্থাপন')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Statement of Profit or Loss', 'মুনাফা বা ক্ষতির বিবরণী')}</h2>
-              <p className="lv-hint mt-1">
+              <p className="ql-hint mt-1">
                 {L('Gross profit', 'মোট মুনাফা')}: {money(pl.gross_profit_poisha)} · {L('Profit for the period', 'মেয়াদের মুনাফা')}: {' '}
                 <span className="font-semibold text-ink-800">{money(pl.profit_for_period_poisha)}</span>
               </p>
             </div>
-            <div className="lv-seg">
-              <button type="button" data-active={plBasis === 'IFRS18'} className="lv-seg-item" onClick={() => setPlBasis('IFRS18')}>
+            <div className="ql-seg">
+              <button type="button" data-active={plBasis === 'IFRS18'} className="ql-seg-item" onClick={() => setPlBasis('IFRS18')}>
                 {L('IFRS 18', 'আইএফআরএস ১৮')}
               </button>
-              <button type="button" data-active={plBasis === 'IAS1'} className="lv-seg-item" onClick={() => setPlBasis('IAS1')}>
+              <button type="button" data-active={plBasis === 'IAS1'} className="ql-seg-item" onClick={() => setPlBasis('IAS1')}>
                 {L('Classic IAS 1', 'আইএএস ১')}
               </button>
             </div>
@@ -1169,7 +1169,7 @@ export default function W08_IfrsStatementsStudio() {
             </div>
           ) : (
             <div className="overflow-x-auto px-5 py-5">
-              <table className="lv-table min-w-[720px]">
+              <table className="ql-table min-w-[720px]">
                 <thead>
                   <tr>
                     <th>{L('Classic IAS 1 line', 'চিরাচরিত আইএএস ১ লাইন')}</th>
@@ -1232,19 +1232,19 @@ export default function W08_IfrsStatementsStudio() {
 
       {/* ---------------- Statement of changes in equity ---------------- */}
       {tab === 'SOCIE' && (
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker">{L('IAS 1.106 · statement of changes in equity', 'আইএএস ১.১০৬ · ইকুইটিতে পরিবর্তনের বিবরণী')}</p>
+              <p className="ql-kicker">{L('IAS 1.106 · statement of changes in equity', 'আইএএস ১.১০৬ · ইকুইটিতে পরিবর্তনের বিবরণী')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Equity roll-forward by reserve', 'রিজার্ভ অনুযায়ী ইকুইটি রোল-ফরোয়ার্ড')}</h2>
-              <p className="lv-hint mt-1">
+              <p className="ql-hint mt-1">
                 {L('Opening balance, period profit and closing equity proved to the balance sheet.', 'প্রারম্ভিক ব্যালেন্স, মেয়াদের মুনাফা ও সমাপনী ইকুইটি ব্যালেন্স শিটে প্রমাণিত।')}
               </p>
             </div>
-            <span className="lv-chip lv-chip-neutral"><span className={NOTE_PILL}>Note 17</span></span>
+            <span className="ql-badge ql-badge-neutral"><span className={NOTE_PILL}>Note 17</span></span>
           </div>
           <div className="overflow-x-auto">
-            <table className="lv-table min-w-[820px]">
+            <table className="ql-table min-w-[820px]">
               <thead>
                 <tr>
                   <th>{L('Movement', 'পরিবর্তন')}</th>
@@ -1319,23 +1319,23 @@ export default function W08_IfrsStatementsStudio() {
 
       {/* ---------------- Statement of cash flows ---------------- */}
       {tab === 'CASH' && (
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker">{L('IAS 7 · statement of cash flows', 'আইএএস ৭ · নগদ প্রবাহ বিবরণী')}</p>
+              <p className="ql-kicker">{L('IAS 7 · statement of cash flows', 'আইএএস ৭ · নগদ প্রবাহ বিবরণী')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">
                 {cashBasis === 'INDIRECT' ? L('Indirect method — starting from operating profit', 'পরোক্ষ পদ্ধতি — পরিচালন মুনাফা থেকে শুরু') : L('Direct method — receipts and payments', 'প্রত্যক্ষ পদ্ধতি — প্রাপ্তি ও পরিশোধ')}
               </h2>
-              <p className="lv-hint mt-1">
+              <p className="ql-hint mt-1">
                 {L('Cash', 'নগদ')}: {money(cf.opening_cash_poisha)} → {money(cf.closing_cash_poisha)} ·{' '}
                 {cf.reconciles ? L('reconciles to the ledger', 'খতিয়ানের সাথে মিলে') : L('difference disclosed', 'পার্থক্য প্রকাশিত')}
               </p>
             </div>
-            <div className="lv-seg">
-              <button type="button" data-active={cashBasis === 'INDIRECT'} className="lv-seg-item" onClick={() => setCashBasis('INDIRECT')}>
+            <div className="ql-seg">
+              <button type="button" data-active={cashBasis === 'INDIRECT'} className="ql-seg-item" onClick={() => setCashBasis('INDIRECT')}>
                 {L('Indirect', 'পরোক্ষ')}
               </button>
-              <button type="button" data-active={cashBasis === 'DIRECT'} className="lv-seg-item" onClick={() => setCashBasis('DIRECT')}>
+              <button type="button" data-active={cashBasis === 'DIRECT'} className="ql-seg-item" onClick={() => setCashBasis('DIRECT')}>
                 {L('Direct', 'প্রত্যক্ষ')}
               </button>
             </div>
@@ -1380,15 +1380,15 @@ export default function W08_IfrsStatementsStudio() {
               />
               <div className="grid gap-3 rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 sm:grid-cols-3">
                 <div>
-                  <p className="lv-kicker">{L('Net change in cash', 'নগদে নিট পরিবর্তন')}</p>
+                  <p className="ql-kicker">{L('Net change in cash', 'নগদে নিট পরিবর্তন')}</p>
                   <p className="font-money mt-1 border-b-4 border-double border-ink-900 pb-0.5 text-sm font-semibold text-ink-900">{money(cf.net_change_poisha)}</p>
                 </div>
                 <div>
-                  <p className="lv-kicker">{L('Opening cash', 'প্রারম্ভিক নগদ')}</p>
+                  <p className="ql-kicker">{L('Opening cash', 'প্রারম্ভিক নগদ')}</p>
                   <p className="font-money mt-1 text-sm font-semibold text-ink-900">{money(cf.opening_cash_poisha)}</p>
                 </div>
                 <div>
-                  <p className="lv-kicker">{L('Closing cash', 'সমাপনী নগদ')}</p>
+                  <p className="ql-kicker">{L('Closing cash', 'সমাপনী নগদ')}</p>
                   <p className="font-money mt-1 border-b-4 border-double border-vault-600 pb-0.5 text-sm font-semibold text-vault-800">{money(cf.closing_cash_poisha)}</p>
                 </div>
               </div>
@@ -1411,7 +1411,7 @@ export default function W08_IfrsStatementsStudio() {
                 return (
                   <div key={section} className="space-y-1.5">
                     <p className={`text-[11px] font-semibold uppercase tracking-[0.12em] ${section === 'OPERATING' ? 'text-vault-800' : section === 'INVESTING' ? 'text-gold-700' : 'text-ink-700'}`}>{title}</p>
-                    <table className="lv-table w-full">
+                    <table className="ql-table w-full">
                       <thead>
                         <tr>
                           <th>{L('Receipts / (payments)', 'প্রাপ্তি / (পরিশোধ)')}</th>
@@ -1460,19 +1460,19 @@ export default function W08_IfrsStatementsStudio() {
               })}
               <div className="grid gap-3 rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 sm:grid-cols-4">
                 <div>
-                  <p className="lv-kicker">{L('Direct net movement', 'প্রত্যক্ষ নিট চলাচল')}</p>
+                  <p className="ql-kicker">{L('Direct net movement', 'প্রত্যক্ষ নিট চলাচল')}</p>
                   <p className="font-money mt-1 border-b-4 border-double border-ink-900 pb-0.5 text-sm font-semibold">{money(directCash.net)}</p>
                 </div>
                 <div>
-                  <p className="lv-kicker">{L('Ledger net movement', 'খতিয়ান নিট চলাচল')}</p>
+                  <p className="ql-kicker">{L('Ledger net movement', 'খতিয়ান নিট চলাচল')}</p>
                   <p className="font-money mt-1 text-sm font-semibold">{money(directCash.ledgerNet)}</p>
                 </div>
                 <div>
-                  <p className="lv-kicker">{L('Opening cash', 'প্রারম্ভিক নগদ')}</p>
+                  <p className="ql-kicker">{L('Opening cash', 'প্রারম্ভিক নগদ')}</p>
                   <p className="font-money mt-1 text-sm font-semibold">{money(cf.opening_cash_poisha)}</p>
                 </div>
                 <div>
-                  <p className="lv-kicker">{L('Closing cash', 'সমাপনী নগদ')}</p>
+                  <p className="ql-kicker">{L('Closing cash', 'সমাপনী নগদ')}</p>
                   <p className="font-money mt-1 text-sm font-semibold text-vault-800">{money(cf.closing_cash_poisha)}</p>
                 </div>
               </div>
@@ -1489,21 +1489,21 @@ export default function W08_IfrsStatementsStudio() {
 
       {/* ---------------- Trial balance ---------------- */}
       {tab === 'TB' && (
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker">{L('Trial balance proof', 'রেওয়ামিল প্রমাণ')}</p>
+              <p className="ql-kicker">{L('Trial balance proof', 'রেওয়ামিল প্রমাণ')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Every ledger account, opening to closing', 'প্রতিটি খতিয়ান হিসাব, প্রারম্ভিক থেকে সমাপনী')}</h2>
-              <p className="lv-hint mt-1">
+              <p className="ql-hint mt-1">
                 {L('Click a row to open its journal lines', 'সারিতে ক্লিক করে জার্নাল লাইন দেখুন')} · {tbDebit === tbCredit ? L('debits = credits', 'ডেবিট = ক্রেডিট') : L('out of balance', 'অসাম্য')}
               </p>
             </div>
-            <span className={`lv-chip ${tbDebit === tbCredit ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className={`ql-badge ${tbDebit === tbCredit ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               {money(tbDebit)} = {money(tbCredit)}
             </span>
           </div>
           <div className="max-h-[600px] overflow-auto">
-            <table className="lv-table min-w-[1040px]">
+            <table className="ql-table min-w-[1040px]">
               <thead>
                 <tr>
                   <th>{L('Code', 'কোড')}</th>
@@ -1572,10 +1572,10 @@ export default function W08_IfrsStatementsStudio() {
       {/* ---------------- Notes ---------------- */}
       {tab === 'NOTES' && (
         <section className="space-y-3">
-          <article className="lv-card lv-card-pad">
+          <article className="ql-card ql-card-pad">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5"><BookOpen size={12} /> {L('Note 1 · basis of preparation', 'নোট ১ · প্রস্তুতির ভিত্তি')}</p>
+                <p className="ql-kicker flex items-center gap-1.5"><BookOpen size={12} /> {L('Note 1 · basis of preparation', 'নোট ১ · প্রস্তুতির ভিত্তি')}</p>
                 <h2 className="mt-1 text-sm font-semibold text-ink-900">{L(framework.short_en, framework.short_bn)}</h2>
                 <p className="mt-1 max-w-3xl text-[11px] leading-relaxed text-ink-700">{noteBody(framework.legal_en, framework.legal_bn)}</p>
                 <p className="mt-1 max-w-3xl text-[10px] leading-relaxed text-ink-500">{noteBody(framework.basis_en, framework.basis_bn)}</p>
@@ -1587,8 +1587,8 @@ export default function W08_IfrsStatementsStudio() {
             </div>
           </article>
 
-          <article className="lv-card lv-card-pad">
-            <p className="lv-kicker">{L('Significant accounting policies for this framework', 'এই কাঠামোর উল্লেখযোগ্য হিসাব নীতি')}</p>
+          <article className="ql-card ql-card-pad">
+            <p className="ql-kicker">{L('Significant accounting policies for this framework', 'এই কাঠামোর উল্লেখযোগ্য হিসাব নীতি')}</p>
             <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
               {policyNotes.map((policy) => (
                 <li key={policy.en} className="flex items-start gap-1.5 text-[11px] leading-relaxed text-ink-700">
@@ -1600,17 +1600,17 @@ export default function W08_IfrsStatementsStudio() {
           </article>
 
           {statements.notes.map((note) => (
-            <article key={note.id} className="lv-card lv-card-pad">
+            <article key={note.id} className="ql-card ql-card-pad">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="text-sm font-semibold text-ink-900">
                   <span className="mr-2 font-mono text-[11px] text-vault-700">Note {note.number}</span>
                   {isBn ? note.title_bn : note.title_en}
                 </p>
-                <span className="lv-chip lv-chip-neutral">{note.rows.length} {L('rows', 'সারি')}</span>
+                <span className="ql-badge ql-badge-neutral">{note.rows.length} {L('rows', 'সারি')}</span>
               </div>
-              <p className="lv-hint mt-1.5 leading-relaxed">{isBn ? note.body_bn : note.body_en}</p>
+              <p className="ql-hint mt-1.5 leading-relaxed">{isBn ? note.body_bn : note.body_en}</p>
               {note.rows.length > 0 && (
-                <table className="lv-table mt-3 w-full">
+                <table className="ql-table mt-3 w-full">
                   <thead>
                     <tr>
                       <th>{L('Disclosure', 'প্রকাশ')}</th>
@@ -1642,26 +1642,26 @@ export default function W08_IfrsStatementsStudio() {
       )}
 
       {/* ---------------- Footer rail ---------------- */}
-      <section className="lv-card lv-card-pad">
+      <section className="ql-card ql-card-pad">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Download size={12} /> {L('Drill-through & evidence', 'ড্রিল-থ্রু ও প্রমাণ')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Download size={12} /> {L('Drill-through & evidence', 'ড্রিল-থ্রু ও প্রমাণ')}</p>
             <p className="mt-1 text-sm font-semibold text-ink-900">
               {L('Every line is clickable — the drawer shows the journals, Ledger Lens shows the hash.', 'প্রতিটি লাইন ক্লিকযোগ্য — ড্রয়ারে জার্নাল, লেজার লেন্সে হ্যাশ।')}
             </p>
-            <p className="lv-hint mt-0.5">
+            <p className="ql-hint mt-0.5">
               {journals.length} {L('posted journals', 'পোস্টেড জার্নাল')} · {L('SHA-256 chain', 'শা-২৫৬ চেইন')} {vault.auditChain.valid ? L('intact', 'অটুট') : L('broken', 'ভাঙা')} ·{' '}
               {L('BigInt poisha throughout', 'সর্বত্র বিগইন্ট পয়সা')}
             </p>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <button type="button" className="lv-btn lv-btn-ghost" onClick={() => setTab('SOFP')}>
+            <button type="button" className="ql-btn ql-btn-ghost" onClick={() => setTab('SOFP')}>
               <Landmark size={13} /> {L('Back to SOFP', 'এসওএফপি')}
             </button>
-            <button type="button" className="lv-btn lv-btn-ghost" onClick={() => setTab('NOTES')}>
+            <button type="button" className="ql-btn ql-btn-ghost" onClick={() => setTab('NOTES')}>
               <ScrollText size={13} /> {L('Notes index', 'নোট সূচি')}
             </button>
-            <button type="button" className="lv-btn lv-btn-secondary" onClick={() => setPrintOpen(true)}>
+            <button type="button" className="ql-btn ql-btn-secondary" onClick={() => setPrintOpen(true)}>
               <Printer size={14} /> {L('Print A4 pack', 'এ৪ প্যাক প্রিন্ট')}
             </button>
           </div>

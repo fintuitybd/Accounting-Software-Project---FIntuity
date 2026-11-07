@@ -141,8 +141,8 @@ export function TaxPolicyPanel({
             <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">{policy.pack.titleEn}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className="lv-chip lv-chip-gold">{policy.pack.reviewerStatus}</span>
-            <span className={`lv-chip ${policy.canPost ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className="ql-badge ql-badge-warn">{policy.pack.reviewerStatus}</span>
+            <span className={`ql-badge ${policy.canPost ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               {policy.canPost ? 'Posting allowed' : 'Posting blocked'}
             </span>
           </div>
@@ -215,7 +215,7 @@ export function TaxPolicyPanel({
         ) : null}
         <button
           type="button"
-          className="lv-btn lv-btn-primary mt-4 min-h-11 text-[13px]"
+          className="ql-btn ql-btn-primary mt-4 min-h-11 text-[13px]"
           disabled={!canManage || saving || !reviewerName || !reviewerQualification || !sourceReference || !inputVatAccountId || !vdsPayableAccountId || !tdsPayableAccountId || !reverseChargePayableAccountId}
           onClick={() => void approve()}
         >

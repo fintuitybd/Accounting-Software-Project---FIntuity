@@ -24,21 +24,21 @@ const PRINT_CSS = `
   @page { size: A4 portrait; margin: 12mm 10mm 14mm; }
   html, body { background: #ffffff !important; }
   #root { display: none !important; }
-  .lv-report-print-overlay {
+  .ql-report-print-overlay {
     position: static !important; inset: auto !important; display: block !important;
     background: #ffffff !important; padding: 0 !important; backdrop-filter: none !important;
   }
-  .lv-report-print-chrome { display: none !important; }
-  .lv-report-print-scroll { overflow: visible !important; padding: 0 !important; margin: 0 !important; }
-  .lv-report-print-sheet {
+  .ql-report-print-chrome { display: none !important; }
+  .ql-report-print-scroll { overflow: visible !important; padding: 0 !important; margin: 0 !important; }
+  .ql-report-print-sheet {
     width: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
     border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
     page-break-after: always; break-after: page;
   }
-  .lv-report-print-sheet:last-child { page-break-after: auto; break-after: auto; }
-  .lv-report-print-sheet table { page-break-inside: auto; }
-  .lv-report-print-sheet tr { page-break-inside: avoid; }
-  .lv-report-print-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ql-report-print-sheet:last-child { page-break-after: auto; break-after: auto; }
+  .ql-report-print-sheet table { page-break-inside: auto; }
+  .ql-report-print-sheet tr { page-break-inside: avoid; }
+  .ql-report-print-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 `;
 
@@ -105,9 +105,9 @@ export function ReportPrintModal({
   const isPaginated = ['VAT_SALES_REGISTER', 'VAT_PURCHASE_REGISTER', 'JOURNAL_LISTING'].includes(reportKey);
 
   const content = (
-    <div className="lv-report-print-overlay fixed inset-0 z-[70] flex flex-col bg-ink-900/70">
+    <div className="ql-report-print-overlay fixed inset-0 z-[70] flex flex-col bg-ink-900/70">
       <style>{PRINT_CSS}</style>
-      <div className="lv-report-print-chrome flex flex-wrap items-center justify-between gap-2 border-b border-ink-800 bg-ink-950 px-4 py-2.5 text-white">
+      <div className="ql-report-print-chrome flex flex-wrap items-center justify-between gap-2 border-b border-ink-800 bg-ink-950 px-4 py-2.5 text-white">
         <div className="flex items-center gap-2">
           <button type="button" onClick={onClose} className="rounded-lg bg-white/10 p-1.5 text-white" aria-label={L('Back', 'ফিরে যান')}>
             <ArrowLeft size={15} />
@@ -129,8 +129,8 @@ export function ReportPrintModal({
           <Printer size={14} /> {L('Print / Save as PDF', 'প্রিন্ট / পিডিএফ সংরক্ষণ')}
         </button>
       </div>
-      <div className="lv-report-print-scroll flex-1 overflow-y-auto bg-ink-200/60 p-4">
-        <div className="lv-report-print-sheet mx-auto min-h-[297mm] w-full max-w-[210mm] border border-black/20 bg-white p-8 text-black shadow-2xl">
+      <div className="ql-report-print-scroll flex-1 overflow-y-auto bg-ink-200/60 p-4">
+        <div className="ql-report-print-sheet mx-auto min-h-[297mm] w-full max-w-[210mm] border border-black/20 bg-white p-8 text-black shadow-2xl">
           <header className="border-b-2 border-black pb-3">
             <p className="text-[9pt] font-bold uppercase tracking-[0.14em]">{report.scope.companyName}</p>
             <h1 className="mt-1 text-[15pt] font-bold leading-tight">{localized(locale, report.titleEn, report.titleBn)}</h1>

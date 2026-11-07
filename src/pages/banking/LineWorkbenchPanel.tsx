@@ -469,16 +469,16 @@ export function LineWorkbenchPanel({
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker">Statement queue</p>
+            <p className="ql-kicker">Statement queue</p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink-900">{bank.name}</h2>
             <p className="mt-1 text-[12px] text-ink-500">
               {bank.glAccountCode} · {bank.kind} · {bank.provider ?? '—'} · {bank.maskedNumber ?? '—'}
             </p>
           </div>
-          <button type="button" onClick={() => void loadLines()} disabled={loading} className="lv-btn lv-btn-secondary min-h-11 text-[12px]">
+          <button type="button" onClick={() => void loadLines()} disabled={loading} className="ql-btn ql-btn-secondary min-h-11 text-[12px]">
             {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Refresh
           </button>
         </div>
@@ -488,7 +488,7 @@ export function LineWorkbenchPanel({
           </label>
           <select
             id="bank-line-status"
-            className="lv-select min-h-10 text-[13px]"
+            className="ql-select min-h-10 text-[13px]"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
           >
@@ -504,7 +504,7 @@ export function LineWorkbenchPanel({
         {error ? <div className="p-4"><ErrorBanner message={error} /></div> : null}
         {notice ? <div className="p-4 pb-0"><Notice message={notice} tone="success" /></div> : null}
         <div className="max-h-[700px] overflow-auto">
-          <table className="lv-table min-w-[760px]">
+          <table className="ql-table min-w-[760px]">
             <caption className="sr-only">Imported bank statement lines</caption>
             <thead>
               <tr>
@@ -551,7 +551,7 @@ export function LineWorkbenchPanel({
         </div>
       </section>
 
-      <section className="lv-card overflow-hidden xl:sticky xl:top-24 xl:self-start">
+      <section className="ql-card overflow-hidden xl:sticky xl:top-24 xl:self-start">
         <div className="border-b border-line bg-gradient-to-r from-ink-900 via-vault-950 to-vault-900 px-4 py-3 text-white">
           <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-vault-200">Exception workbench</p>
           <h2 className="mt-1 text-[16px] font-semibold">Statement line → journal / GL</h2>
@@ -603,11 +603,11 @@ export function LineWorkbenchPanel({
 
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="lv-kicker">Journal candidates</p>
+                <p className="ql-kicker">Journal candidates</p>
                 <label className="flex items-center gap-2 text-[12px] text-ink-500">
                   Date window
                   <select
-                    className="lv-select min-h-9 text-[12px]"
+                    className="ql-select min-h-9 text-[12px]"
                     value={windowDays}
                     onChange={(event) => setWindowDays(Number(event.target.value))}
                   >
@@ -640,7 +640,7 @@ export function LineWorkbenchPanel({
                           <span className="mt-1 block text-[12px] leading-relaxed text-ink-500">{candidate.reason}</span>
                         </span>
                       </span>
-                      <span className={`lv-chip ${candidate.score >= 80 ? 'lv-chip-emerald' : candidate.score >= 50 ? 'lv-chip-gold' : 'lv-chip-neutral'}`}>
+                      <span className={`ql-badge ${candidate.score >= 80 ? 'ql-badge-success' : candidate.score >= 50 ? 'ql-badge-warn' : 'ql-badge-neutral'}`}>
                         score {candidate.score}
                       </span>
                     </span>
@@ -649,7 +649,7 @@ export function LineWorkbenchPanel({
                       <span>Available {money(BigInt(candidate.availablePoisha))}</span>
                       <span>{candidate.sourceDocRef ?? 'no source document'}</span>
                       {candidate.usesOtherStatementLines ? (
-                        <span className="lv-chip lv-chip-gold"><Split size={11} /> split required</span>
+                        <span className="ql-badge ql-badge-warn"><Split size={11} /> split required</span>
                       ) : null}
                     </span>
                   </label>
@@ -683,7 +683,7 @@ export function LineWorkbenchPanel({
                     />
                   </Field>
                 </div>
-                <button type="button" onClick={() => void doMatch()} disabled={busy || !canPost} className="lv-btn lv-btn-primary mt-3 min-h-11 w-full text-[13px]">
+                <button type="button" onClick={() => void doMatch()} disabled={busy || !canPost} className="ql-btn ql-btn-primary mt-3 min-h-11 w-full text-[13px]">
                   {busy ? <Loader2 size={15} className="animate-spin" /> : <ArrowRightLeft size={15} />}
                   Match {effectiveMatchType().toLowerCase()}
                 </button>
@@ -693,14 +693,14 @@ export function LineWorkbenchPanel({
 
             {matches.length > 0 ? (
               <div>
-                <p className="lv-kicker">Reconciliation links</p>
+                <p className="ql-kicker">Reconciliation links</p>
                 <div className="mt-2 space-y-2">
                   {matches.map((match) => (
                     <div key={match.id} className="rounded-xl border border-line bg-white p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="font-mono text-[13px] font-semibold text-ink-900">{match.journalNumber ?? match.journalId}</span>
                         <span className="flex items-center gap-2">
-                          <span className="lv-chip lv-chip-neutral">{match.matchType}</span>
+                          <span className="ql-badge ql-badge-neutral">{match.matchType}</span>
                           {statusChip(match.status)}
                         </span>
                       </div>
@@ -720,7 +720,7 @@ export function LineWorkbenchPanel({
                     <Field label="Unmatch reason" required>
                       <input className={INPUT_CLASS} value={unmatchReason} onChange={(event) => setUnmatchReason(event.target.value)} maxLength={500} />
                     </Field>
-                    <button type="button" onClick={() => void doUnmatch()} disabled={busy} className="lv-btn lv-btn-secondary mt-2 min-h-11 w-full text-[13px]">
+                    <button type="button" onClick={() => void doUnmatch()} disabled={busy} className="ql-btn ql-btn-secondary mt-2 min-h-11 w-full text-[13px]">
                       <Ban size={15} /> Remove reconciliation link (journal is not reversed)
                     </button>
                   </div>
@@ -730,7 +730,7 @@ export function LineWorkbenchPanel({
 
             {selectedLine.status !== 'MATCHED' && selectedLine.status !== 'EXCLUDED' && !openGlRequest ? (
               <div className="rounded-xl border border-line bg-surface-2/40 p-3">
-                <p className="lv-kicker flex items-center gap-1.5"><FilePlus2 size={13} /> Create GL from this line</p>
+                <p className="ql-kicker flex items-center gap-1.5"><FilePlus2 size={13} /> Create GL from this line</p>
                 <p className="mt-1 text-[12px] leading-relaxed text-ink-500">
                   Choose a real asset, liability, revenue or expense account. Equity is rejected. The draft journal must be approved by
                   a different user before it posts and matches.
@@ -783,7 +783,7 @@ export function LineWorkbenchPanel({
                     </>
                   ) : null}
                 </div>
-                <button type="button" onClick={() => void doCreateGl()} disabled={busy || !canPost} className="lv-btn lv-btn-primary mt-3 min-h-11 w-full text-[13px]">
+                <button type="button" onClick={() => void doCreateGl()} disabled={busy || !canPost} className="ql-btn ql-btn-primary mt-3 min-h-11 w-full text-[13px]">
                   {busy ? <Loader2 size={15} className="animate-spin" /> : <FilePlus2 size={15} />} Create draft journal
                 </button>
               </div>
@@ -791,7 +791,7 @@ export function LineWorkbenchPanel({
 
             {glRequests.length > 0 ? (
               <div>
-                <p className="lv-kicker">Create-GL requests</p>
+                <p className="ql-kicker">Create-GL requests</p>
                 <div className="mt-2 space-y-2">
                   {glRequests.map((request) => (
                     <div key={request.id} className="rounded-xl border border-line bg-white p-3">
@@ -811,22 +811,22 @@ export function LineWorkbenchPanel({
                       ) : null}
                       <div className="mt-2 flex flex-wrap gap-2">
                         {request.status === 'DRAFT' && canPost ? (
-                          <button type="button" onClick={() => void doGlAction(request, 'submit')} disabled={busy} className="lv-btn lv-btn-secondary min-h-9 text-[12px]">
+                          <button type="button" onClick={() => void doGlAction(request, 'submit')} disabled={busy} className="ql-btn ql-btn-secondary min-h-9 text-[12px]">
                             Submit for approval
                           </button>
                         ) : null}
                         {request.status === 'SUBMITTED' && canApprove && request.createdBy !== auth.user?.id ? (
                           <>
-                            <button type="button" onClick={() => void doGlAction(request, 'approve')} disabled={busy} className="lv-btn lv-btn-primary min-h-9 text-[12px]">
+                            <button type="button" onClick={() => void doGlAction(request, 'approve')} disabled={busy} className="ql-btn ql-btn-primary min-h-9 text-[12px]">
                               <ShieldCheck size={13} /> Approve & post
                             </button>
-                            <button type="button" onClick={() => void doGlAction(request, 'reject')} disabled={busy} className="lv-btn lv-btn-secondary min-h-9 text-[12px]">
+                            <button type="button" onClick={() => void doGlAction(request, 'reject')} disabled={busy} className="ql-btn ql-btn-secondary min-h-9 text-[12px]">
                               Reject
                             </button>
                           </>
                         ) : null}
                         {request.status === 'DRAFT' && request.createdBy === auth.user?.id ? (
-                          <button type="button" onClick={() => void doGlAction(request, 'cancel')} disabled={busy} className="lv-btn lv-btn-secondary min-h-9 text-[12px]">
+                          <button type="button" onClick={() => void doGlAction(request, 'cancel')} disabled={busy} className="ql-btn ql-btn-secondary min-h-9 text-[12px]">
                             Cancel
                           </button>
                         ) : null}
@@ -841,7 +841,7 @@ export function LineWorkbenchPanel({
             ) : null}
 
             <div className="rounded-xl border border-line bg-surface-2/40 p-3">
-              <p className="lv-kicker flex items-center gap-1.5"><Wallet size={13} /> MFS / bank fee</p>
+              <p className="ql-kicker flex items-center gap-1.5"><Wallet size={13} /> MFS / bank fee</p>
               {feePosting?.status === 'POSTED' ? (
                 <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-800">
                   <p className="flex items-center gap-1.5 font-semibold"><CheckCircle2 size={13} /> Fee posted once</p>
@@ -888,7 +888,7 @@ export function LineWorkbenchPanel({
                       <input className={INPUT_CLASS} value={feeEvidence} onChange={(event) => setFeeEvidence(event.target.value)} maxLength={500} />
                     </Field>
                   </div>
-                  <button type="button" onClick={() => void doPostFee()} disabled={busy || !canPost} className="lv-btn lv-btn-secondary mt-3 min-h-11 w-full text-[13px]">
+                  <button type="button" onClick={() => void doPostFee()} disabled={busy || !canPost} className="ql-btn ql-btn-secondary mt-3 min-h-11 w-full text-[13px]">
                     <Wallet size={15} /> Post fee journal once
                   </button>
                 </>
@@ -897,12 +897,12 @@ export function LineWorkbenchPanel({
 
             {selectedLine.status !== 'MATCHED' && selectedLine.status !== 'EXCLUDED' ? (
               <div className="rounded-xl border border-line bg-surface-2/40 p-3">
-                <p className="lv-kicker flex items-center gap-1.5"><UserCheck size={13} /> Exception ownership and exclusion</p>
+                <p className="ql-kicker flex items-center gap-1.5"><UserCheck size={13} /> Exception ownership and exclusion</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
                   <Field label="Exception note">
                     <input className={INPUT_CLASS} value={exceptionNote} onChange={(event) => setExceptionNote(event.target.value)} maxLength={500} />
                   </Field>
-                  <button type="button" onClick={() => void doAssignToMe()} disabled={busy || !canPost || !auth.user?.id} className="lv-btn lv-btn-secondary min-h-11 self-end text-[13px]">
+                  <button type="button" onClick={() => void doAssignToMe()} disabled={busy || !canPost || !auth.user?.id} className="ql-btn ql-btn-secondary min-h-11 self-end text-[13px]">
                     Assign to me
                   </button>
                 </div>
@@ -910,7 +910,7 @@ export function LineWorkbenchPanel({
                   <Field label="Exclusion reason" required>
                     <input className={INPUT_CLASS} value={excludeReason} onChange={(event) => setExcludeReason(event.target.value)} maxLength={500} />
                   </Field>
-                  <button type="button" onClick={() => void doExclude()} disabled={busy || !canPost} className="lv-btn lv-btn-secondary min-h-11 self-end text-[13px]">
+                  <button type="button" onClick={() => void doExclude()} disabled={busy || !canPost} className="ql-btn ql-btn-secondary min-h-11 self-end text-[13px]">
                     Exclude line
                   </button>
                 </div>

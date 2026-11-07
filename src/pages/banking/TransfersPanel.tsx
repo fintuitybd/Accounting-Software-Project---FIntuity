@@ -144,17 +144,17 @@ export function TransfersPanel({
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="lv-kicker">Internal treasury movement</p>
+            <p className="ql-kicker">Internal treasury movement</p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink-900">Transfer between accounts</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">
               A transfer posts one balanced journal: debit the destination GL account, credit the source GL account. It has its own
               number, idempotency key and audit trail. Corrections use a linked reversal.
             </p>
           </div>
-          <button type="button" onClick={() => void load()} disabled={loading} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={() => void load()} disabled={loading} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             {loading ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />} Refresh
           </button>
         </div>
@@ -190,7 +190,7 @@ export function TransfersPanel({
             <input className={INPUT_CLASS} value={narration} onChange={(event) => setNarration(event.target.value)} maxLength={500} />
           </Field>
           <div className="self-end xl:col-span-2">
-            <button type="button" onClick={() => void create()} disabled={busy || !canPost} className="lv-btn lv-btn-primary min-h-11 w-full text-[13px]">
+            <button type="button" onClick={() => void create()} disabled={busy || !canPost} className="ql-btn ql-btn-primary min-h-11 w-full text-[13px]">
               {busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Post transfer
             </button>
           </div>
@@ -198,13 +198,13 @@ export function TransfersPanel({
         {!canPost ? <p className="mt-2 text-[12px] text-ink-400">Your role cannot post transfers.</p> : null}
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><ArrowRightLeft size={13} /> Transfer register</p>
+            <p className="ql-kicker flex items-center gap-1.5"><ArrowRightLeft size={13} /> Transfer register</p>
             <h2 className="mt-1 text-[18px] font-semibold text-ink-900">Posted and reversed transfers</h2>
           </div>
-          <span className="lv-chip lv-chip-neutral">{transfers.length} transfer(s)</span>
+          <span className="ql-badge ql-badge-neutral">{transfers.length} transfer(s)</span>
         </div>
         {transfers.length === 0 ? (
           <p className="px-4 py-6 text-[13px] text-ink-500">No bank transfer has been posted.</p>
@@ -249,16 +249,16 @@ export function TransfersPanel({
                             <input className={INPUT_CLASS} type="date" value={reversalDate} onChange={(event) => setReversalDate(event.target.value)} />
                             <input className={INPUT_CLASS} value={reversalReason} onChange={(event) => setReversalReason(event.target.value)} placeholder="Reversal reason" maxLength={500} />
                             <div className="flex gap-2">
-                              <button type="button" onClick={() => void reverse(transfer)} disabled={busy} className="lv-btn lv-btn-primary min-h-9 flex-1 text-[12px]">
+                              <button type="button" onClick={() => void reverse(transfer)} disabled={busy} className="ql-btn ql-btn-primary min-h-9 flex-1 text-[12px]">
                                 <RotateCcw size={13} /> Reverse
                               </button>
-                              <button type="button" onClick={() => setReversingId(null)} className="lv-btn lv-btn-secondary min-h-9 text-[12px]">
+                              <button type="button" onClick={() => setReversingId(null)} className="ql-btn ql-btn-secondary min-h-9 text-[12px]">
                                 Cancel
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <button type="button" onClick={() => setReversingId(transfer.id)} className="lv-btn lv-btn-secondary min-h-9 text-[12px]">
+                          <button type="button" onClick={() => setReversingId(transfer.id)} className="ql-btn ql-btn-secondary min-h-9 text-[12px]">
                             <RotateCcw size={13} /> Reverse
                           </button>
                         )

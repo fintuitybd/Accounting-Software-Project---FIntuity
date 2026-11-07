@@ -119,7 +119,7 @@ export default function AuditLogPage() {
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-6">
+      <section className="ql-card p-4 sm:p-6">
         <PageHeader
           eyebrow={L('Audit log', 'অডিট লগ')}
           title={L('Append-only activity trail', 'সংযোজন-শুধু কার্যক্রমের ইতিহাস')}
@@ -163,16 +163,16 @@ export default function AuditLogPage() {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button type="button" className="lv-btn lv-btn-secondary min-h-9 text-[12px]" onClick={() => void load()} disabled={loading}>
+          <button type="button" className="ql-btn ql-btn-secondary min-h-9 text-[12px]" onClick={() => void load()} disabled={loading}>
             <RefreshCcw size={13} /> {L('Refresh', 'রিফ্রেশ')}
           </button>
           <span className="text-[12px] text-ink-500">{total.toLocaleString('en-US')} {L('events', 'ঘটনা')}</span>
         </div>
       </section>
 
-      <section className="lv-card overflow-hidden">
+      <section className="ql-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="lv-table min-w-[1100px]">
+          <table className="ql-table min-w-[1100px]">
             <thead>
               <tr>
                 <th>{L('Time', 'সময়')}</th>
@@ -220,8 +220,8 @@ export default function AuditLogPage() {
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-4 py-3">
           <span className="text-[12px] text-ink-500">{L('Page', 'পৃষ্ঠা')} {page} / {pages}</span>
           <div className="flex gap-2">
-            <button type="button" className="lv-btn lv-btn-secondary min-h-9 text-[12px]" disabled={offset === 0} onClick={() => setOffset(Math.max(offset - limit, 0))}>{L('Previous', 'আগের')}</button>
-            <button type="button" className="lv-btn lv-btn-secondary min-h-9 text-[12px]" disabled={offset + limit >= total} onClick={() => setOffset(offset + limit)}>{L('Next', 'পরের')}</button>
+            <button type="button" className="ql-btn ql-btn-secondary min-h-9 text-[12px]" disabled={offset === 0} onClick={() => setOffset(Math.max(offset - limit, 0))}>{L('Previous', 'আগের')}</button>
+            <button type="button" className="ql-btn ql-btn-secondary min-h-9 text-[12px]" disabled={offset + limit >= total} onClick={() => setOffset(offset + limit)}>{L('Next', 'পরের')}</button>
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-// LedgerVault — Phase 6 vector identity system.
+// Fintuity Accounting Suite — Phase 6 vector identity system.
 //
 // Four hand-built, fully vector marks that carry the visual language of the product without any
 // raster asset: the prismatic vault crest, the Jamdani lattice watermark, the multi-concentric
@@ -27,7 +27,7 @@ function polar(cx: number, cy: number, radius: number, angleDeg: number): { x: n
 }
 
 // ---------------------------------------------------------------------------------------------
-// 1. LedgerVault crest — prismatic indigo & violet vault emblem
+// 1. Fintuity Accounting Suite crest — prismatic indigo & violet vault emblem
 // ---------------------------------------------------------------------------------------------
 
 const CREST_SPOKES = Array.from({ length: 8 }, (_, index) => {
@@ -39,7 +39,7 @@ const CREST_SPOKES = Array.from({ length: 8 }, (_, index) => {
 
 const CREST_RIVETS = Array.from({ length: 12 }, (_, index) => polar(60, 60, 29.5, index * 30));
 
-export function LedgerVaultCrestSvg({
+export function FintuityCrestSvg({
   className,
   size = 64,
   title = 'Fintuity Accounting Suite crest',
@@ -340,13 +340,13 @@ export function ComplianceRingsSvg({
           </linearGradient>
         ))}
         <radialGradient id={`${uid}-core`} cx="38%" cy="30%" r="80%">
-          <stop offset="0%" stopColor="rgb(var(--lv-surface))" />
-          <stop offset="100%" stopColor="rgb(var(--lv-surface-2))" />
+          <stop offset="0%" stopColor="rgb(var(--ql-surface))" />
+          <stop offset="100%" stopColor="rgb(var(--ql-surface-muted))" />
         </radialGradient>
       </defs>
 
       {/* Engraved tick ring */}
-      <g strokeWidth="0.8" strokeLinecap="round" style={{ stroke: 'rgb(var(--lv-line))' }}>
+      <g strokeWidth="0.8" strokeLinecap="round" style={{ stroke: 'rgb(var(--ql-border))' }}>
         {RING_TICKS.map((tick) => (
           <line
             key={tick.key}
@@ -354,7 +354,7 @@ export function ComplianceRingsSvg({
             y1={tick.y1}
             x2={tick.x2}
             y2={tick.y2}
-            style={tick.major ? { stroke: 'rgb(var(--lv-saffron))', strokeOpacity: 0.5 } : { strokeOpacity: 0.9 }}
+            style={tick.major ? { stroke: 'rgb(var(--ql-accent))', strokeOpacity: 0.5 } : { strokeOpacity: 0.9 }}
           />
         ))}
       </g>
@@ -400,7 +400,7 @@ export function ComplianceRingsSvg({
               }
             }}
           >
-            <circle cx={RING_CENTER} cy={RING_CENTER} r={radius} fill="none" style={{ stroke: 'rgb(var(--lv-line))' }} strokeWidth={RING_STROKE} />
+            <circle cx={RING_CENTER} cy={RING_CENTER} r={radius} fill="none" style={{ stroke: 'rgb(var(--ql-border))' }} strokeWidth={RING_STROKE} />
             <circle
               cx={RING_CENTER}
               cy={RING_CENTER}
@@ -426,7 +426,7 @@ export function ComplianceRingsSvg({
         );
       })}
 
-      <circle cx={RING_CENTER} cy={RING_CENTER} r="35" fill={`url(#${uid}-core)`} style={{ stroke: 'rgb(var(--lv-line))' }} strokeWidth="0.9" />
+      <circle cx={RING_CENTER} cy={RING_CENTER} r="35" fill={`url(#${uid}-core)`} style={{ stroke: 'rgb(var(--ql-border))' }} strokeWidth="0.9" />
       <text
         x={RING_CENTER}
         y={RING_CENTER + 2}
@@ -585,7 +585,7 @@ export function CryptographicSealSvg({
         fill="#c7d2fe"
         fillOpacity="0.85"
       >
-        LEDGERVAULT
+        FINTUITY
       </text>
 
       {locked ? (
@@ -647,7 +647,7 @@ export function CryptographicSealSvg({
 }
 
 export default {
-  LedgerVaultCrestSvg,
+  FintuityCrestSvg,
   JamdaniWatermarkSvg,
   ComplianceRingsSvg,
   CryptographicSealSvg,

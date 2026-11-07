@@ -392,12 +392,12 @@ export default function ReportsPage() {
   if (auth.demoMode) {
     return (
       <div className="space-y-4">
-        <header className="lv-card p-4 sm:p-6">
-          <p className="lv-kicker">{L('Management reporting', 'ব্যবস্থাপনা প্রতিবেদন')}</p>
+        <header className="ql-card p-4 sm:p-6">
+          <p className="ql-kicker">{L('Management reporting', 'ব্যবস্থাপনা প্রতিবেদন')}</p>
           <h1 className="mt-1 text-[27px] font-semibold leading-tight tracking-[-0.03em] text-ink-900">
             {L('Reports, VAT registers and financial statements', 'রিপোর্ট, ভ্যাট রেজিস্টার ও আর্থিক বিবরণী')}
           </h1>
-          <span className="lv-chip lv-chip-gold mt-3 inline-flex">{L('Management accounts — unaudited', 'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়')}</span>
+          <span className="ql-badge ql-badge-warn mt-3 inline-flex">{L('Management accounts — unaudited', 'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়')}</span>
         </header>
         <Notice
           message={L(
@@ -413,8 +413,8 @@ export default function ReportsPage() {
   if (loadingCatalog) {
     return (
       <div className="space-y-4">
-        <header className="lv-card p-4 sm:p-6">
-          <p className="lv-kicker">{L('Management reporting', 'ব্যবস্থাপনা প্রতিবেদন')}</p>
+        <header className="ql-card p-4 sm:p-6">
+          <p className="ql-kicker">{L('Management reporting', 'ব্যবস্থাপনা প্রতিবেদন')}</p>
           <h1 className="mt-1 text-[27px] font-semibold leading-tight tracking-[-0.03em] text-ink-900">
             {L('Reports, VAT registers and financial statements', 'রিপোর্ট, ভ্যাট রেজিস্টার ও আর্থিক বিবরণী')}
           </h1>
@@ -424,7 +424,7 @@ export default function ReportsPage() {
               'প্রতিটি সংখ্যা পোস্টকৃত জার্নাল ও ডকুমেন্ট থেকে তৈরি। ব্যবস্থাপনা হিসাব নিরীক্ষিত নয়; ভ্যাট রিটার্ন অভ্যন্তরীণ খসড়া এবং এই স্ক্রিন থেকে কখনো দাখিল হয় না।',
             )}
           </p>
-          <span className="lv-chip lv-chip-gold mt-3 inline-flex">{L('Management accounts — unaudited', 'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়')}</span>
+          <span className="ql-badge ql-badge-warn mt-3 inline-flex">{L('Management accounts — unaudited', 'ব্যবস্থাপনা হিসাব — নিরীক্ষিত নয়')}</span>
         </header>
         <Notice message={L('Loading report definitions and periods…', 'রিপোর্ট সংজ্ঞা ও সময়কাল লোড হচ্ছে…')} tone="info" />
       </div>
@@ -452,11 +452,11 @@ export default function ReportsPage() {
         }
       />
 
-      <section className="lv-card p-4 sm:p-6">
+      <section className="ql-card p-4 sm:p-6">
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
           <label className="block text-[12px] font-semibold text-ink-600">
             {L('Branch scope', 'শাখার পরিসর')}
-            <select value={branchId} onChange={(event) => { setBranchId(event.target.value); setPage(1); }} className="lv-select mt-1 min-h-11 w-full text-[13px]">
+            <select value={branchId} onChange={(event) => { setBranchId(event.target.value); setPage(1); }} className="ql-select mt-1 min-h-11 w-full text-[13px]">
               <option value="">{L('All branches', 'সব শাখা')}</option>
               <option value="UNASSIGNED">{L('Unassigned journals/documents', 'অনির্ধারিত জার্নাল/ডকুমেন্ট')}</option>
               {catalog.branches.map((branch) => (
@@ -466,7 +466,7 @@ export default function ReportsPage() {
           </label>
           <label className="block text-[12px] font-semibold text-ink-600">
             {L('Accounting period', 'হিসাবকাল')}
-            <select value={periodId} onChange={(event) => { setPeriodId(event.target.value); setPage(1); }} className="lv-select mt-1 min-h-11 w-full text-[13px]">
+            <select value={periodId} onChange={(event) => { setPeriodId(event.target.value); setPage(1); }} className="ql-select mt-1 min-h-11 w-full text-[13px]">
               {catalog.periods.map((period) => (
                 <option key={period.id} value={period.id}>{period.code} — {period.status}</option>
               ))}
@@ -474,7 +474,7 @@ export default function ReportsPage() {
           </label>
           <label className="block text-[12px] font-semibold text-ink-600">
             {L('Range preset', 'পরিসরের ধরন')}
-            <select value={preset} onChange={(event) => { setPreset(event.target.value as Preset); setPage(1); }} className="lv-select mt-1 min-h-11 w-full text-[13px]">
+            <select value={preset} onChange={(event) => { setPreset(event.target.value as Preset); setPage(1); }} className="ql-select mt-1 min-h-11 w-full text-[13px]">
               {(['MONTH', 'QUARTER', 'YTD', 'YEAR', 'CUSTOM'] as Preset[]).map((entry) => (
                 <option key={entry} value={entry}>{presetLabel(entry, locale)}</option>
               ))}
@@ -482,7 +482,7 @@ export default function ReportsPage() {
           </label>
           <label className="block text-[12px] font-semibold text-ink-600">
             {L('Comparative', 'তুলনামূলক')}
-            <select value={comparativePeriodId} onChange={(event) => setComparativePeriodId(event.target.value)} className="lv-select mt-1 min-h-11 w-full text-[13px]">
+            <select value={comparativePeriodId} onChange={(event) => setComparativePeriodId(event.target.value)} className="ql-select mt-1 min-h-11 w-full text-[13px]">
               <option value="">{L('No comparative', 'তুলনামূলক নয়')}</option>
               {catalog.periods.map((period) => (
                 <option key={period.id} value={period.id}>{period.code}</option>
@@ -500,7 +500,7 @@ export default function ReportsPage() {
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => void loadReport()} disabled={loadingReport} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={() => void loadReport()} disabled={loadingReport} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <RefreshCw size={14} className={loadingReport ? 'animate-spin' : ''} /> {L('Apply scope', 'পরিসর প্রয়োগ')}
           </button>
           <span className="text-[12px] text-ink-500">
@@ -515,7 +515,7 @@ export default function ReportsPage() {
               <input type="date" value={asOf} onChange={(event) => setAsOf(event.target.value)} className={`${INPUT_CLASS} mt-1`} />
             </label>
             <div className="flex items-end">
-              <button type="button" onClick={() => void loadReport()} disabled={loadingReport} className="lv-btn lv-btn-secondary min-h-11 w-full text-[13px]">
+              <button type="button" onClick={() => void loadReport()} disabled={loadingReport} className="ql-btn ql-btn-secondary min-h-11 w-full text-[13px]">
                 <RefreshCw size={14} className={loadingReport ? 'animate-spin' : ''} /> {L('Apply scope', 'পরিসর প্রয়োগ')}
               </button>
             </div>
@@ -526,14 +526,14 @@ export default function ReportsPage() {
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             <label className="block text-[12px] font-semibold text-ink-600">
               {L('Account', 'হিসাব')}
-              <select value={glAccountId} onChange={(event) => setGlAccountId(event.target.value)} className="lv-select mt-1 min-h-11 w-full text-[13px]">
+              <select value={glAccountId} onChange={(event) => setGlAccountId(event.target.value)} className="ql-select mt-1 min-h-11 w-full text-[13px]">
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>{account.code} — {account.nameEn}</option>
                 ))}
               </select>
             </label>
             <div className="flex items-end">
-              <button type="button" onClick={() => void loadReport()} disabled={loadingReport} className="lv-btn lv-btn-secondary min-h-11 w-full text-[13px]">
+              <button type="button" onClick={() => void loadReport()} disabled={loadingReport} className="ql-btn ql-btn-secondary min-h-11 w-full text-[13px]">
                 <RefreshCw size={14} className={loadingReport ? 'animate-spin' : ''} /> {L('Load ledger detail', 'খাতা বিবরণ লোড')}
               </button>
             </div>
@@ -551,7 +551,7 @@ export default function ReportsPage() {
                   key={entry.key}
                   type="button"
                   onClick={() => { setReport(null); setTab(entry.key); setPage(1); }}
-                  className={`lv-btn min-h-11 text-[13px] ${tab === entry.key ? 'lv-btn-primary' : 'lv-btn-secondary'}`}
+                  className={`ql-btn min-h-11 text-[13px] ${tab === entry.key ? 'ql-btn-primary' : 'ql-btn-secondary'}`}
                   aria-pressed={tab === entry.key}
                 >
                   <Icon size={14} /> {localized(locale, entry.en, entry.bn)}
@@ -569,12 +569,12 @@ export default function ReportsPage() {
       {tab === 'SECTION_177_RETURN' ? (
         <WithholdingReturnPage />
       ) : report ? (
-        <section className="lv-card p-4 sm:p-6">
+        <section className="ql-card p-4 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex flex-wrap items-center gap-1.5">
                 <TemplateBadge template={report.template} locale={locale} />
-                <span className={`lv-chip ${report.canExport ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                <span className={`ql-badge ${report.canExport ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                   {report.canExport ? <ShieldCheck size={12} /> : <TriangleAlert size={12} />}
                   {report.canExport ? L('Export checks passed', 'রপ্তানি পরীক্ষা উত্তীর্ণ') : L('Export blocked', 'রপ্তানি বন্ধ')}
                 </span>
@@ -590,13 +590,13 @@ export default function ReportsPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <button type="button" onClick={() => void exportCsv()} disabled={!canExport || loadingReport} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+              <button type="button" onClick={() => void exportCsv()} disabled={!canExport || loadingReport} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                 <FileText size={14} /> {L('CSV', 'সিএসভি')}
               </button>
-              <button type="button" onClick={() => void exportXlsx()} disabled={!canExport || loadingReport} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+              <button type="button" onClick={() => void exportXlsx()} disabled={!canExport || loadingReport} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                 <FileSpreadsheet size={14} /> {L('XLSX', 'এক্সএলএসএক্স')}
               </button>
-              <button type="button" onClick={openPrint} disabled={!canExport || loadingReport} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+              <button type="button" onClick={openPrint} disabled={!canExport || loadingReport} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
                 <Printer size={14} /> {L('Print / PDF', 'প্রিন্ট / পিডিএফ')}
               </button>
             </div>
@@ -747,7 +747,7 @@ function ReportBody({
     return (
       <div className="space-y-3">
         <div className="overflow-x-auto">
-          <table className="lv-table w-full min-w-[900px] text-[12px]">
+          <table className="ql-table w-full min-w-[900px] text-[12px]">
             <caption className="sr-only">{L('Statement of changes in equity', 'ইকুইটির পরিবর্তনের বিবরণী')}</caption>
             <thead>
               <tr>
@@ -794,7 +794,7 @@ function ReportBody({
     const trial = report as TrialBalanceReport;
     return (
       <div className="overflow-x-auto">
-        <table className="lv-table w-full min-w-[1000px] text-[12px]">
+        <table className="ql-table w-full min-w-[1000px] text-[12px]">
           <caption className="sr-only">{L('Trial balance by account', 'হিসাব অনুযায়ী রেওয়ামিল')}</caption>
           <thead>
             <tr>
@@ -851,7 +851,7 @@ function ReportBody({
           <span>{L('Opening', 'উদ্বোধনী')}: {money(BigInt(ledger.openingNetPoisha))} · {L('Closing', 'সমাপনী')}: {money(BigInt(ledger.closingNetPoisha))}</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="lv-table w-full min-w-[900px] text-[12px]">
+          <table className="ql-table w-full min-w-[900px] text-[12px]">
             <caption className="sr-only">{L('General ledger detail', 'সাধারণ খাতা বিবরণ')}</caption>
             <thead>
               <tr>
@@ -908,7 +908,7 @@ function ReportBody({
           {L('Control proof', 'নিয়ন্ত্রণ প্রমাণ')}: {ageing.ageing.proof.controlAccountCode} {ageing.ageing.proof.controlAccountName} · {L('GL', 'জিএল')} {money(BigInt(ageing.ageing.proof.glBalancePoisha))} · {L('Subledger', 'সাবলেজার')} {money(BigInt(ageing.ageing.proof.subledgerPoisha))} · {L('Difference', 'পার্থক্য')} {money(BigInt(ageing.ageing.proof.differencePoisha))}
         </div>
         <div className="overflow-x-auto">
-          <table className="lv-table w-full min-w-[1000px] text-[12px]">
+          <table className="ql-table w-full min-w-[1000px] text-[12px]">
             <caption className="sr-only">{L('Ageing open items', 'এজিং খোলা আইটেম')}</caption>
             <thead>
               <tr>
@@ -950,7 +950,7 @@ function ReportBody({
           {' · '}{L('Difference', 'পার্থক্য')}: {money(BigInt(String(stock.glProof.differencePoisha ?? '0')))}
         </div>
         <div className="overflow-x-auto">
-          <table className="lv-table w-full min-w-[950px] text-[12px]">
+          <table className="ql-table w-full min-w-[950px] text-[12px]">
             <caption className="sr-only">{L('Stock valuation by item and warehouse', 'আইটেম ও গুদাম অনুযায়ী স্টক মূল্যায়ন')}</caption>
             <thead>
               <tr>
@@ -985,20 +985,20 @@ function ReportBody({
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <span className="lv-chip lv-chip-neutral">{register.lineCount} {L('lines', 'লাইন')}</span>
-          <span className="lv-chip lv-chip-gold">{L('Base', 'বেস')} {money(BigInt(register.totals.basePoisha ?? '0'))}</span>
-          <span className="lv-chip lv-chip-gold">{L('VAT', 'ভ্যাট')} {money(BigInt(register.totals.vatPoisha ?? '0'))}</span>
+          <span className="ql-badge ql-badge-neutral">{register.lineCount} {L('lines', 'লাইন')}</span>
+          <span className="ql-badge ql-badge-warn">{L('Base', 'বেস')} {money(BigInt(register.totals.basePoisha ?? '0'))}</span>
+          <span className="ql-badge ql-badge-warn">{L('VAT', 'ভ্যাট')} {money(BigInt(register.totals.vatPoisha ?? '0'))}</span>
           {register.direction === 'PURCHASES' ? (
             <>
-              <span className="lv-chip lv-chip-emerald">{L('Claimable', 'দাবিযোগ্য')} {money(BigInt(register.totals.claimablePoisha ?? '0'))}</span>
-              <span className="lv-chip lv-chip-rose">{L('Disallowed', 'বাতিল')} {money(BigInt(register.totals.disallowedPoisha ?? '0'))}</span>
+              <span className="ql-badge ql-badge-success">{L('Claimable', 'দাবিযোগ্য')} {money(BigInt(register.totals.claimablePoisha ?? '0'))}</span>
+              <span className="ql-badge ql-badge-danger">{L('Disallowed', 'বাতিল')} {money(BigInt(register.totals.disallowedPoisha ?? '0'))}</span>
             </>
           ) : (
-            <span className="lv-chip lv-chip-neutral">{L('Credit notes', 'ক্রেডিট নোট')} {money(BigInt(register.totals.creditNoteVatPoisha ?? '0'))}</span>
+            <span className="ql-badge ql-badge-neutral">{L('Credit notes', 'ক্রেডিট নোট')} {money(BigInt(register.totals.creditNoteVatPoisha ?? '0'))}</span>
           )}
         </div>
         <div className="overflow-x-auto">
-          <table className="lv-table w-full min-w-[1150px] text-[12px]">
+          <table className="ql-table w-full min-w-[1150px] text-[12px]">
             <caption className="sr-only">{L('VAT register lines', 'ভ্যাট রেজিস্টার লাইন')}</caption>
             <thead>
               <tr>
@@ -1040,7 +1040,7 @@ function ReportBody({
         </div>
         {register.summaryByCategory.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="lv-table w-full min-w-[700px] text-[12px]">
+            <table className="ql-table w-full min-w-[700px] text-[12px]">
               <caption className="sr-only">{L('VAT category summary', 'ভ্যাট শ্রেণি সারসংক্ষেপ')}</caption>
               <thead>
                 <tr>
@@ -1072,8 +1072,8 @@ function ReportBody({
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-ink-500">
           <span>{L('Page', 'পৃষ্ঠা')} {register.page}</span>
           <div className="flex gap-1.5">
-            <button type="button" onClick={() => onPage(Math.max(1, page - 1))} disabled={page <= 1} className="lv-btn lv-btn-secondary min-h-11 text-[12px]">{L('Previous', 'পূর্ববর্তী')}</button>
-            <button type="button" onClick={() => onPage(page + 1)} disabled={register.rows.length < register.pageSize} className="lv-btn lv-btn-secondary min-h-11 text-[12px]">{L('Next', 'পরবর্তী')}</button>
+            <button type="button" onClick={() => onPage(Math.max(1, page - 1))} disabled={page <= 1} className="ql-btn ql-btn-secondary min-h-11 text-[12px]">{L('Previous', 'পূর্ববর্তী')}</button>
+            <button type="button" onClick={() => onPage(page + 1)} disabled={register.rows.length < register.pageSize} className="ql-btn ql-btn-secondary min-h-11 text-[12px]">{L('Next', 'পরবর্তী')}</button>
           </div>
         </div>
       </div>
@@ -1139,13 +1139,13 @@ function ReportBody({
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           {withholding.totals.map((entry) => (
-            <span key={`${entry.taxType}-${entry.status}`} className="lv-chip lv-chip-neutral">
+            <span key={`${entry.taxType}-${entry.status}`} className="ql-badge ql-badge-neutral">
               {entry.taxType} · {entry.status} · {entry.count} · {money(BigInt(entry.amountPoisha))}
             </span>
           ))}
         </div>
         <div className="overflow-x-auto">
-          <table className="lv-table w-full min-w-[1050px] text-[12px]">
+          <table className="ql-table w-full min-w-[1050px] text-[12px]">
             <caption className="sr-only">{L('Withholding liabilities and challans', 'উৎসে কর দায় ও চালান')}</caption>
             <thead>
               <tr>
@@ -1193,7 +1193,7 @@ function ReportBody({
     return (
       <div className="space-y-3">
         <div className="overflow-x-auto">
-          <table className="lv-table w-full min-w-[1150px] text-[12px]">
+          <table className="ql-table w-full min-w-[1150px] text-[12px]">
             <caption className="sr-only">{L('Journal listing', 'জার্নাল তালিকা')}</caption>
             <thead>
               <tr>
@@ -1229,8 +1229,8 @@ function ReportBody({
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-ink-500">
           <span>{L('Showing', 'দেখানো হচ্ছে')} {listing.entries.length} / {listing.total}</span>
           <div className="flex gap-1.5">
-            <button type="button" onClick={() => onPage(Math.max(1, page - 1))} disabled={page <= 1} className="lv-btn lv-btn-secondary min-h-11 text-[12px]">{L('Previous', 'পূর্ববর্তী')}</button>
-            <button type="button" onClick={() => onPage(page + 1)} disabled={listing.entries.length < listing.limit} className="lv-btn lv-btn-secondary min-h-11 text-[12px]">{L('Next', 'পরবর্তী')}</button>
+            <button type="button" onClick={() => onPage(Math.max(1, page - 1))} disabled={page <= 1} className="ql-btn ql-btn-secondary min-h-11 text-[12px]">{L('Previous', 'পূর্ববর্তী')}</button>
+            <button type="button" onClick={() => onPage(page + 1)} disabled={listing.entries.length < listing.limit} className="ql-btn ql-btn-secondary min-h-11 text-[12px]">{L('Next', 'পরবর্তী')}</button>
           </div>
         </div>
       </div>

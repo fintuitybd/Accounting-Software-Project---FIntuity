@@ -12,7 +12,7 @@ export default function CompanyWorkspacePlaceholder() {
 
   if (!auth.activeCompany) {
     return (
-      <section className="lv-card mx-auto mt-6 max-w-3xl p-6 sm:p-8">
+      <section className="ql-card mx-auto mt-6 max-w-3xl p-6 sm:p-8">
         <span className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
           <Building2 size={20} />
         </span>
@@ -26,11 +26,11 @@ export default function CompanyWorkspacePlaceholder() {
           )}
         </p>
         {auth.hasOrganisationPermission('MANAGE_USERS_AND_ORG') ? (
-          <Link to="/app/team" className="lv-btn lv-btn-primary mt-5 min-h-11 text-[14px]">
+          <Link to="/app/team" className="ql-btn ql-btn-primary mt-5 min-h-11 text-[14px]">
             <UserCog size={16} /> {L('Manage team access', 'টিম প্রবেশাধিকার পরিচালনা')}
           </Link>
         ) : null}
-        <Link to="/app/setup" className="lv-btn lv-btn-secondary mt-5 ml-2 min-h-11 text-[14px]">
+        <Link to="/app/setup" className="ql-btn ql-btn-secondary mt-5 ml-2 min-h-11 text-[14px]">
           <Building2 size={16} /> {L('Create or configure a company', 'কোম্পানি তৈরি বা কনফিগার করুন')}
         </Link>
       </section>
@@ -38,19 +38,19 @@ export default function CompanyWorkspacePlaceholder() {
   }
 
   return (
-    <section className="lv-card mx-auto mt-6 max-w-4xl p-6 sm:p-8">
+    <section className="ql-card mx-auto mt-6 max-w-4xl p-6 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl brand-gradient text-white shadow-lift ring-1 ring-white/20">
             <Building2 size={22} />
           </span>
           <div>
-            <p className="lv-kicker">{L('Company context', 'কোম্পানির প্রেক্ষাপট')}</p>
+            <p className="ql-kicker">{L('Company context', 'কোম্পানির প্রেক্ষাপট')}</p>
             <h2 className="mt-1 text-[26px] font-semibold tracking-[-0.04em] text-ink-900">{auth.activeCompany.legalName}</h2>
             <p className="mt-1 text-[14px] text-ink-500">{auth.activeCompany.organisationName}</p>
           </div>
         </div>
-        <span className="lv-chip lv-chip-neutral">
+        <span className="ql-badge ql-badge-neutral">
           <ShieldCheck size={13} />
           {L(ROLE_LABELS[auth.activeCompany.role].label_en, ROLE_LABELS[auth.activeCompany.role].label_bn)}
         </span>
@@ -83,44 +83,44 @@ export default function CompanyWorkspacePlaceholder() {
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <Link to="/app/ledger" className="lv-btn lv-btn-primary min-h-11 text-[14px]">
+        <Link to="/app/ledger" className="ql-btn ql-btn-primary min-h-11 text-[14px]">
           <BookOpen size={16} /> {L('Open general ledger', 'সাধারণ লেজার খুলুন')}
         </Link>
-        <Link to="/app/reports" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/reports" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <BookOpen size={16} /> {L('Reports & financial statements', 'রিপোর্ট ও আর্থিক বিবরণী')}
         </Link>
-        <Link to="/app/close" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/close" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <ShieldCheck size={16} /> {L('Close & controls', 'সমাপনী ও নিয়ন্ত্রণ')}
         </Link>
-        <Link to="/app/audit" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/audit" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <ShieldCheck size={16} /> {L('Audit log', 'অডিট লগ')}
         </Link>
-        <Link to="/app/sales" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/sales" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <Receipt size={16} /> {L('Sales & receivables', 'বিক্রয় ও প্রাপ্য')}
         </Link>
-        <Link to="/app/purchases" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/purchases" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <Receipt size={16} /> {L('Purchases & payables', 'ক্রয় ও প্রদেয়')}
         </Link>
-        <Link to="/app/treasury" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/treasury" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <Landmark size={16} /> {L('Treasury & certificates', 'ট্রেজারি ও প্রত্যয়নপত্র')}
         </Link>
-        <Link to="/app/banking" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/banking" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <Landmark size={16} /> {L('Banking & reconciliation', 'ব্যাংকিং ও মিলকরণ')}
         </Link>
-        <Link to="/app/masters" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/masters" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <Database size={16} /> {L('Master data', 'মাস্টার ডেটা')}
         </Link>
-        <Link to="/app/inventory" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/inventory" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <Boxes size={16} /> {L('Inventory & stock', 'ইনভেন্টরি ও স্টক')}
         </Link>
-        <Link to="/app/setup" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/setup" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           <Settings2 size={16} /> {L('Company setup & settings', 'কোম্পানি সেটআপ ও সেটিংস')}
         </Link>
-        <Link to="/app/account" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+        <Link to="/app/account" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
           {L('Account & sessions', 'অ্যাকাউন্ট ও সেশন')}
         </Link>
         {auth.hasOrganisationPermission('MANAGE_USERS_AND_ORG') ? (
-          <Link to="/app/team" className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+          <Link to="/app/team" className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
             {L('Team & access', 'টিম ও প্রবেশাধিকার')}
           </Link>
         ) : null}

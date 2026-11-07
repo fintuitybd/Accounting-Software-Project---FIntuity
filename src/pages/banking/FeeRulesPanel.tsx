@@ -139,17 +139,17 @@ export function FeeRulesPanel({
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="lv-kicker">Configurable policy</p>
+            <p className="ql-kicker">Configurable policy</p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink-900">Bank and MFS fee rules</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">
               No 1.5% default is seeded or assumed. Each rule names its account, rate, fixed fee, expense account, effective period
               and evidence reference. A manual fee override must also carry a reason and evidence.
             </p>
           </div>
-          <button type="button" onClick={() => void load()} disabled={busy} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={() => void load()} disabled={busy} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             {busy ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />} Refresh
           </button>
         </div>
@@ -190,7 +190,7 @@ export function FeeRulesPanel({
             <input className={INPUT_CLASS} type="date" value={effectiveTo} onChange={(event) => setEffectiveTo(event.target.value)} />
           </Field>
           <div className="self-end">
-            <button type="button" onClick={() => void create()} disabled={busy} className="lv-btn lv-btn-primary min-h-11 w-full text-[13px]">
+            <button type="button" onClick={() => void create()} disabled={busy} className="ql-btn ql-btn-primary min-h-11 w-full text-[13px]">
               {busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Create fee rule
             </button>
           </div>
@@ -200,13 +200,13 @@ export function FeeRulesPanel({
         ) : null}
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Landmark size={13} /> Fee rule register</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Landmark size={13} /> Fee rule register</p>
             <h2 className="mt-1 text-[18px] font-semibold text-ink-900">No universal rate</h2>
           </div>
-          <span className="lv-chip lv-chip-neutral">{rules.length} rule(s)</span>
+          <span className="ql-badge ql-badge-neutral">{rules.length} rule(s)</span>
         </div>
         {rules.length === 0 ? (
           <p className="px-4 py-6 text-[13px] text-ink-500">No fee rule is configured. Fee posting will be rejected until a rule exists or an evidence-backed override is entered.</p>
@@ -242,7 +242,7 @@ export function FeeRulesPanel({
                     </td>
                     <td className="px-3 py-2.5">{statusChip(rule.status)}</td>
                     <td className="px-3 py-2.5 text-right">
-                      <button type="button" onClick={() => void setStatus(rule)} disabled={busy} className="lv-btn lv-btn-secondary min-h-9 text-[12px]">
+                      <button type="button" onClick={() => void setStatus(rule)} disabled={busy} className="ql-btn ql-btn-secondary min-h-9 text-[12px]">
                         {rule.status === 'ACTIVE' ? 'Deactivate' : 'Reactivate'}
                       </button>
                     </td>

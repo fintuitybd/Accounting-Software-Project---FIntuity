@@ -81,10 +81,10 @@ export function PurchaseListPanel({
       kicker="Posted documents drive the AP subledger"
       action={
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => onCreate('EXPENSE_VOUCHER')}>
+          <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => onCreate('EXPENSE_VOUCHER')}>
             <FileText size={15} /> Expense voucher
           </button>
-          <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" onClick={() => onCreate('PURCHASE_BILL')}>
+          <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" onClick={() => onCreate('PURCHASE_BILL')}>
             <FileText size={15} /> New supplier bill
           </button>
         </div>
@@ -111,7 +111,7 @@ export function PurchaseListPanel({
           <option value="POSTED">Posted</option>
           <option value="REVERSED">Reversed</option>
         </select>
-        <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
+        <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
           <RefreshCw size={15} /> Refresh
         </button>
       </div>
@@ -205,7 +205,7 @@ export function PurchaseListPanel({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="lv-btn lv-btn-secondary min-h-10 text-[12px]"
+              className="ql-btn ql-btn-secondary min-h-10 text-[12px]"
               disabled={offset === 0}
               onClick={() => setOffset(Math.max(0, offset - limit))}
             >
@@ -213,7 +213,7 @@ export function PurchaseListPanel({
             </button>
             <button
               type="button"
-              className="lv-btn lv-btn-secondary min-h-10 text-[12px]"
+              className="ql-btn ql-btn-secondary min-h-10 text-[12px]"
               disabled={offset + limit >= total}
               onClick={() => setOffset(offset + limit)}
             >

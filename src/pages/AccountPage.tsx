@@ -109,14 +109,14 @@ export default function AccountPage() {
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-5 sm:p-6">
+      <section className="ql-card p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><ShieldCheck size={13} /> {L('Your account', 'আপনার অ্যাকাউন্ট')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><ShieldCheck size={13} /> {L('Your account', 'আপনার অ্যাকাউন্ট')}</p>
             <h2 className="mt-1 text-[24px] font-semibold tracking-[-0.035em] text-ink-900">{auth.user?.name}</h2>
             <p className="mt-1 text-[14px] text-ink-500">{auth.user?.email}</p>
           </div>
-          <button type="button" onClick={() => void signOut()} className="lv-btn lv-btn-secondary min-h-10 text-[13px]">
+          <button type="button" onClick={() => void signOut()} className="ql-btn ql-btn-secondary min-h-10 text-[13px]">
             <LogOut size={14} /> {L('Sign out', 'সাইন আউট')}
           </button>
         </div>
@@ -153,7 +153,7 @@ export default function AccountPage() {
         {notice ? <div role="status" className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-[13px] text-emerald-700 dark:text-emerald-300">{notice}</div> : null}
       </section>
 
-      <section className="lv-card p-5 sm:p-6">
+      <section className="ql-card p-5 sm:p-6">
         <h3 className="flex items-center gap-2 text-[17px] font-semibold text-ink-900"><KeyRound size={17} /> {L('Change password', 'পাসওয়ার্ড পরিবর্তন')}</h3>
         <p className="mt-1 text-[13px] text-ink-500">
           {L('Changing your password signs out every other session. The current session stays active.', 'পাসওয়ার্ড পরিবর্তনে অন্য সব সেশন সাইন আউট হয়। বর্তমান সেশন সক্রিয় থাকে।')}
@@ -161,18 +161,18 @@ export default function AccountPage() {
         <form onSubmit={changePassword} className="mt-4 grid gap-3 sm:grid-cols-3">
           <label className="block">
             <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{L('Current password', 'বর্তমান পাসওয়ার্ড')}</span>
-            <input className="lv-input min-h-11 w-full text-[14px]" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} disabled={savingPassword} />
+            <input className="ql-input min-h-11 w-full text-[14px]" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} disabled={savingPassword} />
           </label>
           <label className="block">
             <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{L('New password', 'নতুন পাসওয়ার্ড')}</span>
-            <input className="lv-input min-h-11 w-full text-[14px]" type="password" autoComplete="new-password" required minLength={12} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} disabled={savingPassword} />
+            <input className="ql-input min-h-11 w-full text-[14px]" type="password" autoComplete="new-password" required minLength={12} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} disabled={savingPassword} />
           </label>
           <label className="block">
             <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{L('Confirm new password', 'নতুন পাসওয়ার্ড নিশ্চিত করুন')}</span>
-            <input className="lv-input min-h-11 w-full text-[14px]" type="password" autoComplete="new-password" required minLength={12} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} disabled={savingPassword} />
+            <input className="ql-input min-h-11 w-full text-[14px]" type="password" autoComplete="new-password" required minLength={12} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} disabled={savingPassword} />
           </label>
           <div className="sm:col-span-3">
-            <button type="submit" disabled={savingPassword} className="lv-btn lv-btn-primary min-h-11 justify-center text-[14px]">
+            <button type="submit" disabled={savingPassword} className="ql-btn ql-btn-primary min-h-11 justify-center text-[14px]">
               {savingPassword ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
               {L('Update password', 'পাসওয়ার্ড আপডেট করুন')}
             </button>
@@ -180,13 +180,13 @@ export default function AccountPage() {
         </form>
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header flex flex-wrap items-center justify-between gap-3">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="flex items-center gap-2 text-[17px] font-semibold text-ink-900"><MonitorSmartphone size={17} /> {L('Active sessions', 'সক্রিয় সেশন')}</h3>
             <p className="mt-0.5 text-[13px] text-ink-500">{L('Sessions are server-side records. Revoking one takes effect immediately.', 'সেশন সার্ভারে সংরক্ষিত। বাতিল করলে সাথে সাথে কার্যকর হয়।')}</p>
           </div>
-          <button type="button" onClick={() => void loadSessions()} className="lv-btn lv-btn-secondary min-h-10 text-[13px]">
+          <button type="button" onClick={() => void loadSessions()} className="ql-btn ql-btn-secondary min-h-10 text-[13px]">
             {loadingSessions ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} {L('Refresh', 'রিফ্রেশ')}
           </button>
         </div>

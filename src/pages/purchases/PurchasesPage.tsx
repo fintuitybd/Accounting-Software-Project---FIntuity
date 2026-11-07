@@ -167,7 +167,7 @@ export default function PurchasesPage() {
 
   if (!companyId) {
     return (
-      <section className="lv-card mx-auto mt-6 max-w-3xl p-6">
+      <section className="ql-card mx-auto mt-6 max-w-3xl p-6">
         <h2 className="text-[22px] font-semibold text-ink-900">{L('No company selected', 'কোনো কোম্পানি নির্বাচিত নেই')}</h2>
         <p className="mt-2 text-[14px] text-ink-500">
           {L('Choose a company before recording purchases.', 'ক্রয় লিপিবদ্ধ করার আগে একটি কোম্পানি নির্বাচন করুন।')}

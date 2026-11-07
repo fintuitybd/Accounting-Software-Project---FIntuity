@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import type { PurchaseDocumentStatus, PurchaseDocumentType } from '../../purchases/api';
 
-export const PURCHASE_INPUT = 'lv-input min-h-11 w-full text-[14px]';
-export const PURCHASE_SELECT = 'lv-select min-h-11 w-full text-[14px]';
+export const PURCHASE_INPUT = 'ql-input min-h-11 w-full text-[14px]';
+export const PURCHASE_SELECT = 'ql-select min-h-11 w-full text-[14px]';
 
 export function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -46,17 +46,17 @@ export function docTypeLabel(type: PurchaseDocumentType): string {
 }
 
 export function statusChip(status: PurchaseDocumentStatus): ReactNode {
-  if (status === 'POSTED') return <span className="lv-chip lv-chip-emerald">Posted</span>;
-  if (status === 'REVERSED') return <span className="lv-chip lv-chip-rose">Reversed</span>;
-  return <span className="lv-chip lv-chip-neutral">Draft</span>;
+  if (status === 'POSTED') return <span className="ql-badge ql-badge-success">Posted</span>;
+  if (status === 'REVERSED') return <span className="ql-badge ql-badge-danger">Reversed</span>;
+  return <span className="ql-badge ql-badge-neutral">Draft</span>;
 }
 
 export function taxStateChip(state: string | null): ReactNode {
-  if (!state) return <span className="lv-chip lv-chip-neutral">Not calculated</span>;
-  if (state === 'SUPPORTED') return <span className="lv-chip lv-chip-emerald">Supported</span>;
+  if (!state) return <span className="ql-badge ql-badge-neutral">Not calculated</span>;
+  if (state === 'SUPPORTED') return <span className="ql-badge ql-badge-success">Supported</span>;
   if (state === 'SUPPORTED_WITH_CONDITIONS')
-    return <span className="lv-chip lv-chip-gold">Supported with conditions</span>;
-  return <span className="lv-chip lv-chip-rose">{state.replaceAll('_', ' ').toLowerCase()}</span>;
+    return <span className="ql-badge ql-badge-warn">Supported with conditions</span>;
+  return <span className="ql-badge ql-badge-danger">{state.replaceAll('_', ' ').toLowerCase()}</span>;
 }
 
 export function SectionCard({
@@ -71,10 +71,10 @@ export function SectionCard({
   action?: ReactNode;
 }) {
   return (
-    <section className="lv-card p-4 sm:p-5">
+    <section className="ql-card p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          {kicker ? <p className="lv-kicker">{kicker}</p> : null}
+          {kicker ? <p className="ql-kicker">{kicker}</p> : null}
           <h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-ink-900">{title}</h2>
         </div>
         {action}
@@ -112,7 +112,7 @@ export function ProofRow({
       <span className="text-ink-500">
         GL {gl} · subledger {subledger} · difference {difference}
       </span>
-      <span className={`lv-chip ${agrees ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+      <span className={`ql-badge ${agrees ? 'ql-badge-success' : 'ql-badge-danger'}`}>
         {agrees ? 'Agrees' : 'Difference'}
       </span>
     </div>

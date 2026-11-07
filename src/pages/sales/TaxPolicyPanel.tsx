@@ -64,10 +64,10 @@ export function TaxPolicyPanel({
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-6">
+      <section className="ql-card p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="lv-kicker">{L('Tax configuration placeholder', 'কর কনফিগারেশন প্লেসহোল্ডার')}</p>
+            <p className="ql-kicker">{L('Tax configuration placeholder', 'কর কনফিগারেশন প্লেসহোল্ডার')}</p>
             <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">{L('Sales tax policy approval', 'বিক্রয় কর নীতি অনুমোদন')}</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">
               {L(
@@ -76,7 +76,7 @@ export function TaxPolicyPanel({
               )}
             </p>
           </div>
-          <span className={`lv-chip ${policy.canPost ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+          <span className={`ql-badge ${policy.canPost ? 'ql-badge-success' : 'ql-badge-danger'}`}>
             {policy.canPost ? <ShieldCheck size={13} /> : <TriangleAlert size={13} />}
             {policy.canPost ? L('Posting enabled', 'পোস্টিং সক্রিয়') : L('Posting blocked', 'পোস্টিং বন্ধ')}
           </span>
@@ -102,7 +102,7 @@ export function TaxPolicyPanel({
           ) : null}
         </dl>
         <div className="mt-4 overflow-x-auto">
-          <table className="lv-table w-full min-w-[800px] text-[13px]">
+          <table className="ql-table w-full min-w-[800px] text-[13px]">
             <caption className="sr-only">{L('Sales VAT categories in the rule pack', 'রুল প্যাকে বিক্রয় ভ্যাট শ্রেণি')}</caption>
             <thead><tr><th scope="col" className="text-left">{L('Category', 'শ্রেণি')}</th><th scope="col" className="text-right">{L('Rate', 'হার')}</th><th scope="col" className="text-left">{L('Rule', 'রুল')}</th><th scope="col" className="text-left">{L('Citation', 'উদ্ধৃতি')}</th><th scope="col" className="text-left">{L('Verification', 'যাচাই')}</th></tr></thead>
             <tbody>
@@ -112,7 +112,7 @@ export function TaxPolicyPanel({
                   <td className="text-right font-money tabular-nums">{(category.rateBps / 100).toFixed(2)}%</td>
                   <td className="font-mono text-[12px]">{category.ruleId ?? '—'}</td>
                   <td className="max-w-[420px] text-[12px] text-ink-600">{category.citation ?? '—'}</td>
-                  <td>{category.verifyFlag === true ? <span className="lv-chip lv-chip-gold">{L('Requires verification', 'যাচাই প্রয়োজন')}</span> : category.verifyFlag === false ? <span className="lv-chip lv-chip-emerald">{L('Reviewed', 'পর্যালোচিত')}</span> : <span className="lv-chip lv-chip-neutral">{L('Not configured', 'কনফিগার করা হয়নি')}</span>}</td>
+                  <td>{category.verifyFlag === true ? <span className="ql-badge ql-badge-warn">{L('Requires verification', 'যাচাই প্রয়োজন')}</span> : category.verifyFlag === false ? <span className="ql-badge ql-badge-success">{L('Reviewed', 'পর্যালোচিত')}</span> : <span className="ql-badge ql-badge-neutral">{L('Not configured', 'কনফিগার করা হয়নি')}</span>}</td>
                 </tr>
               ))}
             </tbody>
@@ -120,7 +120,7 @@ export function TaxPolicyPanel({
         </div>
       </section>
 
-      <section className="lv-card p-4 sm:p-6">
+      <section className="ql-card p-4 sm:p-6">
         <h3 className="text-[18px] font-semibold text-ink-900">{L('Record reviewer approval', 'পর্যালোচকের অনুমোদন সংরক্ষণ')}</h3>
         <p className="mt-1 text-[13px] leading-relaxed text-ink-500">
           {L(
@@ -139,7 +139,7 @@ export function TaxPolicyPanel({
               <label className="block text-[12px] font-semibold text-ink-600">{L('Reviewed on', 'পর্যালোচনার তারিখ')}<input type="date" value={reviewedAt} onChange={(event) => setReviewedAt(event.target.value)} className={`${SALES_INPUT} mt-1`} /></label>
               <label className="block text-[12px] font-semibold text-ink-600">{L('Output VAT account', 'আউটপুট ভ্যাট হিসাব')}<select value={outputVatAccountId} onChange={(event) => setOutputVatAccountId(event.target.value)} className={`${SALES_SELECT} mt-1`}><option value="">{L('Choose a liability account', 'দায় হিসাব নির্বাচন করুন')}</option>{liabilityAccounts.map((account) => <option key={account.id} value={account.id}>{account.code} · {account.nameEn}</option>)}</select></label>
             </div>
-            <button type="button" onClick={() => void submit()} disabled={busy || !canSubmit} className="lv-btn lv-btn-primary mt-4 min-h-11 text-[13px]">
+            <button type="button" onClick={() => void submit()} disabled={busy || !canSubmit} className="ql-btn ql-btn-primary mt-4 min-h-11 text-[13px]">
               <ShieldCheck size={15} /> {busy ? L('Saving…', 'সংরক্ষণ হচ্ছে…') : L('Record approval', 'অনুমোদন সংরক্ষণ')}
             </button>
           </>

@@ -305,7 +305,7 @@ export function PaymentsPanel({
         title="Supplier payments"
         kicker="Cash paid plus actual VDS/TDS equals the AP allocation"
         action={
-          <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void loadPayments()}>
+          <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void loadPayments()}>
             <RefreshCw size={15} /> Refresh
           </button>
         }
@@ -342,7 +342,7 @@ export function PaymentsPanel({
                     <td className="px-2 py-3 text-right font-mono">{entry.allocatedBdt}</td>
                     <td className="px-2 py-3 text-ink-500">{entry.reference ?? '—'}</td>
                     <td className="px-2 py-3">
-                      <span className={`lv-chip ${entry.status === 'POSTED' ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                      <span className={`ql-badge ${entry.status === 'POSTED' ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                         {entry.status === 'POSTED' ? 'Posted' : 'Reversed'}
                       </span>
                     </td>
@@ -367,14 +367,14 @@ export function PaymentsPanel({
               <div><dt className="text-ink-400">Journal</dt><dd className="mt-1 text-ink-800">{selected.journalNumber ?? '—'}</dd></div>
               <div><dt className="text-ink-400">Approved by</dt><dd className="mt-1 text-ink-800">{selected.approvedByName ?? 'Direct posting'}</dd></div>
               <div><dt className="text-ink-400">Attachment</dt><dd className="mt-1 break-all text-ink-800">{selected.attachmentReference ?? '—'}</dd></div>
-              <div><dt className="text-ink-400">Status</dt><dd className="mt-1"><span className={`lv-chip ${selected.status === 'POSTED' ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>{selected.status}</span></dd></div>
+              <div><dt className="text-ink-400">Status</dt><dd className="mt-1"><span className={`ql-badge ${selected.status === 'POSTED' ? 'ql-badge-success' : 'ql-badge-danger'}`}>{selected.status}</span></dd></div>
             </dl>
             <div className="flex gap-2">
-              <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" onClick={() => setSelected(null)}>
+              <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" onClick={() => setSelected(null)}>
                 Close detail
               </button>
               {canReverse && selected.status === 'POSTED' ? (
-                <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px] text-rose-700 dark:text-rose-300" onClick={() => setReversalOpen(true)}>
+                <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px] text-rose-700 dark:text-rose-300" onClick={() => setReversalOpen(true)}>
                   <RotateCcw size={15} /> Reverse
                 </button>
               ) : null}
@@ -390,10 +390,10 @@ export function PaymentsPanel({
                 <input className={INPUT_CLASS} placeholder="Reason (required)" value={reversalReason} onChange={(event) => setReversalReason(event.target.value)} />
               </div>
               <div className="mt-3 flex gap-2">
-                <button type="button" className="lv-btn lv-btn-danger min-h-11 text-[13px]" disabled={busy || reversalReason.trim().length < 3} onClick={() => void reverse()}>
+                <button type="button" className="ql-btn ql-btn-danger min-h-11 text-[13px]" disabled={busy || reversalReason.trim().length < 3} onClick={() => void reverse()}>
                   <Ban size={15} /> Post linked reversal
                 </button>
-                <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" onClick={() => setReversalOpen(false)}>
+                <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" onClick={() => setReversalOpen(false)}>
                   Cancel
                 </button>
               </div>
@@ -434,7 +434,7 @@ export function PaymentsPanel({
           title="Payment approvals"
           kicker="Maker-checker above the company payment threshold"
           action={
-            <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void loadApprovals()}>
+            <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void loadApprovals()}>
               <RefreshCw size={15} /> Refresh
             </button>
           }
@@ -489,7 +489,7 @@ export function PaymentsPanel({
                         <div className="flex flex-wrap justify-end gap-1">
                           <button
                             type="button"
-                            className="lv-btn lv-btn-primary min-h-9 text-[12px]"
+                            className="ql-btn ql-btn-primary min-h-9 text-[12px]"
                             disabled={!canApprove || busy || approvalReason.trim().length < 3}
                             onClick={() => void approve(approval)}
                           >
@@ -497,7 +497,7 @@ export function PaymentsPanel({
                           </button>
                           <button
                             type="button"
-                            className="lv-btn lv-btn-ghost min-h-9 text-[12px] text-rose-700 dark:text-rose-300"
+                            className="ql-btn ql-btn-ghost min-h-9 text-[12px] text-rose-700 dark:text-rose-300"
                             disabled={!canApprove || busy || approvalReason.trim().length < 3}
                             onClick={() => void reject(approval)}
                           >
@@ -600,7 +600,7 @@ export function PaymentsPanel({
         ) : null}
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={() => void calculate()}>
+          <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={() => void calculate()}>
             <Calculator size={15} /> {busy ? 'Calculating…' : 'Calculate withholding & cash'}
           </button>
           {preview ? (
@@ -666,7 +666,7 @@ export function PaymentsPanel({
             {!canPost ? <p className="mt-2 text-[12px] font-semibold text-amber-700 dark:text-amber-300">You do not have permission to post payments.</p> : null}
             <button
               type="button"
-              className="lv-btn lv-btn-primary mt-3 min-h-11 text-[13px]"
+              className="ql-btn ql-btn-primary mt-3 min-h-11 text-[13px]"
               disabled={busy || !canPost}
               onClick={() => void post()}
             >

@@ -1,4 +1,4 @@
-// LedgerVault — Phase 2 immutable multi-book double-entry core.
+// Fintuity Accounting Suite — Phase 2 immutable multi-book double-entry core.
 //
 // Four guarantees live in this module and every workspace inherits them:
 //   1. A journal is posted only if it has at least two lines, at least one debit, and

@@ -1,4 +1,4 @@
-// LedgerVault — the Lumen control bar.
+// Fintuity Accounting Suite — the Lumen control bar.
 //
 // One floating glass row: collapse the navigation rail, switch organization context, jump into the
 // Ctrl+K palette, create a document, flip language or theme, and change the authenticated RBAC role.
@@ -333,7 +333,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
           <Popover open={menu === 'org'} align="left" width="w-[min(92vw,380px)]" label={L('Organization', 'প্রতিষ্ঠান')}>
             <div className="flex items-start justify-between gap-3 border-b border-line/70 px-4 py-3.5">
               <div>
-                <p className="lv-kicker">{L('Organization context', 'প্রতিষ্ঠানের প্রেক্ষাপট')}</p>
+                <p className="ql-kicker">{L('Organization context', 'প্রতিষ্ঠানের প্রেক্ষাপট')}</p>
                 <p className="mt-1 text-[12px] font-semibold text-ink-900">
                   {auth.demoMode ? L('Demo companies', 'ডেমো কোম্পানি') : L('Your companies', 'আপনার কোম্পানি')}
                 </p>
@@ -484,8 +484,8 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
             {L('Search workspaces, actions, accounts…', 'ওয়ার্কস্পেস, কাজ, হিসাব খুঁজুন…')}
           </span>
           <span className="hidden items-center gap-0.5 lg:flex">
-            <kbd className="lv-kbd !px-1 !py-0.5 !text-[8px]">⌘</kbd>
-            <kbd className="lv-kbd !px-1 !py-0.5 !text-[8px]">K</kbd>
+            <kbd className="ql-kbd !px-1 !py-0.5 !text-[8px]">⌘</kbd>
+            <kbd className="ql-kbd !px-1 !py-0.5 !text-[8px]">K</kbd>
           </span>
         </button>
 
@@ -508,7 +508,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
               aria-expanded={menu === 'create'}
               disabled={!canCreate}
               title={!canCreate ? L('Financial workspaces are not available in this build.', 'এই বিল্ডে আর্থিক ওয়ার্কস্পেস নেই।') : undefined}
-              className="lv-btn lv-btn-primary h-9 !gap-1.5 !rounded-xl !px-2.5 !py-0 !text-[11px] sm:!px-3"
+              className="ql-btn ql-btn-primary h-9 !gap-1.5 !rounded-xl !px-2.5 !py-0 !text-[11px] sm:!px-3"
             >
               <Plus size={13} strokeWidth={2.5} />
               <span className="hidden sm:inline">{L('Create', 'তৈরি')}</span>
@@ -516,7 +516,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
             </button>
             <Popover open={menu === 'create'} align="right" width="w-[min(92vw,350px)]" label={L('Quick create', 'দ্রুত তৈরি')}>
               <div className="border-b border-line/70 px-4 py-3.5">
-                <p className="lv-kicker flex items-center gap-1.5">
+                <p className="ql-kicker flex items-center gap-1.5">
                   <Command size={10} />
                   {L('Quick create', 'দ্রুত তৈরি')}
                 </p>
@@ -551,7 +551,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
               </div>
               {auth.demoMode ? (
                 <div className="border-t border-line/70 bg-surface-2/35 px-3 py-2.5">
-                  <p className="lv-label flex items-center gap-1.5">
+                  <p className="ql-label flex items-center gap-1.5">
                     <Database size={10} className="text-ink-400" />
                     {L('Demo vault backup & restore', 'ডেমো ভল্ট ব্যাকআপ ও পুনরুদ্ধার')}
                   </p>
@@ -583,7 +583,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
           </div>
 
           {/* Language */}
-          <div className="lv-seg hidden !gap-0 !p-[3px] sm:inline-flex" role="group" aria-label={L('Language', 'ভাষা')}>
+          <div className="ql-seg hidden !gap-0 !p-[3px] sm:inline-flex" role="group" aria-label={L('Language', 'ভাষা')}>
             {(
               [
                 { value: 'en-BD' as const, label: 'EN' },
@@ -595,7 +595,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
                 type="button"
                 aria-pressed={locale === option.value}
                 onClick={() => vault.setLocale(option.value)}
-                className="lv-seg-item !rounded-lg !px-2 !py-1.5 !text-[9.5px]"
+                className="ql-seg-item !rounded-lg !px-2 !py-1.5 !text-[9.5px]"
                 data-active={locale === option.value}
               >
                 {option.label}
@@ -633,7 +633,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
             </button>
             <Popover open={menu === 'settings'} align="right" width="w-[min(92vw,330px)]" label={L('Display settings', 'প্রদর্শন সেটিংস')}>
               <div className="border-b border-line/70 px-4 py-3.5">
-                <p className="lv-kicker flex items-center gap-1.5">
+                <p className="ql-kicker flex items-center gap-1.5">
                   <Settings2 size={11} className="text-ink-400" />
                   {L('Display settings', 'প্রদর্শন সেটিংস')}
                 </p>
@@ -699,7 +699,7 @@ export function TopBar({ rail, onToggleRail, onOpenMenu, onOpenPalette, onOpenMa
             >
               <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-[9px] bg-[#0b0b16] text-[8.5px] font-bold text-white ring-1 ring-white/10">
                 {initialsOf(displayName)}
-                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[rgb(var(--lv-surface))]" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-[rgb(var(--ql-surface))]" />
               </span>
               <span className="hidden min-w-0 md:block">
                 <span className="block max-w-[92px] truncate text-[9.5px] font-semibold leading-tight text-ink-800">
@@ -849,7 +849,7 @@ function ChoiceRow<T extends string>({
     <div className="px-3.5 py-2.5">
       <div className="flex items-center justify-between gap-2">
         <span className="min-w-0 text-[10px] font-semibold text-ink-700">{label}</span>
-        <div className="lv-seg shrink-0 !p-[3px]" role="group" aria-label={label}>
+        <div className="ql-seg shrink-0 !p-[3px]" role="group" aria-label={label}>
           {options.map((option) => (
             <button
               key={option.value}
@@ -857,7 +857,7 @@ function ChoiceRow<T extends string>({
               aria-pressed={value === option.value}
               onClick={() => onChange(option.value)}
               data-active={value === option.value}
-              className="lv-seg-item !rounded-lg !px-2 !py-1 !text-[9px]"
+              className="ql-seg-item !rounded-lg !px-2 !py-1 !text-[9px]"
             >
               {option.icon}
               {option.label}

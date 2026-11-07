@@ -306,7 +306,7 @@ function BatchEditor({
       </div>
 
       {!readOnly ? (
-        <button type="button" onClick={() => setLines((current) => [...current, blankLine()])} className="lv-btn lv-btn-secondary min-h-10 text-[13px]">
+        <button type="button" onClick={() => setLines((current) => [...current, blankLine()])} className="ql-btn ql-btn-secondary min-h-10 text-[13px]">
           <Plus size={15} /> Add line
         </button>
       ) : null}
@@ -328,7 +328,7 @@ function BatchEditor({
             </dd>
           </div>
         </dl>
-        <span className={`lv-chip text-[12px] ${totals.balanced ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}>
+        <span className={`ql-badge text-[12px] ${totals.balanced ? 'ql-badge-success' : 'ql-badge-neutral'}`}>
           {totals.balanced ? <CheckCircle2 size={12} /> : null}
           {totals.balanced ? 'Balanced' : totals.invalid ? 'Invalid amount' : 'Not balanced'}
         </span>
@@ -336,12 +336,12 @@ function BatchEditor({
 
       {!readOnly ? (
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => void persist()} disabled={saving || submitting} className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+          <button type="button" onClick={() => void persist()} disabled={saving || submitting} className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             Save draft
           </button>
           {canSubmit ? (
-            <button type="button" onClick={() => void submit()} disabled={saving || submitting || !batchDate} className="lv-btn lv-btn-primary min-h-11 text-[14px]">
+            <button type="button" onClick={() => void submit()} disabled={saving || submitting || !batchDate} className="ql-btn ql-btn-primary min-h-11 text-[14px]">
               {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
               Save and submit for approval
             </button>
@@ -357,10 +357,10 @@ function BatchEditor({
 function ReadOnlyBatch({ batch }: { batch: OpeningBatch }) {
   const statusTone =
     batch.status === 'POSTED'
-      ? 'lv-chip-emerald'
+      ? 'ql-badge-success'
       : batch.status === 'REVERSED'
-        ? 'lv-chip-rose'
-        : 'lv-chip-gold';
+        ? 'ql-badge-danger'
+        : 'ql-badge-warn';
   return (
     <div className="space-y-4">
       <Notice
@@ -389,7 +389,7 @@ function ReadOnlyBatch({ batch }: { batch: OpeningBatch }) {
         <div>
           <dt className="text-ink-400">Status</dt>
           <dd className="mt-1">
-            <span className={`lv-chip ${statusTone} text-[12px]`}>{batch.status}</span>
+            <span className={`ql-badge ${statusTone} text-[12px]`}>{batch.status}</span>
           </dd>
         </div>
       </dl>
@@ -425,7 +425,7 @@ function ReadOnlyBatch({ batch }: { batch: OpeningBatch }) {
           </tbody>
         </table>
       </div>
-      <Link to="/app/ledger" className="lv-btn lv-btn-primary min-h-11 text-[14px]">
+      <Link to="/app/ledger" className="ql-btn ql-btn-primary min-h-11 text-[14px]">
         Open ledger to approve or post
       </Link>
     </div>

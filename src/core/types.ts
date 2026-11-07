@@ -1,4 +1,4 @@
-// LedgerVault domain contracts — shared by every engine, workspace and print replica.
+// Fintuity Accounting Suite domain contracts — shared by every engine, workspace and print replica.
 
 export type EntityType =
   | 'PRIVATE_LIMITED'

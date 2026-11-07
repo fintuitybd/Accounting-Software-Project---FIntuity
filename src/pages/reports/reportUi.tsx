@@ -38,8 +38,8 @@ export function TemplateBadge({
   const status = template.reviewStatus;
   const tone =
     status === 'APPROVED'
-      ? 'lv-chip-emerald'
-      : 'lv-chip-gold';
+      ? 'ql-badge-success'
+      : 'ql-badge-warn';
   const label =
     status === 'APPROVED'
       ? localized(locale, 'Template approved', 'টেমপ্লেট অনুমোদিত')
@@ -47,7 +47,7 @@ export function TemplateBadge({
         ? localized(locale, 'Template pending tax-counsel review', 'টেমপ্লেট কর পরামর্শকের পর্যালোচনার অপেক্ষায়')
         : localized(locale, 'Template pending accountant review', 'টেমপ্লেট হিসাবরক্ষকের পর্যালোচনার অপেক্ষায়');
   return (
-    <span className={`lv-chip ${tone}`} title={template.source}>
+    <span className={`ql-badge ${tone}`} title={template.source}>
       <ShieldAlert size={12} /> {label} · v{template.version}
     </span>
   );
@@ -61,10 +61,10 @@ export function ReviewStatusBadge({
   locale: 'en-BD' | 'bn-BD';
 }) {
   if (status === 'APPROVED') {
-    return <span className="lv-chip lv-chip-emerald">{localized(locale, 'Approved', 'অনুমোদিত')}</span>;
+    return <span className="ql-badge ql-badge-success">{localized(locale, 'Approved', 'অনুমোদিত')}</span>;
   }
   return (
-    <span className="lv-chip lv-chip-gold">
+    <span className="ql-badge ql-badge-warn">
       {localized(locale, 'Review required', 'পর্যালোচনা প্রয়োজন')}
     </span>
   );
@@ -165,7 +165,7 @@ export function SectionTable({
         <p className="font-money text-[12px] font-semibold text-ink-700">{money(BigInt(section.totalPoisha))}</p>
       </div>
       <div className="overflow-x-auto">
-        <table className="lv-table w-full min-w-[560px] text-[12px]">
+        <table className="ql-table w-full min-w-[560px] text-[12px]">
           <thead>
             <tr>
               <th scope="col" className="text-left">{localized(locale, 'Account', 'হিসাব')}</th>

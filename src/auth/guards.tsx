@@ -34,7 +34,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
           <p className="mt-2 text-[14px] text-ink-500">
             {auth.error ?? 'The server could not be reached. No financial data has been loaded.'}
           </p>
-          <button type="button" onClick={() => void auth.refresh().catch(() => undefined)} className="lv-btn lv-btn-primary mt-4 min-h-11 justify-center text-[14px]">
+          <button type="button" onClick={() => void auth.refresh().catch(() => undefined)} className="ql-btn ql-btn-primary mt-4 min-h-11 justify-center text-[14px]">
             Try again
           </button>
         </div>

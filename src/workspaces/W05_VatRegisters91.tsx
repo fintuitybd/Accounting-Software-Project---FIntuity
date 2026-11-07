@@ -90,7 +90,7 @@ function RegisterTable({
         <label className="relative min-w-[240px] flex-1 sm:max-w-[360px]">
           <Search size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-400" />
           <input
-            className="lv-input !py-1.5 pl-8 text-[12px]"
+            className="ql-input !py-1.5 pl-8 text-[12px]"
             value={query}
             onChange={(event) => onQuery(event.target.value)}
             placeholder={isBn ? 'দলিল / পক্ষ / বিআইএন খুঁজুন…' : 'Search document, party or BIN…'}
@@ -99,7 +99,7 @@ function RegisterTable({
         <span className="text-[10px] text-ink-400">{filtered.length} / {rows.length} {L('lines', 'লাইন')}</span>
       </div>
       <div className="overflow-x-auto">
-        <table className="lv-table min-w-[1060px]">
+        <table className="ql-table min-w-[1060px]">
           <thead>
             <tr>
               <th>#</th>
@@ -133,9 +133,9 @@ function RegisterTable({
                 <td className="font-money text-right text-[10.5px] font-semibold text-ink-900">{money(row.total_poisha)}</td>
                 <td>
                   {row.eligible_rebate ? (
-                    <span className="lv-chip lv-chip-emerald">{L('Eligible', 'যোগ্য')}</span>
+                    <span className="ql-badge ql-badge-success">{L('Eligible', 'যোগ্য')}</span>
                   ) : (
-                    <span className="lv-chip lv-chip-rose" title={row.disallowance_reason ?? ''}>{L('Disallowed', 'বাতিল')}</span>
+                    <span className="ql-badge ql-badge-danger" title={row.disallowance_reason ?? ''}>{L('Disallowed', 'বাতিল')}</span>
                   )}
                 </td>
               </tr>
@@ -506,8 +506,8 @@ export default function W05_VatRegisters91() {
         isBn={isBn}
         chips={
           <>
-            <span className="lv-chip lv-chip-neutral"><Clock size={12} /> {return91.period_code} · {return91.period_label}</span>
-            <span className="lv-chip lv-chip-emerald"><ShieldCheck size={12} /> BIN {return91.bin}</span>
+            <span className="ql-badge ql-badge-neutral"><Clock size={12} /> {return91.period_code} · {return91.period_label}</span>
+            <span className="ql-badge ql-badge-success"><ShieldCheck size={12} /> BIN {return91.bin}</span>
           </>
         }
         actions={
@@ -517,15 +517,15 @@ export default function W05_VatRegisters91() {
               <select
                 value={periodCode}
                 onChange={(event) => setStatementPeriodCode(event.target.value)}
-                className="lv-select min-h-9 text-[12px]"
+                className="ql-select min-h-9 text-[12px]"
               >
                 {periods.map((period) => (
                   <option key={period.code} value={period.code}>{period.code} — {period.status}</option>
                 ))}
               </select>
             </label>
-            <button type="button" className="lv-btn lv-btn-secondary !py-1.5" onClick={exportWorkbook}><Download size={14} /> {L('Export .xlsx', 'এক্সপোর্ট .xlsx')}</button>
-            <button type="button" className="lv-btn lv-btn-primary !py-1.5" onClick={() => setPrintOpen(true)}><Printer size={14} /> {L('Print internal draft', 'অভ্যন্তরীণ খসড়া প্রিন্ট')}</button>
+            <button type="button" className="ql-btn ql-btn-secondary !py-1.5" onClick={exportWorkbook}><Download size={14} /> {L('Export .xlsx', 'এক্সপোর্ট .xlsx')}</button>
+            <button type="button" className="ql-btn ql-btn-primary !py-1.5" onClick={() => setPrintOpen(true)}><Printer size={14} /> {L('Print internal draft', 'অভ্যন্তরীণ খসড়া প্রিন্ট')}</button>
           </>
         }
       />
@@ -547,7 +547,7 @@ export default function W05_VatRegisters91() {
             { label: L('Customer 6.6 received', 'গ্রাহক ৬.৬ প্রাপ্ত'), value: books.decreasing, hint: L('9.1 Part 6 decreasing adjustment', '৯.১ অংশ ৬ হ্রাস সমন্বয়'), tone: 'text-violet-700', iconTone: 'bg-violet-50 text-violet-700 ring-violet-500/15', bar: 'from-violet-500 via-violet-400/40', icon: <FileSpreadsheet size={14} /> },
             { label: L('Net VAT payable', 'নিট ভ্যাট প্রদেয়'), value: return91.net_payable_poisha, hint: L('Deadline not verified', 'সময়সীমা যাচাইকৃত নয়'), tone: 'text-gold-700', iconTone: 'bg-gold-50 text-gold-600 ring-gold-500/15', bar: 'from-gold-500 via-gold-400/40', icon: <Calculator size={14} /> },
           ].map((card) => (
-            <article key={card.label} className="lv-card lv-card-interactive relative overflow-hidden p-4">
+            <article key={card.label} className="ql-card ql-card-interactive relative overflow-hidden p-4">
               <span aria-hidden className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r to-transparent ${card.bar}`} />
               <span aria-hidden className="pointer-events-none absolute -right-8 -top-12 h-24 w-24 rounded-full bg-vault-500/10 blur-2xl" />
               <div className="relative flex items-start justify-between gap-2">
@@ -561,15 +561,15 @@ export default function W05_VatRegisters91() {
         </section>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="lv-seg flex-wrap">
+          <div className="ql-seg flex-wrap">
             {TABS.map((entry) => (
-              <button key={entry.id} type="button" className="lv-seg-item" data-active={tab === entry.id} onClick={() => setTab(entry.id)}>
+              <button key={entry.id} type="button" className="ql-seg-item" data-active={tab === entry.id} onClick={() => setTab(entry.id)}>
                 {entry.icon} {isBn ? entry.bn : entry.en}
               </button>
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`lv-chip ${books.reconciled ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className={`ql-badge ${books.reconciled ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               {books.reconciled ? <CircleCheck size={12} /> : <TriangleAlert size={12} />}
               {books.reconciled ? L('GL ↔ return 0.00 variance', 'জিএল ↔ রিটার্ন ০.০০ পার্থক্য') : L('GL ↔ return variance', 'জিএল ↔ রিটার্ন পার্থক্য')}
             </span>
@@ -578,17 +578,17 @@ export default function W05_VatRegisters91() {
         </div>
 
         {tab === 'PURCHASE' || tab === 'SALES' ? (
-          <section className="lv-card overflow-hidden">
-            <div className="lv-card-header">
+          <section className="ql-card overflow-hidden">
+            <div className="ql-card-header">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5"><Table2 size={12} /> {L('Real-time statutory register', 'রিয়েল-টাইম সংবিধিবদ্ধ রেজিস্টার')}</p>
+                <p className="ql-kicker flex items-center gap-1.5"><Table2 size={12} /> {L('Real-time statutory register', 'রিয়েল-টাইম সংবিধিবদ্ধ রেজিস্টার')}</p>
                 <h2 className="mt-1 text-base font-semibold text-ink-900">
                   {tab === 'PURCHASE' ? L('Mushak 6.1 — purchase register', 'মূসক ৬.১ — ক্রয় রেজিস্টার') : L('Mushak 6.2 — sales register', 'মূসক ৬.২ — বিক্রয় রেজিস্টার')}
                 </h2>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="lv-chip lv-chip-neutral">{(tab === 'PURCHASE' ? books.purchaseRows : books.salesRows).length} {L('lines', 'লাইন')}</span>
-                <span className="lv-chip lv-chip-gold">{tab === 'PURCHASE' ? L('Input rebate', 'ইনপুট রিবেট') : L('Output tax', 'আউটপুট কর')} {money(tab === 'PURCHASE' ? return91.input_rebate_poisha : return91.output_tax_poisha)}</span>
+                <span className="ql-badge ql-badge-neutral">{(tab === 'PURCHASE' ? books.purchaseRows : books.salesRows).length} {L('lines', 'লাইন')}</span>
+                <span className="ql-badge ql-badge-warn">{tab === 'PURCHASE' ? L('Input rebate', 'ইনপুট রিবেট') : L('Output tax', 'আউটপুট কর')} {money(tab === 'PURCHASE' ? return91.input_rebate_poisha : return91.output_tax_poisha)}</span>
               </div>
             </div>
             <RegisterTable
@@ -603,28 +603,28 @@ export default function W05_VatRegisters91() {
             />
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-5 py-3 text-[10px] text-ink-500">
               <span>{L('Value is VAT-exclusive; total includes SD, VAT and VDS treatment.', 'মূল্য ভ্যাট-বহির্ভূত; মোট এসডি, ভ্যাট ও ভিডিএস সহ।')}</span>
-              <button type="button" className="lv-btn lv-btn-ghost !py-1 text-[10px]" onClick={exportWorkbook}><Download size={12} /> {L('Download register', 'রেজিস্টার ডাউনলোড')}</button>
+              <button type="button" className="ql-btn ql-btn-ghost !py-1 text-[10px]" onClick={exportWorkbook}><Download size={12} /> {L('Download register', 'রেজিস্টার ডাউনলোড')}</button>
             </div>
           </section>
         ) : null}
 
         {tab === 'NOTE18' ? (
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-            <section className="lv-card overflow-hidden">
-              <div className="lv-card-header">
+            <section className="ql-card overflow-hidden">
+              <div className="ql-card-header">
                 <div>
-                  <p className="lv-kicker flex items-center gap-1.5"><Layers size={12} /> {L('Note 18', 'নোট ১৮')}</p>
+                  <p className="ql-kicker flex items-center gap-1.5"><Layers size={12} /> {L('Note 18', 'নোট ১৮')}</p>
                   <h2 className="mt-1 text-base font-semibold text-ink-900">{L('VAT current account movement', 'ভ্যাট চলতি হিসাব পরিবর্তন')}</h2>
                 </div>
-                <span className="lv-chip lv-chip-gold">{return91.period_code}</span>
+                <span className="ql-badge ql-badge-warn">{return91.period_code}</span>
               </div>
               <div className="grid gap-3 border-b border-ink-100 px-5 py-4 sm:grid-cols-3">
                 <div className="rounded-xl bg-vault-50 p-3 ring-1 ring-inset ring-vault-200">
-                  <p className="lv-kicker">{L('Opening control balance', 'প্রারম্ভিক নিয়ন্ত্রণ ব্যালেন্স')}</p>
+                  <p className="ql-kicker">{L('Opening control balance', 'প্রারম্ভিক নিয়ন্ত্রণ ব্যালেন্স')}</p>
                   <p className="font-money mt-1 text-sm font-semibold text-vault-900">{money(noteOpening)}</p>
                 </div>
                 <div className="rounded-xl bg-indigo-50 p-3 ring-1 ring-inset ring-indigo-200">
-                  <p className="lv-kicker">{L('Movement in the period', 'সময়কালের পরিবর্তন')}</p>
+                  <p className="ql-kicker">{L('Movement in the period', 'সময়কালের পরিবর্তন')}</p>
                   <p className={`font-money mt-1 text-sm font-semibold ${noteClosing - noteOpening < 0n ? 'text-indigo-700' : 'text-emerald-700'}`}>
                     {money(noteClosing - noteOpening, { sign: true })}
                   </p>
@@ -634,7 +634,7 @@ export default function W05_VatRegisters91() {
                   <p className="font-money mt-1 text-sm font-semibold text-gold-200">{money(noteClosing)}</p>
                 </div>
               </div>
-              <table className="lv-table">
+              <table className="ql-table">
                 <thead>
                   <tr><th>{L('Movement', 'পরিবর্তন')}</th><th>{L('Control account', 'নিয়ন্ত্রণ হিসাব')}</th><th className="text-right">{L('Debit', 'ডেবিট')}</th><th className="text-right">{L('Credit', 'ক্রেডিট')}</th><th className="text-right">{L('Balance', 'ব্যালেন্স')}</th></tr>
                 </thead>
@@ -656,15 +656,15 @@ export default function W05_VatRegisters91() {
                 </tbody>
               </table>
               <div className="border-t border-ink-100 px-5 py-3">
-                <p className="lv-hint">{L('Every purchase rebate, sales output tax and customer 6.6 adjustment must reconcile to the current account before filing.', 'ফাইলিংয়ের আগে প্রতিটি ক্রয় রিবেট, বিক্রয় আউটপুট কর ও গ্রাহক ৬.৬ সমন্বয় চলতি হিসাবের সাথে মিলতে হবে।')}</p>
+                <p className="ql-hint">{L('Every purchase rebate, sales output tax and customer 6.6 adjustment must reconcile to the current account before filing.', 'ফাইলিংয়ের আগে প্রতিটি ক্রয় রিবেট, বিক্রয় আউটপুট কর ও গ্রাহক ৬.৬ সমন্বয় চলতি হিসাবের সাথে মিলতে হবে।')}</p>
               </div>
             </section>
 
             <div className="space-y-5">
-              <section className="lv-card lv-card-pad">
+              <section className="ql-card ql-card-pad">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="lv-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Subledger proof', 'সাবলেজার প্রমাণ')}</p>
-                  <span className={`lv-chip ${vatRow?.reconciled ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>{vatRow?.reconciled ? L('Reconciled', 'মিলিত') : L('Review', 'পর্যালোচনা')}</span>
+                  <p className="ql-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Subledger proof', 'সাবলেজার প্রমাণ')}</p>
+                  <span className={`ql-badge ${vatRow?.reconciled ? 'ql-badge-success' : 'ql-badge-danger'}`}>{vatRow?.reconciled ? L('Reconciled', 'মিলিত') : L('Review', 'পর্যালোচনা')}</span>
                 </div>
                 <dl className="mt-3 space-y-2 text-[11px]">
                   {[
@@ -679,11 +679,11 @@ export default function W05_VatRegisters91() {
                     </div>
                   ))}
                 </dl>
-                <p className="lv-hint mt-3">{L('Control codes', 'নিয়ন্ত্রণ কোড')}: {vatRow?.account_codes.join(' · ') || '1140 · 2120'}</p>
+                <p className="ql-hint mt-3">{L('Control codes', 'নিয়ন্ত্রণ কোড')}: {vatRow?.account_codes.join(' · ') || '1140 · 2120'}</p>
               </section>
 
-              <section className="lv-card lv-card-pad">
-                <p className="lv-kicker">{L('Movement visual', 'পরিবর্তনের ভিজ্যুয়াল')}</p>
+              <section className="ql-card ql-card-pad">
+                <p className="ql-kicker">{L('Movement visual', 'পরিবর্তনের ভিজ্যুয়াল')}</p>
                 <div className="mt-3 space-y-2">
                   {[
                     { label: L('Input rebate', 'ইনপুট রিবেট'), value: return91.input_rebate_poisha, tone: 'bg-vault-500' },
@@ -707,11 +707,11 @@ export default function W05_VatRegisters91() {
                 </div>
               </section>
 
-              <section className="lv-card lv-card-pad">
-                <p className="lv-kicker flex items-center gap-1.5"><Calculator size={12} /> {L('Filing rule', 'ফাইলিং বিধি')}</p>
+              <section className="ql-card ql-card-pad">
+                <p className="ql-kicker flex items-center gap-1.5"><Calculator size={12} /> {L('Filing rule', 'ফাইলিং বিধি')}</p>
                 <p className="mt-2 text-[10.5px] font-semibold text-ink-900">{L(filing.explanation_en, filing.explanation_bn)}</p>
                 <p className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-vault-700">{filing.citation}</p>
-                <button type="button" className="lv-btn lv-btn-primary mt-3 w-full" onClick={() => setPrintOpen(true)}><Printer size={14} /> {L('Print A4 Mushak 9.1', 'এ৪ মূসক ৯.১ প্রিন্ট')}</button>
+                <button type="button" className="ql-btn ql-btn-primary mt-3 w-full" onClick={() => setPrintOpen(true)}><Printer size={14} /> {L('Print A4 Mushak 9.1', 'এ৪ মূসক ৯.১ প্রিন্ট')}</button>
               </section>
             </div>
           </div>
@@ -726,7 +726,7 @@ export default function W05_VatRegisters91() {
                     {books.reconciled ? <CircleCheck size={22} /> : <TriangleAlert size={22} />}
                   </span>
                   <div>
-                    <p className="lv-kicker">{L('GL-vs-return reconciliation proof', 'জিএল ও রিটার্ন মিলকরণ প্রমাণ')}</p>
+                    <p className="ql-kicker">{L('GL-vs-return reconciliation proof', 'জিএল ও রিটার্ন মিলকরণ প্রমাণ')}</p>
                     <h2 className="text-lg font-semibold tracking-tight text-ink-900">
                       {L('Variance', 'পার্থক্য')} <span className={`font-money ${books.reconciled ? 'text-emerald-700' : 'text-rose-700'}`}>{money(books.coreVariance)}</span> BDT
                     </h2>
@@ -759,20 +759,20 @@ export default function W05_VatRegisters91() {
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-200/60 px-5 py-2.5">
                 <span className="flex items-center gap-1.5 text-[10px] text-ink-500"><ShieldCheck size={12} /> {L('Rule pack bd-2026-v1 · pending tax-counsel review · no filing deadline asserted', 'রুল প্যাক bd-2026-v1 · কর পরামর্শকের পর্যালোচনার অপেক্ষায় · কোনো দাখিলের সময়সীমা দাবি করা হয় না')}</span>
                 <div className="flex items-center gap-2">
-                  <button type="button" className="lv-btn lv-btn-secondary !py-1.5" onClick={exportWorkbook}><Download size={13} /> {L('Export .xlsx', 'এক্সপোর্ট .xlsx')}</button>
-                  <button type="button" className="lv-btn lv-btn-primary !py-1.5" onClick={() => setPrintOpen(true)}><Printer size={13} /> {L('Print A4', 'এ৪ প্রিন্ট')}</button>
+                  <button type="button" className="ql-btn ql-btn-secondary !py-1.5" onClick={exportWorkbook}><Download size={13} /> {L('Export .xlsx', 'এক্সপোর্ট .xlsx')}</button>
+                  <button type="button" className="ql-btn ql-btn-primary !py-1.5" onClick={() => setPrintOpen(true)}><Printer size={13} /> {L('Print A4', 'এ৪ প্রিন্ট')}</button>
                 </div>
               </div>
             </section>
 
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-              <section className="lv-card overflow-hidden">
-                <div className="lv-card-header">
+              <section className="ql-card overflow-hidden">
+                <div className="ql-card-header">
                   <div>
-                    <p className="lv-kicker flex items-center gap-1.5"><FileText size={12} /> {L('Return assembly', 'রিটার্ন সংকলন')}</p>
+                    <p className="ql-kicker flex items-center gap-1.5"><FileText size={12} /> {L('Return assembly', 'রিটার্ন সংকলন')}</p>
                     <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Mushak 9.1 — 12-part computation', 'মূসক ৯.১ — ১২ অংশের হিসাব')}</h2>
                   </div>
-                  <span className="lv-chip lv-chip-gold">{L('Draft — deadline not verified', 'খসড়া — সময়সীমা যাচাইকৃত নয়')}</span>
+                  <span className="ql-badge ql-badge-warn">{L('Draft — deadline not verified', 'খসড়া — সময়সীমা যাচাইকৃত নয়')}</span>
                 </div>
                 <div className="grid gap-px bg-ink-100 sm:grid-cols-2">
                   {return91.parts.map((part) => (
@@ -798,8 +798,8 @@ export default function W05_VatRegisters91() {
               </section>
 
               <div className="space-y-5">
-                <section className="lv-card lv-card-pad">
-                  <p className="lv-kicker flex items-center gap-1.5"><Sigma size={12} /> {L('Return totals', 'রিটার্ন মোট')}</p>
+                <section className="ql-card ql-card-pad">
+                  <p className="ql-kicker flex items-center gap-1.5"><Sigma size={12} /> {L('Return totals', 'রিটার্ন মোট')}</p>
                   <dl className="mt-3 space-y-2 text-[11px]">
                     {[
                       [L('Output tax', 'আউটপুট কর'), money(return91.output_tax_poisha)],
@@ -820,8 +820,8 @@ export default function W05_VatRegisters91() {
                   </div>
                 </section>
 
-                <section className="lv-card lv-card-pad">
-                  <p className="lv-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Template review status', 'টেমপ্লেট পর্যালোচনা অবস্থা')}</p>
+                <section className="ql-card ql-card-pad">
+                  <p className="ql-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Template review status', 'টেমপ্লেট পর্যালোচনা অবস্থা')}</p>
                   <p className="mt-2 text-[10.5px] font-semibold text-ink-900">{L(filing.explanation_en, filing.explanation_bn)}</p>
                   <p className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-vault-700">{filing.citation}</p>
                   <dl className="mt-3 space-y-1.5 text-[10.5px]">
@@ -829,11 +829,11 @@ export default function W05_VatRegisters91() {
                     <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Deadline', 'সময়সীমা')}</dt><dd className="font-semibold">{L('Not verified', 'যাচাইকৃত নয়')}</dd></div>
                     <div className="flex justify-between gap-2"><dt className="text-ink-500">{L('Filing status', 'দাখিলের অবস্থা')}</dt><dd className="font-semibold">{L('Draft — not filed', 'খসড়া — দাখিল হয়নি')}</dd></div>
                   </dl>
-                  <button type="button" className="lv-btn lv-btn-secondary mt-3 w-full" onClick={exportWorkbook}><FileSpreadsheet size={14} /> {L('Download internal workbook', 'অভ্যন্তরীণ ওয়ার্কবুক ডাউনলোড')}</button>
+                  <button type="button" className="ql-btn ql-btn-secondary mt-3 w-full" onClick={exportWorkbook}><FileSpreadsheet size={14} /> {L('Download internal workbook', 'অভ্যন্তরীণ ওয়ার্কবুক ডাউনলোড')}</button>
                 </section>
 
-                <section className="lv-card lv-card-pad">
-                  <p className="lv-kicker flex items-center gap-1.5"><ArrowRight size={12} /> {L('Next step', 'পরবর্তী ধাপ')}</p>
+                <section className="ql-card ql-card-pad">
+                  <p className="ql-kicker flex items-center gap-1.5"><ArrowRight size={12} /> {L('Next step', 'পরবর্তী ধাপ')}</p>
                   <p className="mt-2 text-[10.5px] leading-relaxed text-ink-600">
                     {L('Do not file from this screen. Have tax counsel review the register mapping, GL proof and exceptions, then file through the approved external process. This workbook is not a filing acknowledgement or a government receipt.', 'এই স্ক্রিন থেকে দাখিল করবেন না। কর পরামর্শককে রেজিস্টার ম্যাপিং, জিএল প্রমাণ ও ব্যতিক্রম পর্যালোচনা করতে দিন, তারপর অনুমোদিত বাহ্যিক প্রক্রিয়ায় দাখিল করুন। এই ওয়ার্কবুক দাখিল স্বীকৃতি বা সরকারি রসিদ নয়।')}
                   </p>

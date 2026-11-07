@@ -1,4 +1,4 @@
-// LedgerVault — Signature component #4: the statutory A4 print pack.
+// Fintuity Accounting Suite — Signature component #4: the statutory A4 print pack.
 //
 // Four pixel-faithful, print-ready documents, all derived from the live ledger rather than from
 // hand-typed numbers:
@@ -13,8 +13,8 @@
 //                     Position, Statement of Profit or Loss (IFRS 18 categories + MPM EBITDA),
 //                     Statement of Changes in Equity, IAS 7 Cash Flows, Notes and the Trial Balance.
 //
-// The chrome (mode switcher, print button) carries `.lv-print-chrome` and disappears on paper; the
-// sheet itself carries `.lv-print-sheet` and owns the A4 geometry. Pages are hard-broken with
+// The chrome (mode switcher, print button) carries `.ql-print-chrome` and disappears on paper; the
+// sheet itself carries `.ql-print-sheet` and owns the A4 geometry. Pages are hard-broken with
 // `page-break-after`, so the pack prints 1:1 with the statutory forms.
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -242,7 +242,7 @@ export function StatutoryPrintModal({
 
   const content = (
     <div
-      className="lv-print-overlay fixed inset-0 z-50 flex flex-col bg-ink-900/60 backdrop-blur-sm"
+      className="ql-print-overlay fixed inset-0 z-50 flex flex-col bg-ink-900/60 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={label('Statutory documents', 'সংবিধিবদ্ধ ডকুমেন্ট')}
@@ -252,7 +252,7 @@ export function StatutoryPrintModal({
       {/* ------------------------------------------------------------------------------ */}
       {/* Toolbar (never printed)                                                         */}
       {/* ------------------------------------------------------------------------------ */}
-      <div className="lv-print-chrome flex flex-wrap items-center justify-between gap-2 border-b border-ink-800 bg-vault-950 px-4 py-2.5 text-white">
+      <div className="ql-print-chrome flex flex-wrap items-center justify-between gap-2 border-b border-ink-800 bg-vault-950 px-4 py-2.5 text-white">
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
@@ -272,14 +272,14 @@ export function StatutoryPrintModal({
           </div>
         </div>
 
-        <div className="lv-seg !border-white/15 !bg-white/5">
+        <div className="ql-seg !border-white/15 !bg-white/5">
           {MODES.map((entry) => (
             <button
               key={entry.id}
               type="button"
               onClick={() => handleMode(entry.id)}
               data-active={activeMode === entry.id ? 'true' : 'false'}
-              className={`lv-seg-item ${
+              className={`ql-seg-item ${
                 activeMode === entry.id ? '!bg-gold-400 !text-vault-950' : '!text-vault-200 hover:!text-white'
               }`}
             >
@@ -315,8 +315,8 @@ export function StatutoryPrintModal({
       {/* ------------------------------------------------------------------------------ */}
       {/* Sheet viewport                                                                  */}
       {/* ------------------------------------------------------------------------------ */}
-      <div className="lv-print-scroll min-h-0 flex-1 overflow-auto bg-ink-200/70 px-3 py-6">
-        <div className="lv-print-shell mx-auto w-fit max-w-full space-y-6">
+      <div className="ql-print-scroll min-h-0 flex-1 overflow-auto bg-ink-200/70 px-3 py-6">
+        <div className="ql-print-shell mx-auto w-fit max-w-full space-y-6">
           {activeMode === 'MUSHAK_6_3' ? (
             activeDoc ? (
               <Mushak63Sheet ctx={sheetCtx} doc={activeDoc} catalog={catalog} />
@@ -384,25 +384,25 @@ const PRINT_CSS = `
   @page { size: A4 portrait; margin: 10mm; }
   html, body { background: #ffffff !important; }
   #root { display: none !important; }
-  .lv-print-overlay {
+  .ql-print-overlay {
     position: static !important; inset: auto !important; display: block !important;
     background: #ffffff !important; padding: 0 !important; backdrop-filter: none !important;
   }
-  .lv-print-shell { width: auto !important; max-width: none !important; display: block !important; }
-  .lv-print-chrome { display: none !important; }
-  .lv-print-scroll {
+  .ql-print-shell { width: auto !important; max-width: none !important; display: block !important; }
+  .ql-print-chrome { display: none !important; }
+  .ql-print-scroll {
     overflow: visible !important; padding: 0 !important; margin: 0 !important;
     background: #ffffff !important;
   }
-  .lv-print-sheet {
+  .ql-print-sheet {
     width: auto !important; min-height: 0 !important; margin: 0 !important;
     padding: 0 !important; border: 0 !important; border-radius: 0 !important;
     box-shadow: none !important; page-break-after: always; break-after: page;
   }
-  .lv-print-sheet:last-child { page-break-after: auto; break-after: auto; }
-  .lv-print-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .lv-print-sheet table { page-break-inside: auto; }
-  .lv-print-sheet tr { page-break-inside: avoid; }
+  .ql-print-sheet:last-child { page-break-after: auto; break-after: auto; }
+  .ql-print-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ql-print-sheet table { page-break-inside: auto; }
+  .ql-print-sheet tr { page-break-inside: avoid; }
 }
 `;
 
@@ -412,7 +412,7 @@ const PRINT_CSS = `
 
 function PrintSheet({ children }: { children: ReactNode }) {
   return (
-    <div className="lv-print-sheet relative mx-auto min-h-[297mm] w-full max-w-[210mm] border border-black/15 bg-white p-8 text-black shadow-2xl">
+    <div className="ql-print-sheet relative mx-auto min-h-[297mm] w-full max-w-[210mm] border border-black/15 bg-white p-8 text-black shadow-2xl">
       <JamdaniWatermarkSvg
         className="pointer-events-none absolute inset-0 h-full w-full select-none"
         opacity={0.05}

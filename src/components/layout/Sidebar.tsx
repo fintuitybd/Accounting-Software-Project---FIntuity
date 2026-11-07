@@ -1,4 +1,4 @@
-// LedgerVault — persistent workspace sidebar.
+// Fintuity Accounting Suite — persistent workspace sidebar.
 //
 // The Lumen navigation rail: a porcelain column with a gradient identity tile, a deep-space tenant
 // card, four quiet module groups and live exception badges. On desktop it collapses to an 84px icon
@@ -41,7 +41,7 @@ import {
   type WorkspaceKey,
 } from '../../workspaces/registry';
 
-const COLLAPSE_KEY = 'ledgervault.v2.nav.collapsed';
+const COLLAPSE_KEY = 'fintuity.v2.nav.collapsed';
 
 interface SidebarBadge {
   count: number;
@@ -159,7 +159,7 @@ export function Sidebar({
   return (
     <aside
       aria-label={L('Workspace navigation', 'ওয়ার্কস্পেস নেভিগেশন')}
-      className={`fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-line/80 bg-[rgb(var(--lv-sidebar))] transition-[width,transform] duration-300 ease-out-expo lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 dark:border-white/[0.06] ${
+      className={`fixed inset-y-0 left-0 z-50 flex w-[288px] flex-col border-r border-line/80 bg-[rgb(var(--ql-surface))] transition-[width,transform] duration-300 ease-out-expo lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 dark:border-white/[0.06] ${
         rail ? 'lg:w-[84px]' : 'lg:w-[288px]'
       } ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
     >
@@ -287,7 +287,7 @@ export function Sidebar({
         <span className={`min-w-0 flex-1 truncate text-[10.5px] font-medium text-ink-500 ${rail ? 'lg:hidden' : ''}`}>
           {L('Search or jump to…', 'খুঁজুন বা যান…')}
         </span>
-        <kbd className={`lv-kbd shrink-0 !py-0.5 !text-[8.5px] ${rail ? 'lg:hidden' : ''}`}>⌘K</kbd>
+        <kbd className={`ql-kbd shrink-0 !py-0.5 !text-[8.5px] ${rail ? 'lg:hidden' : ''}`}>⌘K</kbd>
       </button>
 
       {/* Navigation ----------------------------------------------------------------------- */}
@@ -589,14 +589,14 @@ export function Sidebar({
                             onClick={() => onNavigate(workspace.key)}
                             aria-current={isActive ? 'page' : undefined}
                             title={`${label} · ${workspace.shortcut}`}
-                            className={`lv-nav-item group relative flex w-full items-center gap-2.5 rounded-xl px-2 py-[7px] text-left ${
+                            className={`ql-nav-item group relative flex w-full items-center gap-2.5 rounded-xl px-2 py-[7px] text-left ${
                               isActive ? 'text-white' : 'text-ink-700'
                             } ${rail ? 'lg:justify-center lg:px-0' : ''}`}
                           >
                             {isActive && (
                               <motion.span
                                 layoutId="activeNavPill"
-                                className="lv-nav-pill absolute inset-0 rounded-xl"
+                                className="ql-nav-pill absolute inset-0 rounded-xl"
                                 transition={
                                   motionTier === 'OFF'
                                     ? { duration: 0 }
@@ -615,7 +615,7 @@ export function Sidebar({
                               {badge ? (
                                 <span
                                   aria-hidden
-                                  className={`absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full ring-2 ring-[rgb(var(--lv-sidebar))] ${
+                                  className={`absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full ring-2 ring-[rgb(var(--ql-surface))] ${
                                     rail ? 'hidden lg:block' : 'hidden'
                                   } ${RAIL_DOT[badge.tone]}`}
                                 />

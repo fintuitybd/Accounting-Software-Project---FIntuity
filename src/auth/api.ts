@@ -51,7 +51,7 @@ function readCookie(name: string): string | undefined {
 function dispatchAuthFailure(code: string): void {
   if (typeof window === 'undefined') return;
   if (code !== 'SESSION_EXPIRED' && code !== 'UNAUTHENTICATED') return;
-  window.dispatchEvent(new CustomEvent('ledgervault:session-expired', { detail: { code } }));
+  window.dispatchEvent(new CustomEvent('fintuity:session-expired', { detail: { code } }));
 }
 
 interface RequestOptions {

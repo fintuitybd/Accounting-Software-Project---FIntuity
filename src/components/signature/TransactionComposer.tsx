@@ -1,4 +1,4 @@
-// LedgerVault — Signature component #2: the Transaction Composer.
+// Fintuity Accounting Suite — Signature component #2: the Transaction Composer.
 //
 // One natural-language bar accepts English, Bangla or Banglish, parses it *deterministically* (no
 // model call, no network: the same sentence always produces the same draft), then renders the live
@@ -683,18 +683,18 @@ function bpsLabel(bps: number): string {
 
 function decisionTone(state: string): { className: string; en: string; bn: string } {
   if (state === 'SUPPORTED') {
-    return { className: 'lv-chip-emerald', en: 'Engine supported', bn: 'ইঞ্জিন সমর্থিত' };
+    return { className: 'ql-badge-success', en: 'Engine supported', bn: 'ইঞ্জিন সমর্থিত' };
   }
   if (state === 'SUPPORTED_WITH_CONDITIONS') {
-    return { className: 'lv-chip-gold', en: 'Supported with conditions', bn: 'শর্তসাপেক্ষে সমর্থিত' };
+    return { className: 'ql-badge-warn', en: 'Supported with conditions', bn: 'শর্তসাপেক্ষে সমর্থিত' };
   }
   if (state === 'MANUAL_REVIEW') {
-    return { className: 'lv-chip-gold', en: 'Manual review', bn: 'ম্যানুয়াল পর্যালোচনা' };
+    return { className: 'ql-badge-warn', en: 'Manual review', bn: 'ম্যানুয়াল পর্যালোচনা' };
   }
   if (state === 'NOT_SUPPORTED') {
-    return { className: 'lv-chip-rose', en: 'Not supported', bn: 'সমর্থিত নয়' };
+    return { className: 'ql-badge-danger', en: 'Not supported', bn: 'সমর্থিত নয়' };
   }
-  return { className: 'lv-chip-rose', en: 'Source disputed or expired', bn: 'উৎস বিতর্কিত বা মেয়াদোত্তীর্ণ' };
+  return { className: 'ql-badge-danger', en: 'Source disputed or expired', bn: 'উৎস বিতর্কিত বা মেয়াদোত্তীর্ণ' };
 }
 
 /** Mirrors VaultContext's expense routing so the preview names the account that will be posted. */
@@ -1088,8 +1088,8 @@ export function TransactionComposer({
       className={`relative overflow-hidden rounded-[26px] border border-line/90 bg-surface shadow-card ${className}`}
       aria-label={L('Natural language transaction composer', 'স্বাভাবিক ভাষার লেনদেন কম্পোজার')}
     >
-      <div className="lv-aurora" />
-      <div className="lv-grain pointer-events-none absolute inset-0" />
+      <div className="ql-aurora" />
+      <div className="ql-grain pointer-events-none absolute inset-0" />
 
       {/* Header */}
       <header className="relative flex flex-wrap items-start justify-between gap-3 border-b border-line/70 px-4 py-4 sm:px-6 sm:py-5">
@@ -1099,7 +1099,7 @@ export function TransactionComposer({
             <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
           </span>
           <div className="min-w-0">
-            <p className="lv-kicker flex items-center gap-1.5">
+            <p className="ql-kicker flex items-center gap-1.5">
               <Sparkles size={11} className="text-gold-500" />
               {L('Natural-language journal', 'স্বাভাবিক ভাষার জার্নাল')}
             </p>
@@ -1115,15 +1115,15 @@ export function TransactionComposer({
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
-          <span className="lv-chip lv-chip-neutral">
+          <span className="ql-badge ql-badge-neutral">
             <Languages size={10} />
             {parsed.language}
           </span>
-          <span className="lv-chip lv-chip-gold">
+          <span className="ql-badge ql-badge-warn">
             <Scale size={10} />
             {parsed.confidence}% {L('confidence', 'নির্ভরযোগ্যতা')}
           </span>
-          <span className="lv-chip lv-chip-emerald">
+          <span className="ql-badge ql-badge-success">
             <ShieldCheck size={10} />
             {L('Audit sealed', 'অডিট সিল')}
           </span>
@@ -1185,8 +1185,8 @@ export function TransactionComposer({
           className="rounded-2xl p-[1.5px] transition-all duration-300"
           style={{
             background: focused
-              ? 'linear-gradient(120deg, rgb(var(--lv-emerald)), rgb(var(--lv-saffron)) 65%, rgb(var(--lv-emerald-bright)))'
-              : 'rgb(var(--lv-line))',
+              ? 'linear-gradient(120deg, rgb(var(--ql-brand)), rgb(var(--ql-accent)) 65%, rgb(var(--ql-accent)))'
+              : 'rgb(var(--ql-border))',
             boxShadow: focused ? '0 24px 70px -36px rgba(79,70,229,0.55)' : 'none',
           }}
         >
@@ -1213,7 +1213,7 @@ export function TransactionComposer({
                 aria-label={L('Describe a transaction', 'লেনদেন বর্ণনা করুন')}
               />
               <div className="flex shrink-0 flex-col items-end gap-1.5">
-                <kbd className="lv-kbd hidden sm:inline-flex">⌘↵</kbd>
+                <kbd className="ql-kbd hidden sm:inline-flex">⌘↵</kbd>
                 {text ? (
                   <button
                     type="button"
@@ -1318,11 +1318,11 @@ export function TransactionComposer({
         {/* Core draft fields */}
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <label className="block">
-            <span className="lv-label !mb-1 !text-[9px]">{L('Counterparty', 'প্রতিপক্ষ')}</span>
+            <span className="ql-label !mb-1 !text-[9px]">{L('Counterparty', 'প্রতিপক্ষ')}</span>
             <select
               value={partyId}
               onChange={(event) => setPartyId(event.target.value)}
-              className={`lv-select !py-1.5 !text-[11px] ${partyId ? '' : '!border-amber-400/60 !bg-amber-500/[0.04]'}`}
+              className={`ql-select !py-1.5 !text-[11px] ${partyId ? '' : '!border-amber-400/60 !bg-amber-500/[0.04]'}`}
             >
               <option value="">{L('— select party —', '— পক্ষ নির্বাচন —')}</option>
               {eligibleParties.map((party) => (
@@ -1335,11 +1335,11 @@ export function TransactionComposer({
           </label>
 
           <label className="block">
-            <span className="lv-label !mb-1 !text-[9px]">{L('Settlement', 'নিষ্পত্তি')}</span>
+            <span className="ql-label !mb-1 !text-[9px]">{L('Settlement', 'নিষ্পত্তি')}</span>
             <select
               value={method}
               onChange={(event) => setMethod(event.target.value as PaymentMethod)}
-              className="lv-select !py-1.5 !text-[11px]"
+              className="ql-select !py-1.5 !text-[11px]"
             >
               {PAYMENT_METHODS.map((entry) => (
                 <option key={entry} value={entry}>
@@ -1350,11 +1350,11 @@ export function TransactionComposer({
           </label>
 
           <label className="block">
-            <span className="lv-label !mb-1 !text-[9px]">{L('VAT category', 'ভ্যাট শ্রেণি')}</span>
+            <span className="ql-label !mb-1 !text-[9px]">{L('VAT category', 'ভ্যাট শ্রেণি')}</span>
             <select
               value={category}
               onChange={(event) => setCategory(event.target.value as TaxCategory)}
-              className="lv-select !py-1.5 !text-[11px]"
+              className="ql-select !py-1.5 !text-[11px]"
             >
               {CATEGORIES.map((entry) => (
                 <option key={entry} value={entry}>
@@ -1365,14 +1365,14 @@ export function TransactionComposer({
           </label>
 
           <label className="block">
-            <span className="lv-label !mb-1 !text-[9px]">{L('Posting date', 'পোস্টিং তারিখ')}</span>
+            <span className="ql-label !mb-1 !text-[9px]">{L('Posting date', 'পোস্টিং তারিখ')}</span>
             <div className="relative">
               <CalendarDays size={12} className="pointer-events-none absolute right-2.5 top-2 text-ink-400" />
               <input
                 type="date"
                 value={postingDate}
                 onChange={(event) => setPostingDate(event.target.value)}
-                className="lv-input !py-1.5 !pr-8 !text-[11px]"
+                className="ql-input !py-1.5 !pr-8 !text-[11px]"
               />
             </div>
           </label>
@@ -1408,11 +1408,11 @@ export function TransactionComposer({
             >
               <div className="mt-2 grid grid-cols-1 gap-2 rounded-xl border border-line/60 bg-surface-2/40 p-3 sm:grid-cols-2 xl:grid-cols-3">
                 <label className="block">
-                  <span className="lv-label !mb-1 !text-[9px]">{L('TDS nature', 'টিডিএস প্রকৃতি')}</span>
+                  <span className="ql-label !mb-1 !text-[9px]">{L('TDS nature', 'টিডিএস প্রকৃতি')}</span>
                   <select
                     value={tdsNature}
                     onChange={(event) => setTdsNature(event.target.value as TdsNature)}
-                    className="lv-select !py-1.5 !text-[11px]"
+                    className="ql-select !py-1.5 !text-[11px]"
                   >
                     {TDS_NATURES.map((entry) => (
                       <option key={entry} value={entry}>
@@ -1422,8 +1422,8 @@ export function TransactionComposer({
                   </select>
                 </label>
                 <label className="block">
-                  <span className="lv-label !mb-1 !text-[9px]">{L('BIN unit', 'বিআইএন ইউনিট')}</span>
-                  <select value={binUnit?.id ?? ''} disabled className="lv-select !py-1.5 !text-[11px]">
+                  <span className="ql-label !mb-1 !text-[9px]">{L('BIN unit', 'বিআইএন ইউনিট')}</span>
+                  <select value={binUnit?.id ?? ''} disabled className="ql-select !py-1.5 !text-[11px]">
                     {(tenant.bin_units.length > 0 ? tenant.bin_units : []).map((unit) => (
                       <option key={unit.id} value={unit.id}>
                         {unit.unit_name_en} · {unit.bin_number}
@@ -1432,7 +1432,7 @@ export function TransactionComposer({
                   </select>
                 </label>
                 <div className="flex items-end">
-                  <p className="lv-hint text-[9.5px]">
+                  <p className="ql-hint text-[9.5px]">
                     {L(
                       'The engine re-derives VAT, VDS, TDS and every journal line on each keystroke.',
                       'প্রতিটি কীস্ট্রোকে ইঞ্জিন ভ্যাট, ভিডিএস, টিডিএস ও প্রতিটি জার্নাল লাইন পুনরায় নির্ণয় করে।',
@@ -1470,7 +1470,7 @@ export function TransactionComposer({
               <div className="rounded-2xl border border-line/70 bg-surface-2/35 p-3.5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="lv-kicker flex items-center gap-1.5">
+                    <p className="ql-kicker flex items-center gap-1.5">
                       <ReceiptText size={11} className="text-gold-500" />
                       {L('Live tax waterfall', 'লাইভ কর ওয়াটারফল')}
                     </p>
@@ -1478,7 +1478,7 @@ export function TransactionComposer({
                       {L('How the gross becomes cash', 'যেভাবে মোট নগদ হয়')}
                     </p>
                   </div>
-                  <span className={`lv-chip ${tone.className}`}>
+                  <span className={`ql-badge ${tone.className}`}>
                     <Scale size={10} />
                     {L(tone.en, tone.bn)}
                   </span>
@@ -1548,7 +1548,7 @@ export function TransactionComposer({
               <div className="rounded-2xl border border-line/70 bg-surface-2/35 p-3.5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="lv-kicker flex items-center gap-1.5">
+                    <p className="ql-kicker flex items-center gap-1.5">
                       <BookOpen size={11} className="text-emerald-500" />
                       {L('Double-entry preview', 'দ্বৈত-এন্ট্রি প্রিভিউ')}
                     </p>
@@ -1557,8 +1557,8 @@ export function TransactionComposer({
                     </p>
                   </div>
                   <span
-                    className={`lv-chip ${
-                      journalTotals.debit === journalTotals.credit ? 'lv-chip-emerald' : 'lv-chip-rose'
+                    className={`ql-badge ${
+                      journalTotals.debit === journalTotals.credit ? 'ql-badge-success' : 'ql-badge-danger'
                     }`}
                   >
                     <Check size={10} />
@@ -1634,14 +1634,14 @@ export function TransactionComposer({
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="lv-chip lv-chip-neutral !text-[9px]">
+                  <span className="ql-badge ql-badge-neutral !text-[9px]">
                     <ShieldCheck size={9} />
                     SHA-256 {L('chain', 'চেইন')}
                   </span>
-                  <span className="lv-chip lv-chip-neutral !text-[9px]">
+                  <span className="ql-badge ql-badge-neutral !text-[9px]">
                     {L('Mushak serial auto-allocated', 'মূসক সিরিয়াল স্বয়ংক্রিয়')}
                   </span>
-                  <span className="lv-chip lv-chip-neutral !text-[9px]">
+                  <span className="ql-badge ql-badge-neutral !text-[9px]">
                     {preview.groups.length > 1 ? L('+ settlement journal', '+ নিষ্পত্তি জার্নাল') : L('single journal', 'একক জার্নাল')}
                   </span>
                 </div>
@@ -1710,8 +1710,8 @@ export function TransactionComposer({
           </div>
           <div className="flex items-center gap-2">
             <span className="hidden items-center gap-1 text-[9px] text-ink-400 sm:flex">
-              <kbd className="lv-kbd !px-1 !py-0.5 !text-[8px]">⌘</kbd>
-              <kbd className="lv-kbd !px-1 !py-0.5 !text-[8px]">↵</kbd>
+              <kbd className="ql-kbd !px-1 !py-0.5 !text-[8px]">⌘</kbd>
+              <kbd className="ql-kbd !px-1 !py-0.5 !text-[8px]">↵</kbd>
               {L('to post', 'পোস্ট')}
             </span>
             <button

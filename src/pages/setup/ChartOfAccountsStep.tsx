@@ -253,14 +253,14 @@ export default function ChartOfAccountsStep({
         </div>
         {canManage ? (
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => void downloadTemplate()} className="lv-btn lv-btn-secondary min-h-10 text-[13px]">
+            <button type="button" onClick={() => void downloadTemplate()} className="ql-btn ql-btn-secondary min-h-10 text-[13px]">
               <Download size={15} /> CSV template
             </button>
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={importing} className="lv-btn lv-btn-secondary min-h-10 text-[13px]">
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={importing} className="ql-btn ql-btn-secondary min-h-10 text-[13px]">
               {importing ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
               Import CSV/XLSX
             </button>
-            <button type="button" onClick={() => setForm(blankForm())} className="lv-btn lv-btn-primary min-h-10 text-[13px]">
+            <button type="button" onClick={() => setForm(blankForm())} className="ql-btn ql-btn-primary min-h-10 text-[13px]">
               <Plus size={15} /> Add account
             </button>
           </div>
@@ -332,11 +332,11 @@ export default function ChartOfAccountsStep({
             </label>
           ) : null}
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="submit" disabled={saving} className="lv-btn lv-btn-primary min-h-11 text-[14px]">
+            <button type="submit" disabled={saving} className="ql-btn ql-btn-primary min-h-11 text-[14px]">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               {form.id ? 'Save account' : 'Create account'}
             </button>
-            <button type="button" onClick={() => setForm(null)} disabled={saving} className="lv-btn lv-btn-secondary min-h-11 text-[14px]">Cancel</button>
+            <button type="button" onClick={() => setForm(null)} disabled={saving} className="ql-btn ql-btn-secondary min-h-11 text-[14px]">Cancel</button>
           </div>
         </form>
       ) : null}
@@ -346,7 +346,7 @@ export default function ChartOfAccountsStep({
           <span className="sr-only">Search accounts</span>
           <input className={INPUT_CLASS} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search code or account name" />
         </label>
-        <span className="lv-chip lv-chip-neutral text-[12px]">{filtered.length} shown</span>
+        <span className="ql-badge ql-badge-neutral text-[12px]">{filtered.length} shown</span>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-line">
@@ -391,7 +391,7 @@ export default function ChartOfAccountsStep({
                     )}
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className={`lv-chip text-[12px] ${account.isActive ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}>
+                    <span className={`ql-badge text-[12px] ${account.isActive ? 'ql-badge-success' : 'ql-badge-neutral'}`}>
                       {account.isActive ? 'ACTIVE' : 'INACTIVE'}
                     </span>
                   </td>

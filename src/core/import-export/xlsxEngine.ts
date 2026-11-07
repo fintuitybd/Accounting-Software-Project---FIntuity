@@ -1218,7 +1218,7 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
 
   // 1 — Summary -------------------------------------------------------------------------------
   const summary: Array<Array<string | number>> = [
-    ['LEDGERVault — AUDIT PACK'],
+    ['Fintuity — AUDIT PACK'],
     ['Entity', tenant.name_en],
     ['BIN units', tenant.bin_units.map((unit) => `${unit.unit_name_en} (${unit.bin_number})`).join(' · ')],
     ['TIN', tenant.tin_number],
@@ -1493,7 +1493,7 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
 
   const xmlContent = buildSpreadsheetML(sheets);
   const primaryName = `Fintuity Accounting Suite-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`;
-  const legacyName = `LedgerVault-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`;
+  const legacyName = `Fintuity Accounting Suite-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`;
 
   downloadWorkbookFile(primaryName, xmlContent);
   if (typeof window === 'undefined') {

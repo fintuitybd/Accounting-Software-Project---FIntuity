@@ -14,11 +14,11 @@ const STATUS_META: Record<
 };
 
 const TONE_CLASS: Record<string, string> = {
-  neutral: 'lv-chip-neutral',
-  amber: 'lv-chip-gold',
-  emerald: 'lv-chip-emerald',
-  gold: 'lv-chip-gold',
-  rose: 'lv-chip-rose',
+  neutral: 'ql-badge-neutral',
+  amber: 'ql-badge-warn',
+  emerald: 'ql-badge-success',
+  gold: 'ql-badge-warn',
+  rose: 'ql-badge-danger',
 };
 
 export function statusLabel(status: JournalStatus, locale: Locale): string {
@@ -30,7 +30,7 @@ export function StatusChip({ status }: { status: JournalStatus }) {
   const { locale } = usePreferences();
   const meta = STATUS_META[status];
   return (
-    <span className={`lv-chip ${TONE_CLASS[meta.tone]}`}>
+    <span className={`ql-badge ${TONE_CLASS[meta.tone]}`}>
       <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
       {localized(locale, meta.en, meta.bn)}
     </span>

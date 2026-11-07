@@ -421,10 +421,10 @@ export function PurchaseFormPanel({
   };
 
   return (
-    <section className="lv-card p-4 sm:p-5">
+    <section className="ql-card p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{isExpense ? 'Expense control' : 'Procure to pay'}</p>
+          <p className="ql-kicker">{isExpense ? 'Expense control' : 'Procure to pay'}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {initialDocument ? 'Edit purchase draft' : isExpense ? 'New expense voucher' : 'New supplier bill'}
           </h2>
@@ -450,7 +450,7 @@ export function PurchaseFormPanel({
               retry: 'Retry',
             }}
           />
-          <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" onClick={onCancel}>
+          <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" onClick={onCancel}>
             <X size={15} /> Close
           </button>
         </div>
@@ -670,7 +670,7 @@ export function PurchaseFormPanel({
                   </td>
                   <td className="min-w-[220px] px-2 py-2">
                     {stock ? (
-                      <div className="lv-input flex min-h-11 items-center text-[13px] text-ink-600">
+                      <div className="ql-input flex min-h-11 items-center text-[13px] text-ink-600">
                         {item?.inventoryAccountCode ?? 'Missing inventory account'} — {item?.inventoryAccountName ?? 'Configure the item'}
                       </div>
                     ) : (
@@ -713,7 +713,7 @@ export function PurchaseFormPanel({
                   <td className="w-[48px] px-2 py-2">
                     <button
                       type="button"
-                      className="lv-btn lv-btn-ghost min-h-10 px-2 text-ink-500"
+                      className="ql-btn ql-btn-ghost min-h-10 px-2 text-ink-500"
                       aria-label={`Remove line ${index + 1}`}
                       onClick={() => setLines((current) => (current.length === 1 ? current : current.filter((entry) => entry.key !== line.key)))}
                     >
@@ -793,14 +793,14 @@ export function PurchaseFormPanel({
       </div>
 
       <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ql-border bg-ql-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-        <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => setLines((current) => [...current, blankLine()])}>
+        <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => setLines((current) => [...current, blankLine()])}>
           <Plus size={15} /> Add line
         </button>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" onClick={onCancel}>
+          <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" onClick={onCancel}>
             Cancel
           </button>
-          <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={saving} onClick={() => void save()}>
+          <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={saving} onClick={() => void save()}>
             <Save size={15} /> {saving ? 'Saving…' : initialDocument ? 'Save draft and review' : 'Save draft and review'}
           </button>
         </div>

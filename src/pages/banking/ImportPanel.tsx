@@ -223,10 +223,10 @@ export function ImportPanel({
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="lv-kicker">Statement evidence</p>
+            <p className="ql-kicker">Statement evidence</p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink-900">Import a bank or MFS statement</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">
               The template is the documented CSV/XLSX mapping. Money in is <strong>debit/deposit</strong>; money out is{' '}
@@ -234,7 +234,7 @@ export function ImportPanel({
               auto-match or create a fee.
             </p>
           </div>
-          <button type="button" onClick={downloadTemplate} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={downloadTemplate} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <Download size={15} /> CSV template
           </button>
         </div>
@@ -264,7 +264,7 @@ export function ImportPanel({
         {preview ? (
           <div className="mt-4 space-y-4">
             <div>
-              <p className="lv-kicker">Column mapping</p>
+              <p className="ql-kicker">Column mapping</p>
               <div className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {MAPPING_FIELDS.map((entry) => (
                   <Field key={entry.key} label={entry.label} required={entry.required}>
@@ -286,14 +286,14 @@ export function ImportPanel({
                 ))}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={() => void rerunPreview()} disabled={busy} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+                <button type="button" onClick={() => void rerunPreview()} disabled={busy} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                   {busy ? <Loader2 size={15} className="animate-spin" /> : <FileSpreadsheet size={15} />} Refresh preview
                 </button>
                 <button
                   type="button"
                   onClick={() => void commit()}
                   disabled={busy || preview.summary.validCount === 0}
-                  className="lv-btn lv-btn-primary min-h-11 text-[13px]"
+                  className="ql-btn ql-btn-primary min-h-11 text-[13px]"
                 >
                   {busy ? <Loader2 size={15} className="animate-spin" /> : <UploadCloud size={15} />} Import {preview.summary.validCount} line(s)
                 </button>
@@ -380,13 +380,13 @@ export function ImportPanel({
         ) : null}
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker">Import batches</p>
+            <p className="ql-kicker">Import batches</p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink-900">{bankName}</h2>
           </div>
-          <span className="lv-chip lv-chip-neutral">{statements.length} batch(es)</span>
+          <span className="ql-badge ql-badge-neutral">{statements.length} batch(es)</span>
         </div>
         {loadingHistory ? (
           <p className="px-4 py-6 text-[13px] text-ink-500">Loading import history…</p>

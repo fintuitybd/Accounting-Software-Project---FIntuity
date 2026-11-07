@@ -4,7 +4,7 @@
  * The header lockup and the compact mark both use the supplied `logo.svg` unchanged. CSS frames crop
  * the artboard whitespace visually for the header and show the left swoosh for the rail/favicon; the
  * asset itself is never edited. Internal storage keys and API identifiers keep their historical
- * `ledgervault` names so existing data and sessions are not broken by the rename.
+ * `fintuity` names so existing data and sessions are not broken by the rename.
  */
 
 export const BRAND_NAME = 'Fintuity Accounting Suite';

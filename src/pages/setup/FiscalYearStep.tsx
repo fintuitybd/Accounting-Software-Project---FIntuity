@@ -103,7 +103,7 @@ export default function FiscalYearStep({
           <Field label="Label" hint="Optional; generated from the dates when left blank.">
             <input className={INPUT_CLASS} value={label} onChange={(event) => setLabel(event.target.value)} maxLength={60} placeholder="Example: FY 2032-33" disabled={saving} />
           </Field>
-          <button type="submit" disabled={saving} className="lv-btn lv-btn-primary min-h-11 text-[14px]">
+          <button type="submit" disabled={saving} className="ql-btn ql-btn-primary min-h-11 text-[14px]">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             Generate fiscal year
           </button>
@@ -130,7 +130,7 @@ export default function FiscalYearStep({
                 <div className="flex items-center gap-2">
                   <CalendarDays size={16} className="text-brand-bright" />
                   <span className="text-[14px] font-semibold text-ink-900">{year.label}</span>
-                  <span className="lv-chip lv-chip-neutral text-[12px]">{year.status}</span>
+                  <span className="ql-badge ql-badge-neutral text-[12px]">{year.status}</span>
                 </div>
                 <span className="text-[12px] text-ink-500">
                   {year.startDate} to {year.endDate} · {year.periods.length} periods
@@ -155,7 +155,7 @@ export default function FiscalYearStep({
                         <td className="px-4 py-2 text-ink-500">{period.startDate}</td>
                         <td className="px-4 py-2 text-ink-500">{period.endDate}</td>
                         <td className="px-4 py-2">
-                          <span className={`lv-chip text-[12px] ${period.status === 'OPEN' ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}>
+                          <span className={`ql-badge text-[12px] ${period.status === 'OPEN' ? 'ql-badge-success' : 'ql-badge-neutral'}`}>
                             {period.status === 'OPEN' ? <CheckCircle2 size={11} /> : null}
                             {period.status}
                           </span>
@@ -181,7 +181,7 @@ export default function FiscalYearStep({
             <span className="mb-1 block text-[13px] font-semibold text-ink-700">Posting date</span>
             <input className={INPUT_CLASS} type="date" value={checkDate} onChange={(event) => setCheckDate(event.target.value)} />
           </label>
-          <button type="button" onClick={() => void resolve()} disabled={checking || !checkDate} className="lv-btn lv-btn-secondary min-h-11 text-[14px]">
+          <button type="button" onClick={() => void resolve()} disabled={checking || !checkDate} className="ql-btn ql-btn-secondary min-h-11 text-[14px]">
             {checking ? <Loader2 size={15} className="animate-spin" /> : <Search size={15} />}
             Check date
           </button>

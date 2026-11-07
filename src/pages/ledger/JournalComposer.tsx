@@ -267,10 +267,10 @@ export function JournalComposer({
   };
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{L('General journal', 'সাধারণ জার্নাল')}</p>
+          <p className="ql-kicker">{L('General journal', 'সাধারণ জার্নাল')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {initial
               ? L('Edit journal draft', 'জার্নাল খসড়া সম্পাদনা')
@@ -283,7 +283,7 @@ export function JournalComposer({
             )}
           </p>
         </div>
-        <span className={`lv-chip ${totals.balanced ? 'lv-chip-emerald' : 'lv-chip-rose'}`} role="status">
+        <span className={`ql-badge ${totals.balanced ? 'ql-badge-success' : 'ql-badge-danger'}`} role="status">
           {totals.balanced
             ? L('Balanced', 'সুষম')
             : L('Unbalanced', 'অসুষম')}
@@ -391,7 +391,7 @@ export function JournalComposer({
                 <select
                   value={line.accountId}
                   onChange={(event) => setLine(line.key, 'accountId', event.target.value)}
-                  className="lv-select min-h-11 w-full text-[14px]"
+                  className="ql-select min-h-11 w-full text-[14px]"
                   disabled={busy !== null}
                   required
                 >
@@ -507,7 +507,7 @@ export function JournalComposer({
           type="button"
           onClick={addLine}
           disabled={busy !== null || lines.length >= 2000}
-          className="lv-btn lv-btn-secondary min-h-11 text-[13px]"
+          className="ql-btn ql-btn-secondary min-h-11 text-[13px]"
         >
           <Plus size={14} /> {L('Add line', 'লাইন যোগ করুন')}
         </button>
@@ -531,16 +531,16 @@ export function JournalComposer({
       </dl>
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => void run('SAVE')} disabled={!canPost || busy !== null} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+        <button type="button" onClick={() => void run('SAVE')} disabled={!canPost || busy !== null} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
           <Save size={15} /> {busy === 'SAVE' ? L('Saving…', 'সংরক্ষণ হচ্ছে…') : L('Save draft', 'খসড়া সংরক্ষণ')}
         </button>
-        <button type="button" onClick={() => void run('SUBMIT')} disabled={!canPost || busy !== null} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+        <button type="button" onClick={() => void run('SUBMIT')} disabled={!canPost || busy !== null} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
           <Send size={15} /> {busy === 'SUBMIT' ? L('Submitting…', 'জমা হচ্ছে…') : L('Submit', 'জমা দিন')}
         </button>
-        <button type="button" onClick={() => void run('POST')} disabled={!canPost || busy !== null} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+        <button type="button" onClick={() => void run('POST')} disabled={!canPost || busy !== null} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
           <UploadCloud size={15} /> {busy === 'POST' ? L('Posting…', 'পোস্ট হচ্ছে…') : L('Post to ledger', 'লেজারে পোস্ট')}
         </button>
-        <button type="button" onClick={onCancel} disabled={busy !== null} className="lv-btn lv-btn-ghost min-h-11 text-[13px]">
+        <button type="button" onClick={onCancel} disabled={busy !== null} className="ql-btn ql-btn-ghost min-h-11 text-[13px]">
           {L('Cancel', 'বাতিল')}
         </button>
       </div>

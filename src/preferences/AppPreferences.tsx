@@ -1,4 +1,4 @@
-﻿// LedgerVault — display preferences for the authenticated shell.
+﻿// Fintuity Accounting Suite — display preferences for the authenticated shell.
 //
 // The production shell must not depend on the synthetic demo vault. This provider owns only
 // non-financial display state (language, numerals, grouping, theme, density and motion) plus the

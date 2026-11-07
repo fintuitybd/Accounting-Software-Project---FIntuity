@@ -14,15 +14,15 @@
 
 import { revivePoishaDeep } from '../money';
 
-export const VAULT_STORAGE_KEY = 'ledgervault.v2.vault';
+export const VAULT_STORAGE_KEY = 'fintuity.v2.vault';
 export const VAULT_STORAGE_VERSION = 2;
 
-export const VAULT_DB_NAME = 'ledgervault.vaultdb';
+export const VAULT_DB_NAME = 'fintuity.vaultdb';
 export const VAULT_DB_VERSION = 1;
 export const VAULT_SNAPSHOT_STORE = 'snapshots';
 export const VAULT_SNAPSHOT_KEY = 'current';
 
-export const VAULT_FILE_FORMAT = 'ledgervault.vault';
+export const VAULT_FILE_FORMAT = 'fintuity.vault';
 export const VAULT_FILE_APP = 'Fintuity Accounting Suite';
 
 export type VaultSnapshotSource = 'localstorage' | 'indexeddb';
@@ -356,13 +356,13 @@ export function buildVaultFilePayload(state: unknown): string {
 }
 
 export function vaultFileName(companyName?: string, at: Date = new Date()): string {
-  const base = (companyName ?? 'ledgervault')
+  const base = (companyName ?? 'fintuity')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 48);
   const stamp = at.toISOString().slice(0, 10);
-  return `${base || 'ledgervault'}-${stamp}.vault.json`;
+  return `${base || 'fintuity'}-${stamp}.vault.json`;
 }
 
 /** Trigger a browser download of the complete vault and return the generated file name. */

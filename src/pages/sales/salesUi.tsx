@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import type { SalesDocumentStatus, SalesDocumentType } from '../../sales/api';
 
-export const SALES_INPUT = 'lv-input min-h-11 w-full text-[14px]';
-export const SALES_SELECT = 'lv-select min-h-11 w-full text-[14px]';
+export const SALES_INPUT = 'ql-input min-h-11 w-full text-[14px]';
+export const SALES_SELECT = 'ql-select min-h-11 w-full text-[14px]';
 
 export function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -41,13 +41,13 @@ export function docTypeLabel(type: SalesDocumentType): string {
 export function statusTone(status: SalesDocumentStatus): string {
   switch (status) {
     case 'DRAFT':
-      return 'lv-chip-neutral';
+      return 'ql-badge-neutral';
     case 'APPROVED':
-      return 'lv-chip-gold';
+      return 'ql-badge-warn';
     case 'POSTED':
-      return 'lv-chip-emerald';
+      return 'ql-badge-success';
     case 'REVERSED':
-      return 'lv-chip-rose';
+      return 'ql-badge-danger';
   }
 }
 
@@ -60,20 +60,20 @@ export function StatusChip({ status, label }: { status: SalesDocumentStatus | 'P
         ? 'Reversed receipt'
         : status.charAt(0) + status.slice(1).toLowerCase());
   if (status === 'POSTED' || status === 'POSTED_RECEIPT') {
-    return <span className="lv-chip lv-chip-emerald">{text}</span>;
+    return <span className="ql-badge ql-badge-success">{text}</span>;
   }
   if (status === 'REVERSED' || status === 'REVERSED_RECEIPT') {
-    return <span className="lv-chip lv-chip-rose">{text}</span>;
+    return <span className="ql-badge ql-badge-danger">{text}</span>;
   }
-  if (status === 'APPROVED') return <span className="lv-chip lv-chip-gold">{text}</span>;
-  return <span className="lv-chip lv-chip-neutral">{text}</span>;
+  if (status === 'APPROVED') return <span className="ql-badge ql-badge-warn">{text}</span>;
+  return <span className="ql-badge ql-badge-neutral">{text}</span>;
 }
 
 export function TaxStateChip({ state }: { state: string | null }) {
-  if (!state) return <span className="lv-chip lv-chip-neutral">Not calculated</span>;
-  if (state === 'SUPPORTED') return <span className="lv-chip lv-chip-emerald">Supported</span>;
-  if (state === 'SUPPORTED_WITH_CONDITIONS') return <span className="lv-chip lv-chip-gold">Supported with conditions</span>;
-  return <span className="lv-chip lv-chip-rose">{state.replaceAll('_', ' ').toLowerCase()}</span>;
+  if (!state) return <span className="ql-badge ql-badge-neutral">Not calculated</span>;
+  if (state === 'SUPPORTED') return <span className="ql-badge ql-badge-success">Supported</span>;
+  if (state === 'SUPPORTED_WITH_CONDITIONS') return <span className="ql-badge ql-badge-warn">Supported with conditions</span>;
+  return <span className="ql-badge ql-badge-danger">{state.replaceAll('_', ' ').toLowerCase()}</span>;
 }
 
 export function SectionCard({
@@ -88,10 +88,10 @@ export function SectionCard({
   action?: ReactNode;
 }) {
   return (
-    <section className="lv-card p-4 sm:p-5">
+    <section className="ql-card p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          {kicker ? <p className="lv-kicker">{kicker}</p> : null}
+          {kicker ? <p className="ql-kicker">{kicker}</p> : null}
           <h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-ink-900">{title}</h2>
         </div>
         {action}

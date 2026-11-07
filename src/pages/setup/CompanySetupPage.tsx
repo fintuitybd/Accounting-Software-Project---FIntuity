@@ -194,7 +194,7 @@ export default function CompanySetupPage() {
 
   if (auth.demoMode) {
     return (
-      <section className="lv-card mx-auto mt-6 max-w-3xl p-6">
+      <section className="ql-card mx-auto mt-6 max-w-3xl p-6">
         <h2 className="text-[22px] font-semibold tracking-[-0.03em] text-ink-900">{L('Company setup', 'কোম্পানি সেটআপ')}</h2>
         <p className="mt-2 text-[14px] text-ink-500">
           {L(
@@ -221,7 +221,7 @@ export default function CompanySetupPage() {
 
   if (loading) {
     return (
-      <div className="lv-card mx-auto mt-6 flex max-w-3xl items-center gap-2 p-6 text-[14px] text-ink-600">
+      <div className="ql-card mx-auto mt-6 flex max-w-3xl items-center gap-2 p-6 text-[14px] text-ink-600">
         <Loader2 size={18} className="animate-spin text-brand-bright" />
         Loading company setup…
       </div>
@@ -230,10 +230,10 @@ export default function CompanySetupPage() {
 
   if (!onboarding || !profile || !settings) {
     return (
-      <section className="lv-card mx-auto mt-6 max-w-3xl p-6">
+      <section className="ql-card mx-auto mt-6 max-w-3xl p-6">
         <h2 className="text-[20px] font-semibold text-ink-900">Company setup could not be loaded</h2>
         {error ? <div className="mt-3"><ErrorBanner message={error} /></div> : null}
-        <button type="button" onClick={() => void refresh()} className="lv-btn lv-btn-secondary mt-4 min-h-11 text-[14px]">
+        <button type="button" onClick={() => void refresh()} className="ql-btn ql-btn-secondary mt-4 min-h-11 text-[14px]">
           <RefreshCw size={15} /> Try again
         </button>
       </section>
@@ -246,7 +246,7 @@ export default function CompanySetupPage() {
 
   return (
     <div className="space-y-4">
-      <section className="lv-card overflow-hidden">
+      <section className="ql-card overflow-hidden">
         <div className="brand-gradient h-1.5 w-full" />
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -255,7 +255,7 @@ export default function CompanySetupPage() {
                 <Building2 size={22} />
               </span>
               <div>
-                <p className="lv-kicker flex items-center gap-1.5"><Sparkles size={12} /> {L('Server-backed onboarding', 'সার্ভার-ভিত্তিক অনবোর্ডিং')}</p>
+                <p className="ql-kicker flex items-center gap-1.5"><Sparkles size={12} /> {L('Server-backed onboarding', 'সার্ভার-ভিত্তিক অনবোর্ডিং')}</p>
                 <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.04em] text-ink-900">{L('Company setup', 'কোম্পানি সেটআপ')}</h1>
                 <p className="mt-1 text-[14px] text-ink-500">
                   {profile.legalName} · {profile.baseCurrency} · {profile.timezone}
@@ -264,11 +264,11 @@ export default function CompanySetupPage() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {onboarding.completedAt ? (
-                <span className="lv-chip lv-chip-emerald text-[12px]"><CheckCircle2 size={12} /> {L('Setup complete', 'সেটআপ সম্পন্ন')}</span>
+                <span className="ql-badge ql-badge-success text-[12px]"><CheckCircle2 size={12} /> {L('Setup complete', 'সেটআপ সম্পন্ন')}</span>
               ) : (
-                <span className="lv-chip lv-chip-gold text-[12px]"><Circle size={11} /> {L('In progress', 'চলমান')}</span>
+                <span className="ql-badge ql-badge-warn text-[12px]"><Circle size={11} /> {L('In progress', 'চলমান')}</span>
               )}
-              <button type="button" onClick={() => navigate('/app')} className="lv-btn lv-btn-secondary min-h-10 text-[13px]">
+              <button type="button" onClick={() => navigate('/app')} className="ql-btn ql-btn-secondary min-h-10 text-[13px]">
                 <LogOut size={15} /> {L('Save and exit', 'সংরক্ষণ করে বেরুন')}
               </button>
             </div>
@@ -289,7 +289,7 @@ export default function CompanySetupPage() {
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <nav aria-label={L('Setup steps', 'সেটআপ ধাপ')} className="lv-card h-fit p-2">
+        <nav aria-label={L('Setup steps', 'সেটআপ ধাপ')} className="ql-card h-fit p-2">
           <ol className="space-y-1">
             {onboarding.steps.map((item, index) => {
               const active = item.key === step;
@@ -322,7 +322,7 @@ export default function CompanySetupPage() {
           </ol>
         </nav>
 
-        <section className="lv-card min-w-0 p-5 sm:p-6">
+        <section className="ql-card min-w-0 p-5 sm:p-6">
           {step === 'COMPANY' ? (
             <CompanyProfileStep profile={profile} canManage={canManageSettings} onSaved={refresh} />
           ) : step === 'FISCAL_YEAR' ? (
@@ -354,7 +354,7 @@ export default function CompanySetupPage() {
         </section>
       </div>
 
-      <section className="lv-card flex flex-wrap items-center justify-between gap-3 p-4">
+      <section className="ql-card flex flex-wrap items-center justify-between gap-3 p-4">
         <div>
           <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink-900">
             <ShieldCheck size={16} className="text-emerald-500" />
@@ -377,7 +377,7 @@ export default function CompanySetupPage() {
             type="button"
             onClick={() => void complete()}
             disabled={!onboarding.canComplete || completing}
-            className="lv-btn lv-btn-primary min-h-11 text-[14px]"
+            className="ql-btn ql-btn-primary min-h-11 text-[14px]"
             title={!onboarding.canComplete ? 'Finish all incomplete steps first.' : undefined}
           >
             {completing ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
@@ -450,13 +450,13 @@ function CreateCompanyPage({
 
   return (
     <div className="mx-auto mt-6 max-w-4xl space-y-4">
-      <section className="lv-card p-6 sm:p-8">
+      <section className="ql-card p-6 sm:p-8">
         <div className="flex items-start gap-3">
           <span className="brand-gradient grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-white shadow-lift ring-1 ring-white/20">
             <Building2 size={22} />
           </span>
           <div>
-            <p className="lv-kicker">{L('First company', 'প্রথম কোম্পানি')}</p>
+            <p className="ql-kicker">{L('First company', 'প্রথম কোম্পানি')}</p>
             <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.04em] text-ink-900">{L('Create a company', 'কোম্পানি তৈরি করুন')}</h1>
             <p className="mt-2 text-[14px] leading-relaxed text-ink-500">
               {L(
@@ -467,21 +467,21 @@ function CreateCompanyPage({
           </div>
         </div>
         {onCancel ? (
-          <button type="button" onClick={onCancel} className="lv-btn lv-btn-secondary mt-5 min-h-10 text-[13px]">
+          <button type="button" onClick={onCancel} className="ql-btn ql-btn-secondary mt-5 min-h-10 text-[13px]">
             <ArrowLeft size={15} /> {L('Back to current company setup', 'বর্তমান কোম্পানি সেটআপে ফিরুন')}
           </button>
         ) : null}
       </section>
 
       {!canCreate ? (
-        <section className="lv-card p-6">
+        <section className="ql-card p-6">
           <Notice
             tone="warning"
             message="Only a verified organisation owner or administrator can create a company. Ask an owner to grant the required access."
           />
         </section>
       ) : (
-        <form onSubmit={submit} className="lv-card space-y-4 p-6 sm:p-8">
+        <form onSubmit={submit} className="ql-card space-y-4 p-6 sm:p-8">
           {error ? <ErrorBanner message={error} details={details} /> : null}
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Legal name" required>
@@ -527,7 +527,7 @@ function CreateCompanyPage({
             </div>
           </div>
           <Notice message="Base currency is fixed to BDT and the company time zone to Asia/Dhaka in this release. TIN/BIN/RJSC format checks do not claim registry verification." />
-          <button type="submit" disabled={saving} className="lv-btn lv-btn-primary min-h-11 text-[14px]">
+          <button type="submit" disabled={saving} className="ql-btn ql-btn-primary min-h-11 text-[14px]">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Building2 size={16} />}
             Create company and start onboarding
           </button>

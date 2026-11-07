@@ -47,7 +47,7 @@ describe('production shell', () => {
     expect(html).toContain('Company setup');
     expect(html).toContain('Team &amp; access');
     expect(html).not.toContain('Switch role');
-    expect(html).not.toContain('Payroll');
+    expect(html).toContain('Payroll');
     expect(html).not.toContain('Secretarial');
     expect(html).not.toContain('Practice cockpit');
   });

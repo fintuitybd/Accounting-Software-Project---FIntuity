@@ -1,4 +1,4 @@
-// LedgerVault — Signature component #1: the live pre-save Tax Advisor.
+// Fintuity Accounting Suite — Signature component #1: the live pre-save Tax Advisor.
 //
 // Rendered before a commercial document is committed. It is pure and read-only: the parent passes
 // the exact `TaxEvaluationInput`, the deterministic engine returns a `TaxDecision`, and this card
@@ -351,7 +351,7 @@ export function TaxAdvisorCard({
 
   return (
     <section
-      className={`lv-card overflow-hidden ${compact ? 'text-[12px]' : ''} ${className}`}
+      className={`ql-card overflow-hidden ${compact ? 'text-[12px]' : ''} ${className}`}
       aria-label={L('Tax advisor', 'কর উপদেষ্টা')}
     >
       {/* ---------------------------------------------------------------------------------- */}
@@ -403,7 +403,7 @@ export function TaxAdvisorCard({
             <p className="text-sm font-semibold text-ink-800">
               {L('Enter a value to see the tax breakdown', 'কর বিভাজন দেখতে একটি মূল্য লিখুন')}
             </p>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L(
                 'The engine splits the gross into net consideration, VAT, VDS and TDS the moment a taxable value exists.',
                 'করণীয় মূল্য পাওয়া মাত্র ইঞ্জিন গ্রসকে নিট প্রতিদান, ভ্যাট, ভিডিএস ও টিডিএস-এ ভাগ করবে।',
@@ -419,7 +419,7 @@ export function TaxAdvisorCard({
           <div className={`border-b border-ink-100 ${compact ? 'px-4 py-4' : 'px-5 py-5'}`}>
             <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5">
+                <p className="ql-kicker flex items-center gap-1.5">
                   <Sparkles size={11} className="text-violet-500" /> {L('Tax waterfall', 'কর জলপ্রপাত')}
                 </p>
                 <h4 className="text-sm font-semibold tracking-tight text-ink-900">
@@ -513,7 +513,7 @@ export function TaxAdvisorCard({
             {/* Left: exact money split */}
             <div className="border-b border-ink-100 lg:border-b-0 lg:border-r">
               <div className="flex items-center justify-between gap-2 bg-ink-50/60 px-4 py-2">
-                <p className="lv-kicker flex items-center gap-1.5">
+                <p className="ql-kicker flex items-center gap-1.5">
                   <Coins size={11} className="text-vault-600" /> {L('Money split', 'অর্থ বিভাজন')}
                 </p>
                 <span className="font-mono text-[9px] text-ink-400">poisha-accurate</span>
@@ -538,16 +538,16 @@ export function TaxAdvisorCard({
                 ))}
               </dl>
               <div className="flex flex-wrap items-center gap-1.5 bg-ink-50/60 px-4 py-2">
-                <span className="lv-chip lv-chip-neutral font-mono">{decision.rule_pack_version}</span>
-                <span className="lv-chip lv-chip-neutral font-mono">{decision.trace_id.slice(0, 12)}</span>
-                {input.is_credit_note ? <span className="lv-chip lv-chip-rose">{L('Mushak 6.7 credit note', 'মূসক ৬.৭ ক্রেডিট নোট')}</span> : null}
+                <span className="ql-badge ql-badge-neutral font-mono">{decision.rule_pack_version}</span>
+                <span className="ql-badge ql-badge-neutral font-mono">{decision.trace_id.slice(0, 12)}</span>
+                {input.is_credit_note ? <span className="ql-badge ql-badge-danger">{L('Mushak 6.7 credit note', 'মূসক ৬.৭ ক্রেডিট নোট')}</span> : null}
               </div>
             </div>
 
             {/* Right: live guardrails */}
             <div>
               <div className="flex items-center justify-between gap-2 bg-ink-50/60 px-4 py-2">
-                <p className="lv-kicker flex items-center gap-1.5">
+                <p className="ql-kicker flex items-center gap-1.5">
                   <ShieldCheck size={11} className="text-vault-600" /> {L('Statutory guardrails', 'সংবিধিবদ্ধ সতর্কতা')}
                 </p>
                 <span className="truncate text-[10px] text-ink-400">{input.party_name}</span>
@@ -682,8 +682,8 @@ export function TaxAdvisorCard({
                 <span className="text-sm font-semibold text-ink-900">
                   {L('Explain this calculation', 'এই হিসাব ব্যাখ্যা করুন')}
                 </span>
-                <span className="lv-chip lv-chip-neutral">{activeRuleIds.length} {L('rules', 'নিয়ম')}</span>
-                <span className="lv-chip lv-chip-gold">{decision.rule_pack_version}</span>
+                <span className="ql-badge ql-badge-neutral">{activeRuleIds.length} {L('rules', 'নিয়ম')}</span>
+                <span className="ql-badge ql-badge-warn">{decision.rule_pack_version}</span>
               </span>
               <ChevronDown size={16} className={`shrink-0 text-ink-400 transition-transform ${explainOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -700,7 +700,7 @@ export function TaxAdvisorCard({
                   <div className="space-y-3 px-5 pb-5 pt-1">
                     <div className="overflow-hidden rounded-xl border border-ink-200 bg-white">
                       <div className="flex items-center justify-between gap-2 border-b border-ink-100 bg-ink-50/70 px-3 py-2">
-                        <p className="lv-kicker flex items-center gap-1.5">
+                        <p className="ql-kicker flex items-center gap-1.5">
                           <Calculator size={11} className="text-vault-600" /> {L('Calculation ledger', 'হিসাব খতিয়ান')}
                         </p>
                         <span className="font-mono text-[9px] text-ink-400">{decision.trace_id}</span>
@@ -740,7 +740,7 @@ export function TaxAdvisorCard({
 
                     <div className="grid gap-3 lg:grid-cols-2">
                       <div className="rounded-xl border border-ink-200 bg-white p-3">
-                        <p className="lv-kicker mb-1.5 flex items-center gap-1.5">
+                        <p className="ql-kicker mb-1.5 flex items-center gap-1.5">
                           <Gavel size={11} className="text-gold-600" /> {L('Statutory provenance', 'সংবিধিবদ্ধ উৎস')}
                         </p>
                         <ul className="space-y-1.5">
@@ -761,7 +761,7 @@ export function TaxAdvisorCard({
 
                       <div className="space-y-3">
                         <div className="rounded-xl border border-ink-200 bg-white p-3">
-                          <p className="lv-kicker mb-1.5">{L('Rule pack trace', 'রুল প্যাক ট্রেস')}</p>
+                          <p className="ql-kicker mb-1.5">{L('Rule pack trace', 'রুল প্যাক ট্রেস')}</p>
                           <dl className="space-y-1 font-mono text-[10px] text-ink-600">
                             <div className="flex justify-between gap-3"><dt className="text-ink-400">rule_pack</dt><dd className="text-ink-800">{decision.rule_pack_version}</dd></div>
                             <div className="flex justify-between gap-3"><dt className="text-ink-400">trace_id</dt><dd className="truncate text-ink-800" title={decision.trace_id}>{decision.trace_id}</dd></div>
@@ -772,7 +772,7 @@ export function TaxAdvisorCard({
 
                         {decision.conditions.length > 0 ? (
                           <div className="rounded-xl border border-ink-200 bg-white p-3">
-                            <p className="lv-kicker mb-1.5">{L('Conditions & guardrails', 'শর্ত ও সতর্কতা')}</p>
+                            <p className="ql-kicker mb-1.5">{L('Conditions & guardrails', 'শর্ত ও সতর্কতা')}</p>
                             <ul className="space-y-1">
                               {decision.conditions.slice(0, 5).map((condition) => (
                                 <ConditionRow key={condition.code} condition={condition} isBn={isBn} />
@@ -787,7 +787,7 @@ export function TaxAdvisorCard({
 
                     {(isBn ? decision.explanations_bn : decision.explanations_en).length > 0 ? (
                       <div className="rounded-xl border border-ink-200 bg-white p-3">
-                        <p className="lv-kicker mb-1.5">{L('Why the engine decided this', 'ইঞ্জিন কেন এই সিদ্ধান্ত নিল')}</p>
+                        <p className="ql-kicker mb-1.5">{L('Why the engine decided this', 'ইঞ্জিন কেন এই সিদ্ধান্ত নিল')}</p>
                         <ol className="space-y-1.5">
                           {(isBn ? decision.explanations_bn : decision.explanations_en).slice(0, 5).map((explanation, index) => (
                             <li key={`${index}-${explanation.slice(0, 10)}`} className="flex items-start gap-2 text-[10.5px] leading-relaxed text-ink-600">
@@ -848,7 +848,7 @@ export function TaxAdvisorCard({
               <span className="flex flex-wrap items-center gap-2">
                 <Receipt size={15} className="text-vault-700" />
                 <span className="text-sm font-semibold text-ink-900">{L('Journal preview', 'জার্নাল প্রাকদর্শন')}</span>
-                <span className={`lv-chip ${journal.balanced ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                <span className={`ql-badge ${journal.balanced ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                   {journal.balanced ? L('balanced', 'সমতাবদ্ধ') : L('unbalanced', 'অসমতাবদ্ধ')}
                 </span>
               </span>
@@ -871,11 +871,11 @@ export function TaxAdvisorCard({
                             {isBn ? group.title_bn : group.title_en}
                             <span className="ml-2 font-mono text-[9px] font-normal text-ink-400">{group.id}</span>
                           </p>
-                          <span className={`lv-chip ${group.balanced ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                          <span className={`ql-badge ${group.balanced ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                             {money(group.total_debit_poisha)} = {money(group.total_credit_poisha)}
                           </span>
                         </div>
-                        <table className="lv-table">
+                        <table className="ql-table">
                           <thead>
                             <tr>
                               <th className="w-8">#</th>
@@ -1035,9 +1035,9 @@ function InputCreditPanel({
   const labels = isBn ? outcome.reason_labels_bn : outcome.reason_labels_en;
   return (
     <div className="rounded-xl border border-ink-200 bg-white p-3">
-      <p className="lv-kicker mb-1.5">{isBn ? 'ইনপুট রিবেট ফলাফল' : 'Input rebate outcome'}</p>
+      <p className="ql-kicker mb-1.5">{isBn ? 'ইনপুট রিবেট ফলাফল' : 'Input rebate outcome'}</p>
       <div className="flex flex-wrap items-center gap-2 text-[10px]">
-        <span className={`lv-chip ${outcome.eligible ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+        <span className={`ql-badge ${outcome.eligible ? 'ql-badge-success' : 'ql-badge-danger'}`}>
           {outcome.eligible ? (isBn ? 'যোগ্য' : 'Eligible') : isBn ? 'অযোগ্য' : 'Not eligible'}
         </span>
         <span className="text-ink-600">

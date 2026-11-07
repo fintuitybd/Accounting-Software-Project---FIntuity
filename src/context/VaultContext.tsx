@@ -1,4 +1,4 @@
-// LedgerVault — Phase 2 reactive vault: one immutable ledger, two doors, multi-book views.
+// Fintuity Accounting Suite — Phase 2 reactive vault: one immutable ledger, two doors, multi-book views.
 //
 // Everything a workspace renders comes from this provider: the seeded Apex Delta dataset, the live
 // journal array with its SHA-256 chain, the persona / mode / locale / numeral / grouping / motion
@@ -126,7 +126,7 @@ const SEED_USERS: readonly UserAccount[] = [
     username: 'f.akter',
     full_name: 'Farzana Akter',
     role: 'ADMIN',
-    email: 'farzana.akter@ledgervault.app',
+    email: 'farzana.akter@fintuity.app',
     designation: 'Managing Director',
     is_active: true,
     created_at: '2026-01-01T00:00:00.000Z',
@@ -136,7 +136,7 @@ const SEED_USERS: readonly UserAccount[] = [
     username: 'n.sultana',
     full_name: 'Nasrin Sultana',
     role: 'CONTROLLER',
-    email: 'nasrin.sultana@ledgervault.app',
+    email: 'nasrin.sultana@fintuity.app',
     designation: 'Financial Controller',
     is_active: true,
     created_at: '2026-01-01T00:00:00.000Z',
@@ -146,7 +146,7 @@ const SEED_USERS: readonly UserAccount[] = [
     username: 'r.hasan',
     full_name: 'Rakib Hasan',
     role: 'ACCOUNTANT',
-    email: 'rakib.hasan@ledgervault.app',
+    email: 'rakib.hasan@fintuity.app',
     designation: 'Senior Accountant',
     is_active: true,
     created_at: '2026-01-01T00:00:00.000Z',
@@ -156,7 +156,7 @@ const SEED_USERS: readonly UserAccount[] = [
     username: 's.islam',
     full_name: 'Sumaiya Islam',
     role: 'OPERATOR',
-    email: 'sumaiya.islam@ledgervault.app',
+    email: 'sumaiya.islam@fintuity.app',
     designation: 'Sales & Dispatch Operator',
     is_active: true,
     created_at: '2026-01-01T00:00:00.000Z',
@@ -166,7 +166,7 @@ const SEED_USERS: readonly UserAccount[] = [
     username: 'm.rahman',
     full_name: 'Mizanur Rahman',
     role: 'AUDITOR',
-    email: 'mizanur.rahman@ledgervault.app',
+    email: 'mizanur.rahman@fintuity.app',
     designation: 'External Auditor',
     is_active: true,
     created_at: '2026-01-01T00:00:00.000Z',

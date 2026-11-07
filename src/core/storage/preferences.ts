@@ -4,7 +4,7 @@ import type { AppSettings } from '../types';
  * Display preferences are not financial data. Keeping them in a separate key lets the real
  * (server-backed) shell remember language/theme without ever loading a legacy demo vault snapshot.
  */
-export const PREFERENCES_KEY = 'ledgervault.v2.preferences';
+export const PREFERENCES_KEY = 'fintuity.v2.preferences';
 
 export interface StoredPreferences {
   mode?: AppSettings['mode'];

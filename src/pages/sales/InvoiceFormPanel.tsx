@@ -359,10 +359,10 @@ export function InvoiceFormPanel({
   };
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{isCredit ? L('Mushak 6.7 concept', 'মূসক ৬.৭ ধারণা') : L('Order-to-cash', 'অর্ডার-টু-ক্যাশ')}</p>
+          <p className="ql-kicker">{isCredit ? L('Mushak 6.7 concept', 'মূসক ৬.৭ ধারণা') : L('Order-to-cash', 'অর্ডার-টু-ক্যাশ')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {initialDocument
               ? L('Edit draft', 'খসড়া সম্পাদনা')
@@ -398,7 +398,7 @@ export function InvoiceFormPanel({
               retry: L('Retry', 'আবার চেষ্টা'),
             }}
           />
-          <button type="button" onClick={onCancel} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={onCancel} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <X size={15} /> {L('Cancel', 'বাতিল')}
           </button>
         </div>
@@ -529,7 +529,7 @@ export function InvoiceFormPanel({
       </div>
 
       <div className="mt-6 overflow-x-auto">
-        <table className="lv-table w-full min-w-[1100px] text-[13px]">
+        <table className="ql-table w-full min-w-[1100px] text-[13px]">
           <caption className="sr-only">{L('Sales document lines', 'বিক্রয় ডকুমেন্ট লাইন')}</caption>
           <thead>
             <tr>
@@ -631,15 +631,15 @@ export function InvoiceFormPanel({
 
       <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ql-border bg-ql-surface/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
         {!isCredit ? (
-          <button type="button" onClick={() => setLines((current) => [...current, blankLine()])} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={() => setLines((current) => [...current, blankLine()])} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <Plus size={15} /> {L('Add line', 'লাইন যোগ')}
           </button>
         ) : <span />}
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onCancel} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={onCancel} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             {L('Cancel', 'বাতিল')}
           </button>
-          <button type="button" onClick={() => void save()} disabled={loading || loadingOriginal} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+          <button type="button" onClick={() => void save()} disabled={loading || loadingOriginal} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
             <Save size={15} /> {loading ? L('Savingâ€¦', 'সংরক্ষণ হচ্ছে…') : L('Save draft and review', 'খসড়া সংরক্ষণ ও পর্যালোচনা')}
           </button>
         </div>

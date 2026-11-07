@@ -1,4 +1,4 @@
-// LedgerVault — W04 Treasury challans & Mushak 6.6.
+// Fintuity Accounting Suite — W04 Treasury challans & Mushak 6.6.
 //
 // Batch the pending VDS/TDS queue into one treasury deposit: choose the bank and branch, accept the
 // auto-generated challan reference and economic deposit code, post the single Dr VDS/TDS Payable /
@@ -225,9 +225,9 @@ export default function W04_TreasuryChallans66() {
         isBn={isBn}
         chips={
           <>
-            <span className="lv-chip lv-chip-gold"><Clock size={12} /> {pending.length} {L('pending', 'অপেক্ষমাণ')}</span>
-            <span className="lv-chip lv-chip-emerald"><ShieldCheck size={12} /> {tenant.tin_number}</span>
-            <span className="lv-chip lv-chip-neutral"><Landmark size={12} /> {bank?.name_en ?? 'City Bank'}</span>
+            <span className="ql-badge ql-badge-warn"><Clock size={12} /> {pending.length} {L('pending', 'অপেক্ষমাণ')}</span>
+            <span className="ql-badge ql-badge-success"><ShieldCheck size={12} /> {tenant.tin_number}</span>
+            <span className="ql-badge ql-badge-neutral"><Landmark size={12} /> {bank?.name_en ?? 'City Bank'}</span>
           </>
         }
       />
@@ -240,7 +240,7 @@ export default function W04_TreasuryChallans66() {
             { label: L('Deposited to treasury', 'কোষাগারে জমাকৃত'), value: sum(deposited), icon: <CircleCheck size={15} />, tone: 'text-vault-800', iconTone: 'bg-vault-50 text-vault-700 ring-vault-500/15', bar: 'from-vault-500 via-vault-400/40', hint: `${deposited.length} ${L('receipts', 'রসিদ')}` },
             { label: L('Customer 6.6 received', 'গ্রাহক ৬.৬ প্রাপ্ত'), value: receivedValue, icon: <FileCheck2 size={15} />, tone: 'text-emerald-700', iconTone: 'bg-emerald-50 text-emerald-700 ring-emerald-500/15', bar: 'from-emerald-500 via-emerald-400/40', hint: L('Feeds 9.1 Part 6 decreasing adjustment', '৯.১ অংশ ৬ হ্রাস সমন্বয়ে যায়') },
           ].map((card) => (
-            <article key={card.label} className="lv-card lv-card-interactive relative overflow-hidden p-4">
+            <article key={card.label} className="ql-card ql-card-interactive relative overflow-hidden p-4">
               <span aria-hidden className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r to-transparent ${card.bar}`} />
               <span aria-hidden className="pointer-events-none absolute -right-8 -top-12 h-24 w-24 rounded-full bg-vault-500/10 blur-2xl" />
               <div className="relative flex items-start justify-between gap-2">
@@ -253,11 +253,11 @@ export default function W04_TreasuryChallans66() {
           ))}
         </section>
 
-        <div className="lv-seg">
-          <button type="button" className="lv-seg-item" data-active={tab === 'DEPOSIT'} onClick={() => setTab('DEPOSIT')}>
+        <div className="ql-seg">
+          <button type="button" className="ql-seg-item" data-active={tab === 'DEPOSIT'} onClick={() => setTab('DEPOSIT')}>
             <Layers size={12} /> {L('Treasury deposit queue', 'কোষাগার জমা সারি')}
           </button>
-          <button type="button" className="lv-seg-item" data-active={tab === 'RECEIVING'} onClick={() => setTab('RECEIVING')}>
+          <button type="button" className="ql-seg-item" data-active={tab === 'RECEIVING'} onClick={() => setTab('RECEIVING')}>
             <Users size={12} /> {L('Customer 6.6 receivable chasing', 'গ্রাহক ৬.৬ প্রাপ্য তাগাদা')}
           </button>
         </div>
@@ -265,15 +265,15 @@ export default function W04_TreasuryChallans66() {
         {tab === 'DEPOSIT' ? (
           <>
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)]">
-              <section className="lv-card overflow-hidden">
-                <div className="lv-card-header">
+              <section className="ql-card overflow-hidden">
+                <div className="ql-card-header">
                   <div>
-                    <p className="lv-kicker flex items-center gap-1.5"><Layers size={12} /> {L('Deposit queue', 'জমা সারি')}</p>
+                    <p className="ql-kicker flex items-center gap-1.5"><Layers size={12} /> {L('Deposit queue', 'জমা সারি')}</p>
                     <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Pending VDS / TDS deductions', 'অপেক্ষমাণ ভিডিএস / টিডিএস কর্তন')}</h2>
                   </div>
-                  <div className="lv-seg">
+                  <div className="ql-seg">
                     {FILTERS.map((entry) => (
-                      <button key={entry.id} type="button" className="lv-seg-item" data-active={filter === entry.id} onClick={() => setFilter(entry.id)}>
+                      <button key={entry.id} type="button" className="ql-seg-item" data-active={filter === entry.id} onClick={() => setFilter(entry.id)}>
                         {isBn ? entry.bn : entry.en}
                       </button>
                     ))}
@@ -281,7 +281,7 @@ export default function W04_TreasuryChallans66() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="lv-table min-w-[840px]">
+                  <table className="ql-table min-w-[840px]">
                     <thead>
                       <tr>
                         <th className="w-9">
@@ -320,15 +320,15 @@ export default function W04_TreasuryChallans66() {
                             <p className="font-mono text-[10px] font-semibold text-ink-900">{challan.challan_number}</p>
                             <p className="max-w-[240px] truncate text-[9.5px] text-ink-400">{challan.narration}</p>
                           </td>
-                          <td><span className={`lv-chip ${challan.type === 'VDS' ? 'lv-chip-gold' : 'lv-chip-neutral'}`}>{challan.type}</span></td>
+                          <td><span className={`ql-badge ${challan.type === 'VDS' ? 'ql-badge-warn' : 'ql-badge-neutral'}`}>{challan.type}</span></td>
                           <td className="font-mono text-[10px]">{challan.period_code}</td>
                           <td className="font-mono text-[10px] text-ink-700">{ECONOMIC_CODE[challan.type]}</td>
                           <td className="font-money text-right text-[11px] font-semibold text-ink-900">{money(challan.amount_poisha)}</td>
-                          <td><span className="lv-chip lv-chip-neutral">{challan.status}</span></td>
+                          <td><span className="ql-badge ql-badge-neutral">{challan.status}</span></td>
                           <td>
                             <div className="flex justify-end">
                               {challan.type === 'VDS' ? (
-                                <button type="button" className="lv-btn lv-btn-secondary !px-2 !py-1" title={L('Print A4 Mushak 6.6 certificate', 'এ৪ মূসক ৬.৬ সনদ')} onClick={() => setPrintCert(certificateFor(challan))}>
+                                <button type="button" className="ql-btn ql-btn-secondary !px-2 !py-1" title={L('Print A4 Mushak 6.6 certificate', 'এ৪ মূসক ৬.৬ সনদ')} onClick={() => setPrintCert(certificateFor(challan))}>
                                   <Printer size={13} />
                                 </button>
                               ) : <span className="text-[10px] text-ink-300">—</span>}
@@ -349,16 +349,16 @@ export default function W04_TreasuryChallans66() {
                 </div>
               </section>
 
-              <section className="lv-card overflow-hidden xl:sticky xl:top-24 xl:self-start">
+              <section className="ql-card overflow-hidden xl:sticky xl:top-24 xl:self-start">
                 <div className="border-b border-ink-100 bg-gradient-to-br from-vault-950 via-vault-900 to-vault-800 px-4 py-3 text-white">
                   <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-vault-200">{L('One-click batch treasury challan', 'এক-ক্লিক ব্যাচ কোষাগার চালান')}</p>
                   <h2 className="mt-0.5 text-sm font-semibold">{L('Deposit slip', 'জমা স্লিপ')}</h2>
                 </div>
                 <div className="space-y-3 p-4">
                   <label className="block">
-                    <span className="lv-label">{L('Bank account', 'ব্যাংক হিসাব')}</span>
+                    <span className="ql-label">{L('Bank account', 'ব্যাংক হিসাব')}</span>
                     <select
-                      className="lv-input"
+                      className="ql-input"
                       value={bankCode}
                       onChange={(event) => {
                         const next = bankAccounts.find((account) => account.account_code === event.target.value);
@@ -372,21 +372,21 @@ export default function W04_TreasuryChallans66() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="lv-label">{L('Bank branch', 'ব্যাংক শাখা')}</span>
-                    <input className="lv-input" value={branch} onChange={(event) => setBranch(event.target.value)} />
+                    <span className="ql-label">{L('Bank branch', 'ব্যাংক শাখা')}</span>
+                    <input className="ql-input" value={branch} onChange={(event) => setBranch(event.target.value)} />
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block">
-                      <span className="lv-label">{L('Deposit date', 'জমার তারিখ')}</span>
-                      <input type="date" className="lv-input" value={depositDate} onChange={(event) => setDepositDate(event.target.value)} />
+                      <span className="ql-label">{L('Deposit date', 'জমার তারিখ')}</span>
+                      <input type="date" className="ql-input" value={depositDate} onChange={(event) => setDepositDate(event.target.value)} />
                     </label>
                     <label className="block">
-                      <span className="lv-label">{L('Challan no.', 'চালান নং')}</span>
-                      <input className="lv-input font-mono" value={batchReference} readOnly />
+                      <span className="ql-label">{L('Challan no.', 'চালান নং')}</span>
+                      <input className="ql-input font-mono" value={batchReference} readOnly />
                     </label>
                   </div>
                   <div>
-                    <span className="lv-label">{L('Auto-filled economic deposit code', 'স্বয়ংক্রিয় অর্থনৈতিক জমা কোড')}</span>
+                    <span className="ql-label">{L('Auto-filled economic deposit code', 'স্বয়ংক্রিয় অর্থনৈতিক জমা কোড')}</span>
                     <div className="flex flex-wrap gap-1">
                       {selectedCodes.length > 0 ? selectedCodes.map((code) => (
                         <span key={code} className="rounded bg-ink-900 px-1.5 py-0.5 font-mono text-[9.5px] text-vault-200">{code}</span>
@@ -401,7 +401,7 @@ export default function W04_TreasuryChallans66() {
                     <div className="flex justify-between gap-2"><dt className="text-ink-500">TDS</dt><dd className="font-money font-semibold text-amber-700">{money(selectedTds)}</dd></div>
                     <div className="flex justify-between gap-2 border-t border-ink-200 pt-1.5"><dt className="font-semibold text-ink-700">{L('Total deposit', 'মোট জমা')}</dt><dd className="font-money font-semibold text-ink-900">{money(selectedTotal)}</dd></div>
                   </dl>
-                  <button type="button" onClick={depositBatch} disabled={selected.length === 0} className="lv-btn lv-btn-primary w-full">
+                  <button type="button" onClick={depositBatch} disabled={selected.length === 0} className="ql-btn ql-btn-primary w-full">
                     <BadgeCheck size={15} /> {L('Deposit batch treasury challan', 'ব্যাচ কোষাগার চালান জমা')}
                   </button>
                   <p className="text-[9.5px] leading-relaxed text-ink-400">
@@ -420,36 +420,36 @@ export default function W04_TreasuryChallans66() {
             </div>
 
             {lastBatch ? (
-              <section className="lv-card overflow-hidden border-emerald-200">
+              <section className="ql-card overflow-hidden border-emerald-200">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-2.5">
                   <p className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800">
                     <CircleCheck size={14} /> {L('Batch posted', 'ব্যাচ পোস্ট হয়েছে')} · {lastBatch.ref} · {lastBatch.journal} · {money(lastBatch.total)}
                   </p>
-                  <span className="lv-chip lv-chip-emerald">{L('Mushak 6.6 unlocked', 'মূসক ৬.৬ খোলা')}</span>
+                  <span className="ql-badge ql-badge-success">{L('Mushak 6.6 unlocked', 'মূসক ৬.৬ খোলা')}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 p-4">
                   {batchCertificates.length > 0 ? batchCertificates.map((certificate) => (
-                    <button key={certificate.id} type="button" onClick={() => setPrintCert(certificate)} className="lv-btn lv-btn-secondary !py-1.5">
+                    <button key={certificate.id} type="button" onClick={() => setPrintCert(certificate)} className="ql-btn ql-btn-secondary !py-1.5">
                       <Stamp size={13} /> {certificate.certificate_number}
                     </button>
                   )) : (
                     <p className="text-[11px] text-ink-500">{L('No VDS challan was in this batch — TDS-only deposits do not produce a 6.6 certificate.', 'এই ব্যাচে কোনো ভিডিএস চালান ছিল না — শুধু টিডিএস জমায় ৬.৬ সনদ হয় না।')}</p>
                   )}
-                  <button type="button" className="lv-btn lv-btn-ghost !py-1.5" onClick={() => setLastBatch(null)}>{L('Dismiss', 'বন্ধ')}</button>
+                  <button type="button" className="ql-btn ql-btn-ghost !py-1.5" onClick={() => setLastBatch(null)}>{L('Dismiss', 'বন্ধ')}</button>
                 </div>
               </section>
             ) : null}
 
-            <section className="lv-card overflow-hidden">
-              <div className="lv-card-header">
+            <section className="ql-card overflow-hidden">
+              <div className="ql-card-header">
                 <div>
-                  <p className="lv-kicker flex items-center gap-1.5"><CircleCheck size={12} /> {L('Deposited history', 'জমাকৃত ইতিহাস')}</p>
+                  <p className="ql-kicker flex items-center gap-1.5"><CircleCheck size={12} /> {L('Deposited history', 'জমাকৃত ইতিহাস')}</p>
                   <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Treasury receipts & 6.6 certificates', 'কোষাগার রসিদ ও ৬.৬ সনদ')}</h2>
                 </div>
-                <span className="lv-chip lv-chip-emerald">{deposited.length} {L('receipts', 'রসিদ')}</span>
+                <span className="ql-badge ql-badge-success">{deposited.length} {L('receipts', 'রসিদ')}</span>
               </div>
               <div className="overflow-x-auto">
-                <table className="lv-table min-w-[980px]">
+                <table className="ql-table min-w-[980px]">
                   <thead>
                     <tr>
                       <th>{L('Challan', 'চালান')}</th>
@@ -470,17 +470,17 @@ export default function W04_TreasuryChallans66() {
                           <p className="font-mono text-[10px] font-semibold text-ink-900">{challan.challan_number}</p>
                           <p className="font-mono text-[9px] text-ink-400">{challan.batch_reference ?? '—'}</p>
                         </td>
-                        <td><span className={`lv-chip ${challan.type === 'VDS' ? 'lv-chip-gold' : 'lv-chip-neutral'}`}>{challan.type}</span></td>
+                        <td><span className={`ql-badge ${challan.type === 'VDS' ? 'ql-badge-warn' : 'ql-badge-neutral'}`}>{challan.type}</span></td>
                         <td className="font-mono text-[10px]">{challan.period_code}</td>
                         <td className="font-mono text-[10px]">{ECONOMIC_CODE[challan.type]}</td>
                         <td className="text-[10px] text-ink-600">{challan.bank_branch ?? 'City Bank · Banani'}</td>
                         <td className="whitespace-nowrap text-[10px]">{challan.deposit_date ? formatDate(challan.deposit_date, locale) : '—'}</td>
                         <td className="font-money text-right text-[11px] font-semibold text-ink-900">{money(challan.amount_poisha)}</td>
-                        <td><span className="lv-chip lv-chip-emerald">{challan.status}</span></td>
+                        <td><span className="ql-badge ql-badge-success">{challan.status}</span></td>
                         <td>
                           <div className="flex justify-end">
                             {challan.type === 'VDS' ? (
-                              <button type="button" className="lv-btn lv-btn-secondary !px-2 !py-1" onClick={() => setPrintCert(certificateFor(challan))}>
+                              <button type="button" className="ql-btn ql-btn-secondary !px-2 !py-1" onClick={() => setPrintCert(certificateFor(challan))}>
                                 <Printer size={13} />
                               </button>
                             ) : <span className="text-[10px] text-ink-300">—</span>}
@@ -498,15 +498,15 @@ export default function W04_TreasuryChallans66() {
           </>
         ) : (
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-            <section className="lv-card overflow-hidden">
-              <div className="lv-card-header">
+            <section className="ql-card overflow-hidden">
+              <div className="ql-card-header">
                 <div>
-                  <p className="lv-kicker flex items-center gap-1.5"><Users size={12} /> {L('Customer Mushak 6.6 receivable', 'গ্রাহক মূসক ৬.৬ প্রাপ্য')}</p>
+                  <p className="ql-kicker flex items-center gap-1.5"><Users size={12} /> {L('Customer Mushak 6.6 receivable', 'গ্রাহক মূসক ৬.৬ প্রাপ্য')}</p>
                   <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Chase customers for the withholding certificate', 'কর্তন সনদের জন্য গ্রাহকদের তাগাদা')}</h2>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="lv-chip lv-chip-rose">{pendingCertificates.length} {L('outstanding', 'বাকি')}</span>
-                  <span className="lv-chip lv-chip-emerald">{money(receivedValue)} {L('received', 'প্রাপ্ত')}</span>
+                  <span className="ql-badge ql-badge-danger">{pendingCertificates.length} {L('outstanding', 'বাকি')}</span>
+                  <span className="ql-badge ql-badge-success">{money(receivedValue)} {L('received', 'প্রাপ্ত')}</span>
                 </div>
               </div>
 
@@ -530,20 +530,20 @@ export default function W04_TreasuryChallans66() {
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-money text-[12px] font-semibold text-violet-700">{money(certificate.vds_poisha)}</span>
-                        <span className={`lv-chip ${received ? 'lv-chip-emerald' : age > 30 ? 'lv-chip-rose' : 'lv-chip-gold'}`}>
+                        <span className={`ql-badge ${received ? 'ql-badge-success' : age > 30 ? 'ql-badge-danger' : 'ql-badge-warn'}`}>
                           {received ? L('Received · 9.1 Part 6', 'প্রাপ্ত · ৯.১ অংশ ৬') : L('Outstanding', 'বাকি')}
                         </span>
                         {!received ? (
                           <>
-                            <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1" onClick={() => chase(certificate)} title={L('Send reminder', 'অনুস্মারক পাঠান')}>
+                            <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1" onClick={() => chase(certificate)} title={L('Send reminder', 'অনুস্মারক পাঠান')}>
                               <Send size={12} />
                             </button>
-                            <button type="button" className="lv-btn lv-btn-primary !px-2 !py-1 text-[10px]" onClick={() => markReceived(certificate)}>
+                            <button type="button" className="ql-btn ql-btn-primary !px-2 !py-1 text-[10px]" onClick={() => markReceived(certificate)}>
                               <Check size={12} /> {L('Mark received', 'প্রাপ্ত চিহ্নিত')}
                             </button>
                           </>
                         ) : null}
-                        <button type="button" className="lv-btn lv-btn-secondary !px-2 !py-1" onClick={() => setPrintCert(certificate)} title={L('Print certificate', 'সনদ প্রিন্ট')}>
+                        <button type="button" className="ql-btn ql-btn-secondary !px-2 !py-1" onClick={() => setPrintCert(certificate)} title={L('Print certificate', 'সনদ প্রিন্ট')}>
                           <Printer size={12} />
                         </button>
                       </div>
@@ -557,8 +557,8 @@ export default function W04_TreasuryChallans66() {
             </section>
 
             <div className="space-y-5">
-              <section className="lv-card lv-card-pad">
-                <p className="lv-kicker flex items-center gap-1.5"><FileCheck2 size={12} /> {L('Mushak 9.1 Part 6 linkage', 'মূসক ৯.১ অংশ ৬ সংযোগ')}</p>
+              <section className="ql-card ql-card-pad">
+                <p className="ql-kicker flex items-center gap-1.5"><FileCheck2 size={12} /> {L('Mushak 9.1 Part 6 linkage', 'মূসক ৯.১ অংশ ৬ সংযোগ')}</p>
                 <p className="mt-2 text-[11px] leading-relaxed text-ink-600">
                   {L(
                     'A customer-issued Mushak 6.6 proves VDS was withheld from your sale and deposited by the buyer. Marking it received immediately adds its VDS amount to the Part 6 decreasing adjustment, reducing the net payable in W05 and on the printed return.',
@@ -576,8 +576,8 @@ export default function W04_TreasuryChallans66() {
                 </div>
               </section>
 
-              <section className="lv-card lv-card-pad">
-                <p className="lv-kicker">{L('Economic deposit codes', 'অর্থনৈতিক জমা কোড')}</p>
+              <section className="ql-card ql-card-pad">
+                <p className="ql-kicker">{L('Economic deposit codes', 'অর্থনৈতিক জমা কোড')}</p>
                 <ul className="mt-2 space-y-1.5">
                   {economicCodes.map((entry) => (
                     <li key={entry.code} className="flex items-center justify-between gap-2 rounded-lg bg-ink-50 px-2.5 py-2">

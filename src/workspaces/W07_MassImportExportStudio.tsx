@@ -55,18 +55,18 @@ const PIPELINES: ImportPipeline[] = ['BULK_JOURNAL', 'SALES_PURCHASE', 'OPENING_
 const ROW_PREVIEW_LIMIT = 60;
 
 const STATUS_META: Record<ImportRowStatus, { en: string; bn: string; tone: string }> = {
-  VALID: { en: 'VALID', bn: 'বৈধ', tone: 'lv-chip-emerald' },
-  FIXED: { en: 'FIXED', bn: 'সংশোধিত', tone: 'lv-chip-emerald' },
-  DUPLICATE_DOC_NO: { en: 'DUPLICATE_DOC', bn: 'নকল নথি', tone: 'lv-chip-rose' },
-  DUPLICATE_DOC_WARNING: { en: 'DUPLICATE_DOC_WARNING', bn: 'নকল নথি সতর্কতা', tone: 'lv-chip-gold' },
-  UNBALANCED_JOURNAL: { en: 'UNBALANCED_JOURNAL', bn: 'অসুষম জার্নাল', tone: 'lv-chip-rose' },
-  INVALID_BIN_WARNING: { en: 'INVALID_BIN_WARNING', bn: 'বিআইএন সতর্কতা', tone: 'lv-chip-gold' },
-  NO_TIN_PENALTY_UPSCALED: { en: 'NO_TIN_PENALTY_UPSCALED', bn: 'টিআইএন নেই — জরিমানা বৃদ্ধি', tone: 'lv-chip-gold' },
-  CASH_OVER_100K_VAT_DISALLOWED: { en: 'CASH_OVER_100K_VAT_DISALLOWED', bn: '১ লাখের বেশি নগদ — ভ্যাট বাতিল', tone: 'lv-chip-gold' },
-  INVALID_ACCOUNT: { en: 'INVALID_ACCOUNT', bn: 'অবৈধ হিসাব', tone: 'lv-chip-rose' },
-  PERIOD_CLOSED: { en: 'PERIOD_CLOSED', bn: 'সময়কাল বন্ধ', tone: 'lv-chip-rose' },
-  INVALID_DATE: { en: 'INVALID_DATE', bn: 'অবৈধ তারিখ', tone: 'lv-chip-rose' },
-  TAX_ENGINE_REVIEW: { en: 'TAX_ENGINE_REVIEW', bn: 'কর পর্যালোচনা', tone: 'lv-chip-gold' },
+  VALID: { en: 'VALID', bn: 'বৈধ', tone: 'ql-badge-success' },
+  FIXED: { en: 'FIXED', bn: 'সংশোধিত', tone: 'ql-badge-success' },
+  DUPLICATE_DOC_NO: { en: 'DUPLICATE_DOC', bn: 'নকল নথি', tone: 'ql-badge-danger' },
+  DUPLICATE_DOC_WARNING: { en: 'DUPLICATE_DOC_WARNING', bn: 'নকল নথি সতর্কতা', tone: 'ql-badge-warn' },
+  UNBALANCED_JOURNAL: { en: 'UNBALANCED_JOURNAL', bn: 'অসুষম জার্নাল', tone: 'ql-badge-danger' },
+  INVALID_BIN_WARNING: { en: 'INVALID_BIN_WARNING', bn: 'বিআইএন সতর্কতা', tone: 'ql-badge-warn' },
+  NO_TIN_PENALTY_UPSCALED: { en: 'NO_TIN_PENALTY_UPSCALED', bn: 'টিআইএন নেই — জরিমানা বৃদ্ধি', tone: 'ql-badge-warn' },
+  CASH_OVER_100K_VAT_DISALLOWED: { en: 'CASH_OVER_100K_VAT_DISALLOWED', bn: '১ লাখের বেশি নগদ — ভ্যাট বাতিল', tone: 'ql-badge-warn' },
+  INVALID_ACCOUNT: { en: 'INVALID_ACCOUNT', bn: 'অবৈধ হিসাব', tone: 'ql-badge-danger' },
+  PERIOD_CLOSED: { en: 'PERIOD_CLOSED', bn: 'সময়কাল বন্ধ', tone: 'ql-badge-danger' },
+  INVALID_DATE: { en: 'INVALID_DATE', bn: 'অবৈধ তারিখ', tone: 'ql-badge-danger' },
+  TAX_ENGINE_REVIEW: { en: 'TAX_ENGINE_REVIEW', bn: 'কর পর্যালোচনা', tone: 'ql-badge-warn' },
 };
 
 interface EditField {
@@ -353,16 +353,16 @@ export default function W07_MassImportExportStudio() {
   return (
     <div className="space-y-5">
       {/* 1 — Pipeline + dropzone */}
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Layers size={12} /> {L('Enterprise import', 'এন্টারপ্রাইজ আমদানি')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Layers size={12} /> {L('Enterprise import', 'এন্টারপ্রাইজ আমদানি')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">
               {L('Drop a spreadsheet, see every verdict before one poisha is posted', 'স্প্রেডশিট ফেলে দিন — এক পয়সা পোস্টের আগেই প্রতিটি রায় দেখুন')}
             </h2>
-            <p className="lv-hint mt-1">{L(meta.description_en, meta.description_bn)}</p>
+            <p className="ql-hint mt-1">{L(meta.description_en, meta.description_bn)}</p>
           </div>
-          <span className="lv-chip lv-chip-neutral">
+          <span className="ql-badge ql-badge-neutral">
             <FileSpreadsheet size={12} /> {columns.length} {L('expected columns', 'প্রত্যাশিত কলাম')}
           </span>
         </div>
@@ -413,17 +413,17 @@ export default function W07_MassImportExportStudio() {
                 ? L('Release to parse the workbook', 'পার্স করতে ছেড়ে দিন')
                 : L('Drag & drop your .xlsx or .csv here', 'এখানে .xlsx বা .csv টেনে ফেলুন')}
             </p>
-            <p className="lv-hint">
+            <p className="ql-hint">
               {L('Excel, CSV and Tally / QuickBooks exports up to 25,000 rows — parsed in the browser.', 'এক্সেল, সিএসভি ও ট্যালি / কুইকবুকস রপ্তানি ২৫,০০০ সারি পর্যন্ত — ব্রাউজারেই পার্স।')}
             </p>
             <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
-              <button type="button" className="lv-btn lv-btn-primary" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+              <button type="button" className="ql-btn ql-btn-primary" disabled={busy} onClick={() => fileInputRef.current?.click()}>
                 <Upload size={14} /> {busy ? L('Parsing…', 'পার্স হচ্ছে…') : L('Choose file', 'ফাইল বাছুন')}
               </button>
-              <button type="button" className="lv-btn lv-btn-saffron" onClick={loadDemo}>
+              <button type="button" className="ql-btn ql-btn-accent" onClick={loadDemo}>
                 <Sparkles size={14} /> {L('Load 25-Row Live Demo Batch (Instant Preview)', '২৫ সারির লাইভ ডেমো ব্যাচ লোড (তাৎক্ষণিক প্রিভিউ)')}
               </button>
-              <button type="button" className="lv-btn lv-btn-secondary" onClick={() => downloadSampleTemplateXlsx(pipeline)}>
+              <button type="button" className="ql-btn ql-btn-secondary" onClick={() => downloadSampleTemplateXlsx(pipeline)}>
                 <Download size={14} /> {L('Download Sample .XLSX Template', 'নমুনা .এক্সএলএসএক্স টেমপ্লেট')}
               </button>
             </div>
@@ -449,19 +449,19 @@ export default function W07_MassImportExportStudio() {
       {simulation && (
         <>
           {/* 2 — Pre-commit impact cards */}
-          <section className="lv-card overflow-hidden">
-            <div className="lv-card-header">
+          <section className="ql-card overflow-hidden">
+            <div className="ql-card-header">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5"><TableProperties size={12} /> {L('Pre-commit financial & tax impact', 'কমিট-পূর্ব আর্থিক ও কর প্রভাব')}</p>
+                <p className="ql-kicker flex items-center gap-1.5"><TableProperties size={12} /> {L('Pre-commit financial & tax impact', 'কমিট-পূর্ব আর্থিক ও কর প্রভাব')}</p>
                 <h2 className="mt-1 text-base font-semibold text-ink-900">
                   {L('What this batch does to the ledger, before it does it', 'এই ব্যাচ খতিয়ানে যা করবে — করার আগেই')}
                 </h2>
-                <p className="lv-hint mt-1">
+                <p className="ql-hint mt-1">
                   {simulation.valid_rows} {L('postable', 'পোস্টযোগ্য')} · {warningRows.length} {L('warnings', 'সতর্কতা')} · {blockedRows.length}{' '}
                   {L('blocking', 'বাধা')} · {excluded.size} {L('excluded by you', 'আপনার বাদ দেওয়া')}
                 </p>
               </div>
-              <span className={`lv-chip ${commitReady ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+              <span className={`ql-badge ${commitReady ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                 {commitReady ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                 {commitReady ? L('Debits = credits', 'ডেবিট = ক্রেডিট') : L('Not committable', 'কমিটযোগ্য নয়')}
               </span>
@@ -469,7 +469,7 @@ export default function W07_MassImportExportStudio() {
             <div className="grid gap-3 border-t border-ink-100 px-5 py-4 sm:grid-cols-2 xl:grid-cols-4">
               {impact.map((tile) => (
                 <div key={tile.label} className="rounded-xl border border-ink-100 bg-white px-3 py-2.5">
-                  <p className="lv-kicker flex items-center gap-1"><tile.icon size={11} /> {tile.label}</p>
+                  <p className="ql-kicker flex items-center gap-1"><tile.icon size={11} /> {tile.label}</p>
                   <p className={`font-money mt-1 text-[13px] font-semibold ${tile.tone}`}>{tile.value}</p>
                 </div>
               ))}
@@ -489,36 +489,36 @@ export default function W07_MassImportExportStudio() {
           </section>
 
           {/* 3 — Validation & simulation grid */}
-          <section className="lv-card overflow-hidden">
-            <div className="lv-card-header">
+          <section className="ql-card overflow-hidden">
+            <div className="ql-card-header">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5"><ShieldCheck size={12} /> {L('Interactive validation grid', 'ইন্টারঅ্যাকটিভ যাচাই গ্রিড')}</p>
+                <p className="ql-kicker flex items-center gap-1.5"><ShieldCheck size={12} /> {L('Interactive validation grid', 'ইন্টারঅ্যাকটিভ যাচাই গ্রিড')}</p>
                 <h2 className="mt-1 text-base font-semibold text-ink-900">
                   {L('Row-by-row verdicts, inline editing and row toggles', 'সারি-ভিত্তিক রায়, ইনলাইন সম্পাদনা ও সারি চালু/বন্ধ')}
                 </h2>
-                <p className="lv-hint mt-1">
+                <p className="ql-hint mt-1">
                   {L('Every edit re-runs the same tax-engine dry run the commit will use.', 'প্রতিটি সম্পাদনা কমিটে ব্যবহৃত একই কর-ইঞ্জিন ড্রাই রান পুনরায় চালায়।')}
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => exportSimulationCsv(simulation)}>
+                <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => exportSimulationCsv(simulation)}>
                   <Download size={12} /> {L('Dry-run CSV', 'ড্রাই-রান সিএসভি')}
                 </button>
                 <button
                   type="button"
-                  className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]"
+                  className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]"
                   onClick={excludeBlocked}
                 >
                   <AlertTriangle size={12} /> {L('Exclude blockers', 'বাধাগুলো বাদ দিন')}
                 </button>
-                <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setExcluded(new Set())}>
+                <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setExcluded(new Set())}>
                   <CheckCircle2 size={12} /> {L('Include all', 'সব অন্তর্ভুক্ত')}
                 </button>
               </div>
             </div>
 
             <div className="max-h-[520px] overflow-auto">
-              <table className="lv-table min-w-[1080px]">
+              <table className="ql-table min-w-[1080px]">
                 <thead>
                   <tr>
                     <th className="w-10">{L('In', 'সহ')}</th>
@@ -565,7 +565,7 @@ export default function W07_MassImportExportStudio() {
                           <td className="font-money text-right text-[11px] text-ink-600">{money(row.vds_poisha)}</td>
                           <td className="font-money text-right text-[11px] text-ink-600">{money(row.tds_poisha)}</td>
                           <td>
-                            <span className={`lv-chip ${statusMeta.tone} !px-1.5 !py-0 text-[9px]`}>{L(statusMeta.en, statusMeta.bn)}</span>
+                            <span className={`ql-badge ${statusMeta.tone} !px-1.5 !py-0 text-[9px]`}>{L(statusMeta.en, statusMeta.bn)}</span>
                           </td>
                           <td className={`max-w-[260px] truncate text-[10px] ${row.errors.length ? 'text-rose-600' : 'text-amber-700'}`} title={note}>
                             {note}
@@ -573,7 +573,7 @@ export default function W07_MassImportExportStudio() {
                           <td className="text-right">
                             <button
                               type="button"
-                              className="lv-btn lv-btn-ghost !px-1.5 !py-0.5 text-[10px]"
+                              className="ql-btn ql-btn-ghost !px-1.5 !py-0.5 text-[10px]"
                               onClick={() => setEditingRow(editing ? null : row.row_number)}
                             >
                               <Pencil size={10} /> {editing ? L('Close', 'বন্ধ') : L('Edit', 'সম্পাদনা')}
@@ -591,7 +591,7 @@ export default function W07_MassImportExportStudio() {
                                       <select
                                         value={String(row.raw[field.key] ?? field.options?.[0] ?? '')}
                                         onChange={(event) => updateCell(rowIndex, field.key, field.kind, event.target.value)}
-                                        className="lv-input mt-0.5 w-full !py-1 text-[11px]"
+                                        className="ql-input mt-0.5 w-full !py-1 text-[11px]"
                                       >
                                         {(field.options ?? []).map((option) => (
                                           <option key={option} value={option}>{option}</option>
@@ -602,13 +602,13 @@ export default function W07_MassImportExportStudio() {
                                         value={String(row.raw[field.key] ?? '')}
                                         onChange={(event) => updateCell(rowIndex, field.key, field.kind, event.target.value)}
                                         inputMode={field.kind === 'number' ? 'decimal' : undefined}
-                                        className="lv-input mt-0.5 w-full !py-1 font-mono text-[11px]"
+                                        className="ql-input mt-0.5 w-full !py-1 font-mono text-[11px]"
                                       />
                                     )}
                                   </label>
                                 ))}
                                 <div className="flex items-end justify-end">
-                                  <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[10px]" onClick={() => setEditingRow(null)}>
+                                  <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[10px]" onClick={() => setEditingRow(null)}>
                                     <CheckCircle2 size={11} /> {L('Re-run dry run', 'ড্রাই রান পুনরায়')}
                                   </button>
                                 </div>
@@ -624,7 +624,7 @@ export default function W07_MassImportExportStudio() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-5 py-3">
-              <p className="lv-hint">
+              <p className="ql-hint">
                 {simulation.rows.length > ROW_PREVIEW_LIMIT
                   ? L(`Showing ${ROW_PREVIEW_LIMIT} of ${simulation.rows.length} rows`, `${simulation.rows.length}-এর মধ্যে ${ROW_PREVIEW_LIMIT} সারি`)
                   : L(
@@ -633,7 +633,7 @@ export default function W07_MassImportExportStudio() {
                     )}
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <button type="button" className="lv-btn lv-btn-secondary" disabled={!commitReady || committing} onClick={commit}>
+                <button type="button" className="ql-btn ql-btn-secondary" disabled={!commitReady || committing} onClick={commit}>
                   <ArrowUpRight size={14} />{' '}
                   {L(
                     `Commit ${included?.valid_rows ?? 0} rows to the live ledger`,
@@ -657,14 +657,14 @@ export default function W07_MassImportExportStudio() {
 
       {/* 4 — Most recent batch */}
       {lastBatch && (
-        <section className={`lv-card lv-card-pad border-l-4 ${lastBatch.status === 'ROLLED_BACK' ? 'border-rose-400' : 'border-vault-600'}`}>
+        <section className={`ql-card ql-card-pad border-l-4 ${lastBatch.status === 'ROLLED_BACK' ? 'border-rose-400' : 'border-vault-600'}`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="lv-kicker">{L('Most recent batch', 'সর্বশেষ ব্যাচ')}</p>
+              <p className="ql-kicker">{L('Most recent batch', 'সর্বশেষ ব্যাচ')}</p>
               <p className="mt-1 text-sm font-semibold text-ink-900">
                 {lastBatch.id} · {lastBatch.file_name}
               </p>
-              <p className="lv-hint mt-0.5">
+              <p className="ql-hint mt-0.5">
                 {lastBatch.row_count} {L('rows', 'সারি')} · {money(lastBatch.total_debit_poisha)} {L('debit', 'ডেবিট')} ·{' '}
                 {lastBatch.journal_ids.length} {L('journals created', 'জার্নাল তৈরি')} ·{' '}
                 <span className={lastBatch.status === 'ROLLED_BACK' ? 'text-rose-600' : 'text-vault-700'}>{lastBatch.status}</span>
@@ -675,13 +675,13 @@ export default function W07_MassImportExportStudio() {
                 const journal = vault.journals.find((entry) => entry.id === journalId);
                 if (!journal) return null;
                 return (
-                  <button key={journalId} type="button" className="lv-chip lv-chip-neutral hover:bg-vault-50" onClick={() => setLensJournalId(journalId)}>
+                  <button key={journalId} type="button" className="ql-badge ql-badge-neutral hover:bg-vault-50" onClick={() => setLensJournalId(journalId)}>
                     {journal.journal_number} ↗
                   </button>
                 );
               })}
               {lastBatch.status === 'COMMITTED' && (
-                <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setConfirmBatch(lastBatch)}>
+                <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setConfirmBatch(lastBatch)}>
                   <Undo2 size={12} /> {L('Undo this batch', 'এই ব্যাচ আনডু')}
                 </button>
               )}
@@ -691,14 +691,14 @@ export default function W07_MassImportExportStudio() {
       )}
 
       {/* 5 — Batch history */}
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><History size={12} /> {L('Batch history', 'ব্যাচ ইতিহাস')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><History size={12} /> {L('Batch history', 'ব্যাচ ইতিহাস')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">
               {L('Every commit, with a working rollback', 'প্রতিটি কমিট, কার্যকর রোলব্যাকসহ')}
             </h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L(
                 'A rollback never deletes: it posts linked reversal journals, withdraws the imported documents and frees the registers.',
                 'রোলব্যাক কিছু মুছে ফেলে না — সংযুক্ত রিভার্সাল জার্নাল পোস্ট করে, আমদানি নথি প্রত্যাহার করে ও রেজিস্টার মুক্ত করে।',
@@ -706,11 +706,11 @@ export default function W07_MassImportExportStudio() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="lv-chip lv-chip-neutral">{batches.length} {L('batches', 'ব্যাচ')}</span>
-            <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={exportAuditPack}>
+            <span className="ql-badge ql-badge-neutral">{batches.length} {L('batches', 'ব্যাচ')}</span>
+            <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={exportAuditPack}>
               <FileText size={12} /> {L('9-tab audit workbook', '৯-ট্যাব অডিট ওয়ার্কবুক')}
             </button>
-            <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setPrintOpen(true)}>
+            <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setPrintOpen(true)}>
               <Printer size={12} /> {L('Statutory print', 'বিধিবদ্ধ প্রিন্ট')}
             </button>
           </div>
@@ -722,7 +722,7 @@ export default function W07_MassImportExportStudio() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="lv-table min-w-[900px]">
+            <table className="ql-table min-w-[900px]">
               <thead>
                 <tr>
                   <th>{L('Batch', 'ব্যাচ')}</th>
@@ -753,11 +753,11 @@ export default function W07_MassImportExportStudio() {
                         <td className="font-money text-right text-[11px]">{money(batch.total_debit_poisha)}</td>
                         <td className="font-money text-right text-[11px]">{money(batch.output_vat_poisha)}</td>
                         <td>
-                          <span className={`lv-chip ${batch.status === 'COMMITTED' ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>{batch.status}</span>
+                          <span className={`ql-badge ${batch.status === 'COMMITTED' ? 'ql-badge-success' : 'ql-badge-danger'}`}>{batch.status}</span>
                         </td>
                         <td className="text-right">
                           {batch.status === 'COMMITTED' ? (
-                            <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setConfirmBatch(batch)}>
+                            <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setConfirmBatch(batch)}>
                               <RotateCcw size={12} /> {L('Rollback / Undo Entire Batch', 'সম্পূর্ণ ব্যাচ রোলব্যাক / আনডু')}
                             </button>
                           ) : (
@@ -772,19 +772,19 @@ export default function W07_MassImportExportStudio() {
                           <td colSpan={8}>
                             <div className="grid gap-3 py-1 sm:grid-cols-2 xl:grid-cols-4">
                               <div>
-                                <p className="lv-kicker">{L('Credits', 'ক্রেডিট')}</p>
+                                <p className="ql-kicker">{L('Credits', 'ক্রেডিট')}</p>
                                 <p className="font-money mt-0.5 text-[12px]">{money(batch.total_credit_poisha)}</p>
                               </div>
                               <div>
-                                <p className="lv-kicker">{L('Claimable rebate', 'দাবিযোগ্য রিবেট')}</p>
+                                <p className="ql-kicker">{L('Claimable rebate', 'দাবিযোগ্য রিবেট')}</p>
                                 <p className="font-money mt-0.5 text-[12px]">{money(batch.input_vat_claimable_poisha)}</p>
                               </div>
                               <div>
-                                <p className="lv-kicker">{L('VDS / TDS', 'ভিডিএস / টিডিএস')}</p>
+                                <p className="ql-kicker">{L('VDS / TDS', 'ভিডিএস / টিডিএস')}</p>
                                 <p className="font-money mt-0.5 text-[12px]">{money(batch.vds_poisha)} / {money(batch.tds_poisha)}</p>
                               </div>
                               <div>
-                                <p className="lv-kicker">{L('Posted by', 'পোস্ট করেছেন')}</p>
+                                <p className="ql-kicker">{L('Posted by', 'পোস্ট করেছেন')}</p>
                                 <p className="mt-0.5 text-[12px]">{batch.committed_by}</p>
                               </div>
                             </div>
@@ -796,7 +796,7 @@ export default function W07_MassImportExportStudio() {
                                 const journal = vault.journals.find((entry) => entry.id === journalId);
                                 if (!journal) return null;
                                 return (
-                                  <button key={journalId} type="button" className="lv-chip lv-chip-neutral hover:bg-white" onClick={() => setLensJournalId(journalId)}>
+                                  <button key={journalId} type="button" className="ql-badge ql-badge-neutral hover:bg-white" onClick={() => setLensJournalId(journalId)}>
                                     {journal.journal_number} ↗
                                   </button>
                                 );
@@ -826,7 +826,7 @@ export default function W07_MassImportExportStudio() {
       {confirmBatch && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-ink-950/50 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
-            <p className="lv-kicker flex items-center gap-1.5 text-rose-600"><Undo2 size={12} /> {L('Reverse an entire batch', 'সম্পূর্ণ ব্যাচ রিভার্স')}</p>
+            <p className="ql-kicker flex items-center gap-1.5 text-rose-600"><Undo2 size={12} /> {L('Reverse an entire batch', 'সম্পূর্ণ ব্যাচ রিভার্স')}</p>
             <h3 className="mt-1 text-sm font-semibold text-ink-900">
               {L('Roll back', 'রোলব্যাক')} {confirmBatch.id}?
             </h3>
@@ -837,10 +837,10 @@ export default function W07_MassImportExportStudio() {
               )}
             </p>
             <div className="mt-4 flex items-center justify-end gap-2">
-              <button type="button" className="lv-btn lv-btn-ghost" onClick={() => setConfirmBatch(null)}>
+              <button type="button" className="ql-btn ql-btn-ghost" onClick={() => setConfirmBatch(null)}>
                 {L('Cancel', 'বাতিল')}
               </button>
-              <button type="button" className="lv-btn lv-btn-primary" onClick={() => rollback(confirmBatch)}>
+              <button type="button" className="ql-btn ql-btn-primary" onClick={() => rollback(confirmBatch)}>
                 <RotateCcw size={14} /> {L('Rollback / Undo Entire Batch', 'সম্পূর্ণ ব্যাচ রোলব্যাক / আনডু')}
               </button>
             </div>
@@ -855,7 +855,7 @@ export default function W07_MassImportExportStudio() {
             `খতিয়ানে এখন ${bn(vault.journals.length)}টি জার্নাল · প্রতিটি আমদানি সারি বংশতালিকার জন্য ব্যাচ আইডি বহন করে।`,
           )}
         </p>
-        <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setPrintOpen(true)}>
+        <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setPrintOpen(true)}>
           <ArrowRight size={12} /> {L('Open statutory print workspace', 'বিধিবদ্ধ প্রিন্ট ওয়ার্কস্পেস')}
         </button>
       </div>

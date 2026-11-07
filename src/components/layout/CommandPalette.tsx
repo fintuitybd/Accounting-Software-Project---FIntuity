@@ -1,4 +1,4 @@
-// LedgerVault — command palette.
+// Fintuity Accounting Suite — command palette.
 //
 // Ctrl/⌘ + K opens a single glass command surface: quick transaction actions, then every one of the
 // twelve workspaces grouped into its four chapters. Search understands English, Bangla and Banglish
@@ -235,7 +235,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
     if (!open || rows.length === 0) return;
     const row = rows[activeIndex];
     if (!row) return;
-    document.getElementById(`lv-cmd-${row.id}`)?.scrollIntoView({ block: 'nearest' });
+    document.getElementById(`ql-cmd-${row.id}`)?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex, open, rows]);
 
   if (!open) return null;
@@ -307,7 +307,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
                 aria-label="Search workspaces and actions in English, Bangla or Banglish"
                 className="min-w-0 flex-1 bg-transparent text-[15px] font-medium tracking-[-0.01em] text-ink-900 outline-none placeholder:text-ink-400"
               />
-              <kbd className="lv-kbd hidden sm:inline-flex">esc</kbd>
+              <kbd className="ql-kbd hidden sm:inline-flex">esc</kbd>
             </div>
             <div className="mt-2 flex items-center gap-2 pl-12 text-[10px] text-ink-400">
               <Sparkles size={10} className="text-saffron" />
@@ -324,7 +324,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
             {rows.length === 0 && (
               <div className="px-5 py-12 text-center">
                 <p className="text-sm font-semibold text-ink-800">No match for “{query.trim()}”.</p>
-                <p className="lv-hint mt-1">
+                <p className="ql-hint mt-1">
                   Try English (“sales”, “close”), Bangla (“বিক্রয়”, “বেতন”) or Banglish (“bikroy”, “borton”).
                 </p>
               </div>
@@ -368,7 +368,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
                     {header}
                     <button
                       type="button"
-                      id={`lv-cmd-${row.id}`}
+                      id={`ql-cmd-${row.id}`}
                       role="option"
                       aria-selected={active}
                       onMouseEnter={() => setActiveIndex(index)}
@@ -380,7 +380,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
                       {active && (
                         <motion.span
                           layoutId="paletteActiveRow"
-                          className="lv-nav-pill absolute inset-0 rounded-xl"
+                          className="ql-nav-pill absolute inset-0 rounded-xl"
                           transition={{ type: 'spring', stiffness: 600, damping: 45 }}
                         />
                       )}
@@ -422,7 +422,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
                   {header}
                   <button
                     type="button"
-                    id={`lv-cmd-${row.id}`}
+                    id={`ql-cmd-${row.id}`}
                     role="option"
                     aria-selected={active}
                     onMouseEnter={() => setActiveIndex(index)}
@@ -434,7 +434,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
                     {active && (
                       <motion.span
                         layoutId="paletteActiveRow"
-                        className="lv-nav-pill absolute inset-0 rounded-xl"
+                        className="ql-nav-pill absolute inset-0 rounded-xl"
                         transition={{ type: 'spring', stiffness: 600, damping: 45 }}
                       />
                     )}
@@ -483,8 +483,8 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line/70 bg-ink-50/55 px-4 py-2.5 text-[9.5px] text-ink-500 sm:px-5 dark:bg-white/[0.02]">
             <span className="flex flex-wrap items-center gap-3">
               <span className="flex items-center gap-1">
-                <kbd className="lv-kbd !px-1 !py-0.5">↑</kbd>
-                <kbd className="lv-kbd !px-1 !py-0.5">↓</kbd>
+                <kbd className="ql-kbd !px-1 !py-0.5">↑</kbd>
+                <kbd className="ql-kbd !px-1 !py-0.5">↓</kbd>
                 navigate
               </span>
               <span className="flex items-center gap-1">
@@ -494,7 +494,7 @@ export function CommandPalette({ open, onClose, onNavigate, className = '' }: Co
                 <Command size={10} /> K toggle
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="lv-kbd !px-1 !py-0.5">esc</kbd> close
+                <kbd className="ql-kbd !px-1 !py-0.5">esc</kbd> close
               </span>
             </span>
             <span className="font-mono text-[12px] uppercase tracking-[0.08em] text-ink-400">

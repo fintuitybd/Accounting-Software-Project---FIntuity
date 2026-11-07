@@ -1,4 +1,4 @@
-// LedgerVault — interactive money-flow Sankey.
+// Fintuity Accounting Suite — interactive money-flow Sankey.
 //
 // A hand-routed, cubic-Bézier alluvial chart: revenue streams feed one Gross inflow bar, which then
 // breaks into cost of sales, operating expenses, the three Treasury outflows (VAT / VDS / TDS) and
@@ -144,30 +144,30 @@ function layoutLabels(centers: ReadonlyArray<number>, top: number, bottom: numbe
 }
 
 const SANKEY_CSS = `
-.lv-sankey .lv-sankey-link,
-.lv-sankey .lv-sankey-node-rect,
-.lv-sankey .lv-sankey-label { will-change: opacity; }
-.lv-sankey--full .lv-sankey-link,
-.lv-sankey--full .lv-sankey-node-rect,
-.lv-sankey--full .lv-sankey-label { transition: opacity 220ms cubic-bezier(0.16,1,0.3,1), stroke-width 180ms ease; }
-.lv-sankey--lite .lv-sankey-link,
-.lv-sankey--lite .lv-sankey-node-rect,
-.lv-sankey--lite .lv-sankey-label { transition: opacity 120ms ease; }
-.lv-sankey--off .lv-sankey-link,
-.lv-sankey--off .lv-sankey-node-rect,
-.lv-sankey--off .lv-sankey-label { transition: none; }
-.lv-sankey--full .lv-sankey-links { animation: lv-sankey-sweep 1050ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.lv-sankey--lite .lv-sankey-links { animation: lv-sankey-fade 280ms ease both; }
-.lv-sankey--off .lv-sankey-links { animation: none; }
-.lv-sankey--full .lv-sankey-node { animation: lv-sankey-fade 520ms ease both; }
-.lv-sankey--lite .lv-sankey-node { animation: lv-sankey-fade 200ms ease both; }
-.lv-sankey--off .lv-sankey-node { animation: none; }
-.lv-sankey-node:focus-visible { outline: 2px solid #6366f1; outline-offset: 4px; border-radius: 8px; }
-@keyframes lv-sankey-sweep {
+.ql-sankey .ql-sankey-link,
+.ql-sankey .ql-sankey-node-rect,
+.ql-sankey .ql-sankey-label { will-change: opacity; }
+.ql-sankey--full .ql-sankey-link,
+.ql-sankey--full .ql-sankey-node-rect,
+.ql-sankey--full .ql-sankey-label { transition: opacity 220ms cubic-bezier(0.16,1,0.3,1), stroke-width 180ms ease; }
+.ql-sankey--lite .ql-sankey-link,
+.ql-sankey--lite .ql-sankey-node-rect,
+.ql-sankey--lite .ql-sankey-label { transition: opacity 120ms ease; }
+.ql-sankey--off .ql-sankey-link,
+.ql-sankey--off .ql-sankey-node-rect,
+.ql-sankey--off .ql-sankey-label { transition: none; }
+.ql-sankey--full .ql-sankey-links { animation: ql-sankey-sweep 1050ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.ql-sankey--lite .ql-sankey-links { animation: ql-sankey-fade 280ms ease both; }
+.ql-sankey--off .ql-sankey-links { animation: none; }
+.ql-sankey--full .ql-sankey-node { animation: ql-sankey-fade 520ms ease both; }
+.ql-sankey--lite .ql-sankey-node { animation: ql-sankey-fade 200ms ease both; }
+.ql-sankey--off .ql-sankey-node { animation: none; }
+.ql-sankey-node:focus-visible { outline: 2px solid #6366f1; outline-offset: 4px; border-radius: 8px; }
+@keyframes ql-sankey-sweep {
   0% { opacity: 0; clip-path: inset(0 100% 0 0); }
   100% { opacity: 1; clip-path: inset(0 0 0 0); }
 }
-@keyframes lv-sankey-fade {
+@keyframes ql-sankey-fade {
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
@@ -334,10 +334,10 @@ export function MoneyFlowSankey({
 
   if (channels.length === 0 || sinks.length === 0 || inflowTotal <= 0n) {
     return (
-      <div className={['lv-sankey', `lv-sankey--${tierClass}`, className].filter(Boolean).join(' ')}>
+      <div className={['ql-sankey', `ql-sankey--${tierClass}`, className].filter(Boolean).join(' ')}>
         <style>{SANKEY_CSS}</style>
         <div className="grid h-44 place-items-center rounded-2xl border border-dashed border-line bg-surface-2/50 px-4 text-center">
-          <p className="lv-hint">{L(emptyLabel, 'এই সময়ের জন্য কোনো অর্থপ্রবাহ নেই।')}</p>
+          <p className="ql-hint">{L(emptyLabel, 'এই সময়ের জন্য কোনো অর্থপ্রবাহ নেই।')}</p>
         </div>
       </div>
     );
@@ -348,7 +348,7 @@ export function MoneyFlowSankey({
   return (
     <div
       ref={containerRef}
-      className={['lv-sankey', `lv-sankey--${tierClass}`, 'relative', className].filter(Boolean).join(' ')}
+      className={['ql-sankey', `ql-sankey--${tierClass}`, 'relative', className].filter(Boolean).join(' ')}
     >
       <style>{SANKEY_CSS}</style>
       <div className="overflow-x-auto overflow-y-hidden rounded-2xl">
@@ -407,12 +407,12 @@ export function MoneyFlowSankey({
           </defs>
 
           {/* Engineering grid + stage rails */}
-          <g style={{ stroke: 'rgb(var(--lv-line))' }} strokeWidth="0.7" strokeDasharray="1 7" opacity="0.55">
+          <g style={{ stroke: 'rgb(var(--ql-border))' }} strokeWidth="0.7" strokeDasharray="1 7" opacity="0.55">
             {[TOP + 40, TOP + 126, TOP + 212, TOP + 298].map((y) => (
               <line key={y} x1={40} y1={y} x2={VIEW_W - 40} y2={y} />
             ))}
           </g>
-          <g strokeWidth="1" strokeDasharray="2 6" style={{ stroke: 'rgb(var(--lv-line))' }} opacity="0.8">
+          <g strokeWidth="1" strokeDasharray="2 6" style={{ stroke: 'rgb(var(--ql-border))' }} opacity="0.8">
             <line x1={370} y1={TOP - 14} x2={370} y2={BOTTOM + 18} />
             <line x1={706} y1={TOP - 14} x2={706} y2={BOTTOM + 18} />
           </g>
@@ -451,7 +451,7 @@ export function MoneyFlowSankey({
           </text>
 
           {/* Channel -> inflow ribbons */}
-          <g className="lv-sankey-links">
+          <g className="ql-sankey-links">
             {channels.map((channel, index) => {
               const band = channelBands[index];
               const target = inflowBands[index];
@@ -460,7 +460,7 @@ export function MoneyFlowSankey({
               return (
                 <path
                   key={`ch-link-${channel.id}`}
-                  className="lv-sankey-link"
+                  className="ql-sankey-link"
                   d={ribbon(LEFT_X + NODE_W, band.y0, band.y1, MID_X, target.y0, target.y1)}
                   fill={`url(#${uid}-ch-link-${index})`}
                   opacity={opacityForLink(key, 0.68)}
@@ -478,7 +478,7 @@ export function MoneyFlowSankey({
               return (
                 <path
                   key={`sn-link-${sink.id}`}
-                  className="lv-sankey-link"
+                  className="ql-sankey-link"
                   d={ribbon(MID_X + MID_W, source.y0, source.y1, RIGHT_X, target.y0, target.y1)}
                   fill={`url(#${uid}-sn-link-${index})`}
                   opacity={opacityForLink(key, 0.68)}
@@ -502,7 +502,7 @@ export function MoneyFlowSankey({
             return (
               <g
                 key={`ch-node-${channel.id}`}
-                className="lv-sankey-node"
+                className="ql-sankey-node"
                 tabIndex={0}
                 role="button"
                 aria-label={`${channel.label}: ${money(channel.amount_poisha)} — ${sharePct(channel.amount_poisha, inflowTotal)}% of gross inflow`}
@@ -517,7 +517,7 @@ export function MoneyFlowSankey({
                   fill="transparent"
                 />
                 <rect
-                  className="lv-sankey-node-rect"
+                  className="ql-sankey-node-rect"
                   x={LEFT_X}
                   y={band.y0}
                   width={NODE_W}
@@ -533,7 +533,7 @@ export function MoneyFlowSankey({
                 {lines.map((line, lineIndex) => (
                   <text
                     key={lineIndex}
-                    className="lv-sankey-label fill-ink-900"
+                    className="ql-sankey-label fill-ink-900"
                     x={LEFT_X - 16}
                     y={labelStart + lineIndex * 13}
                     textAnchor="end"
@@ -547,7 +547,7 @@ export function MoneyFlowSankey({
                   </text>
                 ))}
                 <text
-                  className="lv-sankey-label fill-ink-500"
+                  className="ql-sankey-label fill-ink-500"
                   x={LEFT_X - 16}
                   y={amountY}
                   textAnchor="end"
@@ -564,7 +564,7 @@ export function MoneyFlowSankey({
 
           {/* Gross inflow node */}
           <g
-            className="lv-sankey-node"
+            className="ql-sankey-node"
             tabIndex={0}
             role="button"
             aria-label={`${inflowLabel}: ${money(inflowTotal)}`}
@@ -647,7 +647,7 @@ export function MoneyFlowSankey({
             return (
               <g
                 key={`sn-node-${sink.id}`}
-                className="lv-sankey-node"
+                className="ql-sankey-node"
                 tabIndex={0}
                 role="button"
                 aria-label={`${sink.label}: ${money(sink.amount_poisha)} — ${sharePct(sink.amount_poisha, sinkTotal)}% of applications`}
@@ -671,7 +671,7 @@ export function MoneyFlowSankey({
                   style={{ transition: 'stroke-opacity 180ms ease' }}
                 />
                 <rect
-                  className="lv-sankey-node-rect"
+                  className="ql-sankey-node-rect"
                   x={RIGHT_X}
                   y={band.y0}
                   width={NODE_W}
@@ -687,7 +687,7 @@ export function MoneyFlowSankey({
                 {lines.map((line, lineIndex) => (
                   <text
                     key={lineIndex}
-                    className="lv-sankey-label fill-ink-900"
+                    className="ql-sankey-label fill-ink-900"
                     x={labelX}
                     y={labelCenter - (lines.length > 1 ? 5 : 1) + lineIndex * 13}
                     fontFamily="Inter, Hind Siliguri, Noto Sans Bengali, system-ui, sans-serif"
@@ -700,7 +700,7 @@ export function MoneyFlowSankey({
                   </text>
                 ))}
                 <text
-                  className="lv-sankey-label fill-ink-500"
+                  className="ql-sankey-label fill-ink-500"
                   x={labelX}
                   y={labelCenter + (lines.length > 1 ? 16 : 13)}
                   fontFamily="ui-monospace, SFMono-Regular, monospace"
@@ -721,7 +721,7 @@ export function MoneyFlowSankey({
       {/* Hover tooltip */}
       {detail && tooltip ? (
         <div
-          className="lv-tooltip absolute z-20 w-[228px]"
+          className="ql-tooltip absolute z-20 w-[228px]"
           style={{ left: tooltip.x, top: tooltip.y }}
           role="status"
         >
@@ -753,7 +753,7 @@ export function MoneyFlowSankey({
               {detail.hint ? (
                 <span className="hidden truncate text-[10px] font-normal text-ink-500 sm:inline">{detail.hint}</span>
               ) : null}
-              <span className="lv-chip lv-chip-neutral hidden !py-0.5 sm:inline-flex">
+              <span className="ql-badge ql-badge-neutral hidden !py-0.5 sm:inline-flex">
                 {detail.share}% {detail.shareLabel}
               </span>
             </span>
@@ -763,7 +763,7 @@ export function MoneyFlowSankey({
             </span>
           </>
         ) : (
-          <p className="lv-hint">{interactionHint}</p>
+          <p className="ql-hint">{interactionHint}</p>
         )}
       </div>
 

@@ -1,4 +1,4 @@
-// Rule Pack bd-2026-v1 — the single source of statutory truth for every tax amount in LedgerVault.
+// Rule Pack bd-2026-v1 — the single source of statutory truth for every tax amount in Fintuity Accounting Suite.
 //
 // Nothing in the UI, the AI composer or the workspaces may invent a rate. `evaluateTaxDecision()`
 // reads only this file, and every rule carries its citation and a `[VERIFY]` flag until tax counsel

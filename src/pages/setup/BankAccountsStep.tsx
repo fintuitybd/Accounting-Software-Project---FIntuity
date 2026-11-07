@@ -175,7 +175,7 @@ export default function BankAccountsStep({
             Principal account
           </label>
           <div className="self-end">
-            <button type="submit" disabled={saving || glOptions.length === 0} className="lv-btn lv-btn-primary min-h-11 w-full text-[14px]">
+            <button type="submit" disabled={saving || glOptions.length === 0} className="ql-btn ql-btn-primary min-h-11 w-full text-[14px]">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               Add account
             </button>
@@ -217,7 +217,7 @@ export default function BankAccountsStep({
                   </td>
                   <td className="px-3 py-2.5 text-right font-money text-ink-900">{account.openingBdt}</td>
                   <td className="px-3 py-2.5">
-                    <span className={`lv-chip text-[12px] ${account.status === 'ACTIVE' ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}>{account.status}</span>
+                    <span className={`ql-badge text-[12px] ${account.status === 'ACTIVE' ? 'ql-badge-success' : 'ql-badge-neutral'}`}>{account.status}</span>
                     {account.isPrincipal ? (
                       <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[12px] font-semibold text-amber-800 dark:text-amber-200">
                         <Star size={11} /> Principal

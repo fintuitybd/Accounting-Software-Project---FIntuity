@@ -54,7 +54,7 @@ export function JournalEvidenceModal({
       <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-t-2xl bg-surface p-4 shadow-2xl sm:rounded-2xl sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="lv-kicker">{L('Journal evidence', 'জার্নাল প্রমাণ')}</p>
+            <p className="ql-kicker">{L('Journal evidence', 'জার্নাল প্রমাণ')}</p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink-900">
               {journal?.journalNumber ?? L('Loading journal…', 'জার্নাল লোড হচ্ছে…')}
             </h2>
@@ -65,7 +65,7 @@ export function JournalEvidenceModal({
               </p>
             ) : null}
           </div>
-          <button type="button" onClick={onClose} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={onClose} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <X size={14} /> {L('Close', 'বন্ধ')}
           </button>
         </div>
@@ -113,7 +113,7 @@ export function JournalEvidenceModal({
             </section>
 
             <section className="overflow-x-auto rounded-xl border border-line">
-              <table className="lv-table w-full min-w-[720px] text-[12px]">
+              <table className="ql-table w-full min-w-[720px] text-[12px]">
                 <caption className="sr-only">{L('Journal lines', 'জার্নাল লাইন')}</caption>
                 <thead>
                   <tr>

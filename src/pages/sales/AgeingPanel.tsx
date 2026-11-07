@@ -118,10 +118,10 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-6">
+      <section className="ql-card p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="lv-kicker">{L('Receivables control', 'প্রাপ্য নিয়ন্ত্রণ')}</p>
+            <p className="ql-kicker">{L('Receivables control', 'প্রাপ্য নিয়ন্ত্রণ')}</p>
             <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">{L('AR ageing and control proof', 'এআর এজিং ও নিয়ন্ত্রণ প্রমাণ')}</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">
               {L(
@@ -130,7 +130,7 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
               )}
             </p>
           </div>
-          <button type="button" onClick={exportAgeing} disabled={!ageing} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <button type="button" onClick={exportAgeing} disabled={!ageing} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <Download size={15} /> {L('Export CSV', 'সিএসভি রপ্তানি')}
           </button>
         </div>
@@ -174,7 +174,7 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
               </p>
             </div>
             <div className="mt-4 overflow-x-auto">
-              <table className="lv-table w-full min-w-[980px] text-[13px]">
+              <table className="ql-table w-full min-w-[980px] text-[13px]">
                 <caption className="sr-only">{L('AR ageing by invoice', 'চালান অনুযায়ী এআর এজিং')}</caption>
                 <thead>
                   <tr>
@@ -198,7 +198,7 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
                       <td className="text-right font-money tabular-nums">{bdt(row.allocatedPoisha)}</td>
                       <td className="text-right font-money tabular-nums">{bdt(row.creditedPoisha)}</td>
                       <td className="text-right font-money tabular-nums font-semibold">{row.outstandingBdt}</td>
-                      <td><span className="lv-chip lv-chip-neutral">{row.bucket.replaceAll('_', ' ')}</span></td>
+                      <td><span className="ql-badge ql-badge-neutral">{row.bucket.replaceAll('_', ' ')}</span></td>
                     </tr>
                   ))}
                   {ageing.credits.map((credit) => (
@@ -210,7 +210,7 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
                       <td className="text-right">—</td>
                       <td className="text-right">—</td>
                       <td className="text-right font-money tabular-nums text-rose-700 dark:text-rose-300">-{credit.unappliedBdt}</td>
-                      <td><span className="lv-chip lv-chip-gold">{L('Credit', 'ক্রেডিট')}</span></td>
+                      <td><span className="ql-badge ql-badge-warn">{L('Credit', 'ক্রেডিট')}</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -223,7 +223,7 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
         ) : null}
       </section>
 
-      <section className="lv-card p-4 sm:p-6">
+      <section className="ql-card p-4 sm:p-6">
         <div className="flex items-center gap-2">
           <FileSearch size={18} className="text-brand-bright" />
           <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-ink-900">{L('Customer statement', 'গ্রাহক বিবরণী')}</h2>
@@ -246,7 +246,7 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
             <input type="date" value={statementTo} onChange={(event) => setStatementTo(event.target.value)} className={`${SALES_INPUT} mt-1`} />
           </label>
         </div>
-        <button type="button" onClick={() => void loadStatement()} disabled={statementLoading} className="lv-btn lv-btn-secondary mt-3 min-h-11 text-[13px]">
+        <button type="button" onClick={() => void loadStatement()} disabled={statementLoading} className="ql-btn ql-btn-secondary mt-3 min-h-11 text-[13px]">
           {statementLoading ? L('Loading…', 'লোড হচ্ছে…') : L('Load statement', 'বিবরণী লোড')}
         </button>
         {statementError ? <div className="mt-3"><ErrorBanner message={statementError} /></div> : null}
@@ -262,7 +262,7 @@ export function AgeingPanel({ companyId, refs }: { companyId: string; refs: Sale
               <div className="rounded-lg border border-line bg-surface-2/40 p-2.5"><p className="text-[12px] text-ink-400">{L('Debits / credits', 'ডেবিট / ক্রেডিট')}</p><p className="mt-0.5 font-money font-semibold">{bdt(statement.debitsPoisha)} / {bdt(statement.creditsPoisha)}</p></div>
             </div>
             <div className="mt-3 overflow-x-auto">
-              <table className="lv-table w-full min-w-[760px] text-[13px]">
+              <table className="ql-table w-full min-w-[760px] text-[13px]">
                 <caption className="sr-only">{L('Customer statement lines', 'গ্রাহক বিবরণীর লাইন')}</caption>
                 <thead><tr><th scope="col" className="text-left">{L('Date', 'তারিখ')}</th><th scope="col" className="text-left">{L('Reference', 'রেফারেন্স')}</th><th scope="col" className="text-left">{L('Detail', 'বিবরণ')}</th><th scope="col" className="text-right">{L('Debit', 'ডেবিট')}</th><th scope="col" className="text-right">{L('Credit', 'ক্রেডিট')}</th><th scope="col" className="text-right">{L('Balance', 'ব্যালেন্স')}</th></tr></thead>
                 <tbody>

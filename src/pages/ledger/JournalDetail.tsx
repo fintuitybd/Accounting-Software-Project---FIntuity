@@ -143,7 +143,7 @@ export function JournalDetail({
   const canReverseJournal = journal.status === 'POSTED' && canReverse && !journal.reversalOfJournalId;
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <button type="button" onClick={onBack} className="mb-2 inline-flex items-center gap-1 text-[12px] font-semibold text-brand-bright hover:underline">
@@ -155,7 +155,7 @@ export function JournalDetail({
             </h2>
             <StatusChip status={journal.status} />
             {journal.reversalOfJournalId ? (
-              <span className="lv-chip lv-chip-rose">{L('Reversal journal', 'রিভার্সাল জার্নাল')}</span>
+              <span className="ql-badge ql-badge-danger">{L('Reversal journal', 'রিভার্সাল জার্নাল')}</span>
             ) : null}
           </div>
           <p className="mt-1.5 text-[14px] leading-relaxed text-ink-700">{journal.narrationEn}</p>
@@ -163,27 +163,27 @@ export function JournalDetail({
         </div>
         <div className="flex flex-wrap gap-2">
           {canEditDraft ? (
-            <button type="button" onClick={onEdit} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+            <button type="button" onClick={onEdit} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
               <Pencil size={14} /> {L('Edit draft', 'খসড়া সম্পাদনা')}
             </button>
           ) : null}
           {canSubmitJournal ? (
-            <button type="button" onClick={submit} disabled={busy !== null} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+            <button type="button" onClick={submit} disabled={busy !== null} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
               <Send size={14} /> {busy === 'submit' ? L('Submitting…', 'জমা হচ্ছে…') : L('Submit', 'জমা দিন')}
             </button>
           ) : null}
           {canApproveJournal ? (
-            <button type="button" onClick={approve} disabled={busy !== null} className="lv-btn lv-btn-saffron min-h-11 text-[13px]">
+            <button type="button" onClick={approve} disabled={busy !== null} className="ql-btn ql-btn-accent min-h-11 text-[13px]">
               <CheckCircle2 size={14} /> {busy === 'approve' ? L('Approving…', 'অনুমোদন হচ্ছে…') : L('Approve', 'অনুমোদন')}
             </button>
           ) : null}
           {canPostJournal ? (
-            <button type="button" onClick={post} disabled={busy !== null} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+            <button type="button" onClick={post} disabled={busy !== null} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
               <UploadCloud size={14} /> {busy === 'post' ? L('Posting…', 'পোস্ট হচ্ছে…') : L('Post to ledger', 'লেজারে পোস্ট')}
             </button>
           ) : null}
           {canReverseJournal ? (
-            <button type="button" onClick={() => setReversalOpen((open) => !open)} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+            <button type="button" onClick={() => setReversalOpen((open) => !open)} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
               <RotateCcw size={14} /> {L('Reverse', 'রিভার্স')}
             </button>
           ) : null}
@@ -273,10 +273,10 @@ export function JournalDetail({
             </Field>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={reverse} disabled={busy !== null} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+            <button type="button" onClick={reverse} disabled={busy !== null} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
               <RotateCcw size={14} /> {busy === 'reverse' ? L('Reversing…', 'রিভার্স হচ্ছে…') : L('Post reversal', 'রিভার্সাল পোস্ট')}
             </button>
-            <button type="button" onClick={() => setReversalOpen(false)} disabled={busy !== null} className="lv-btn lv-btn-ghost min-h-11 text-[13px]">
+            <button type="button" onClick={() => setReversalOpen(false)} disabled={busy !== null} className="ql-btn ql-btn-ghost min-h-11 text-[13px]">
               {L('Cancel', 'বাতিল')}
             </button>
           </div>
@@ -284,7 +284,7 @@ export function JournalDetail({
       ) : null}
 
       <div className="mt-6 overflow-x-auto">
-        <table className="lv-table w-full min-w-[720px] text-[13px]">
+        <table className="ql-table w-full min-w-[720px] text-[13px]">
           <caption className="sr-only">{L('Journal lines', 'জার্নাল লাইন')}</caption>
           <thead>
             <tr>

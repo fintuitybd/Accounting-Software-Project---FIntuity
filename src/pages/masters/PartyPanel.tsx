@@ -434,7 +434,7 @@ export function PartyPanel({ initialSearch = '' }: { initialSearch?: string }) {
                   <td className="px-3 py-2 font-mono text-[12px]">{party.bin || '—'}<br />{party.tin || '—'}</td>
                   <td className="px-3 py-2 text-right font-mono text-[12px]">{party.creditDays}d · {party.creditLimitBdt}</td>
                   <td className="px-3 py-2">
-                    <span className={party.status === 'ACTIVE' ? 'lv-chip lv-chip-emerald' : 'lv-chip lv-chip-neutral'}>{party.status}</span>
+                    <span className={party.status === 'ACTIVE' ? 'ql-badge ql-badge-success' : 'ql-badge ql-badge-neutral'}>{party.status}</span>
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap justify-end gap-1.5">

@@ -109,7 +109,7 @@ export default function BankingPage() {
 
   if (!companyId) {
     return (
-      <section className="lv-card mx-auto mt-6 max-w-3xl p-6">
+      <section className="ql-card mx-auto mt-6 max-w-3xl p-6">
         <h2 className="text-[22px] font-semibold text-ink-900">{L('No company selected', 'কোনো কোম্পানি নির্বাচিত নেই')}</h2>
         <p className="mt-2 text-[14px] text-ink-500">
           {L('Choose a company before working with bank statements.', 'ব্যাংক স্টেটমেন্টের কাজ করার আগে একটি কোম্পানি নির্বাচন করুন।')}
@@ -155,11 +155,11 @@ export default function BankingPage() {
         />
       ) : null}
 
-      <section className="lv-card p-4">
+      <section className="ql-card p-4">
         <div className="flex flex-wrap items-end gap-3">
           <label className="min-w-[280px] flex-1 text-[12px] font-semibold text-ink-600">
             {L('Bank / cash / MFS account', 'ব্যাংক / নগদ / এমএফএস হিসাব')}
-            <select className="lv-select mt-1 min-h-11 w-full text-[14px]" value={selectedBankId} onChange={(event) => setSelectedBankId(event.target.value)}>
+            <select className="ql-select mt-1 min-h-11 w-full text-[14px]" value={selectedBankId} onChange={(event) => setSelectedBankId(event.target.value)}>
               {banks.map((bank) => (
                 <option key={bank.id} value={bank.id}>
                   {bank.name} · {bank.kind} · {bank.glAccountCode} · {bank.status}
@@ -169,18 +169,18 @@ export default function BankingPage() {
           </label>
           {selectedBank ? (
             <div className="flex flex-wrap items-center gap-2 text-[12px] text-ink-600">
-              <span className="lv-chip lv-chip-neutral">{iconFor(selectedBank.kind)} {selectedBank.kind}</span>
-              <span className="lv-chip lv-chip-neutral">{selectedBank.glAccountCode} · {selectedBank.glAccountName}</span>
-              <span className="lv-chip lv-chip-neutral">{selectedBank.provider ?? '—'} · {selectedBank.maskedNumber ?? '—'}</span>
+              <span className="ql-badge ql-badge-neutral">{iconFor(selectedBank.kind)} {selectedBank.kind}</span>
+              <span className="ql-badge ql-badge-neutral">{selectedBank.glAccountCode} · {selectedBank.glAccountName}</span>
+              <span className="ql-badge ql-badge-neutral">{selectedBank.provider ?? '—'} · {selectedBank.maskedNumber ?? '—'}</span>
               {statusChip(selectedBank.status)}
               {selectedBank.status !== 'ACTIVE' ? (
-                <span className="lv-chip lv-chip-rose">
+                <span className="ql-badge ql-badge-danger">
                   <TriangleAlert size={12} /> {L('Inactive — history is read-only for new postings', 'নিষ্ক্রিয় — নতুন পোস্টিংয়ের জন্য ইতিহাস কেবল পঠনযোগ্য')}
                 </span>
               ) : null}
             </div>
           ) : null}
-          <Link to="/app/setup" className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <Link to="/app/setup" className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <Settings2 size={15} /> {L('Manage accounts in setup', 'সেটআপে হিসাব পরিচালনা')}
           </Link>
         </div>
@@ -269,13 +269,13 @@ export default function BankingPage() {
           onChanged={refresh}
         />
       ) : (
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker">{L('Account master', 'হিসাব মাস্টার')}</p>
+              <p className="ql-kicker">{L('Account master', 'হিসাব মাস্টার')}</p>
               <h2 className="mt-1 text-[20px] font-semibold text-ink-900">{L('Bank, cash and MFS accounts', 'ব্যাংক, নগদ ও এমএফএস হিসাব')}</h2>
             </div>
-            <Link to="/app/setup" className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+            <Link to="/app/setup" className="ql-btn ql-btn-primary min-h-11 text-[13px]">
               <Settings2 size={15} /> {L('Create or edit accounts', 'হিসাব তৈরি বা সম্পাদনা')}
             </Link>
           </div>

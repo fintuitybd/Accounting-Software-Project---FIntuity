@@ -90,10 +90,10 @@ function JournalListPanel({
   }, [load, refreshToken]);
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{L('General journal', 'সাধারণ জার্নাল')}</p>
+          <p className="ql-kicker">{L('General journal', 'সাধারণ জার্নাল')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {L('Journal listing', 'জার্নাল তালিকা')}
           </h2>
@@ -105,7 +105,7 @@ function JournalListPanel({
           </p>
         </div>
         {canCreate ? (
-          <button type="button" onClick={onNew} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+          <button type="button" onClick={onNew} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
             <FilePlus2 size={15} /> {L('New journal', 'নতুন জার্নাল')}
           </button>
         ) : null}
@@ -114,7 +114,7 @@ function JournalListPanel({
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block text-[12px] font-semibold text-ink-600">
           {L('Status', 'স্ট্যাটাস')}
-          <select value={status} onChange={(event) => { setStatus(event.target.value); setOffset(0); }} className="lv-select mt-1 min-h-11 w-full text-[13px]">
+          <select value={status} onChange={(event) => { setStatus(event.target.value); setOffset(0); }} className="ql-select mt-1 min-h-11 w-full text-[13px]">
             <option value="">{L('All statuses', 'সব স্ট্যাটাস')}</option>
             <option value="DRAFT">{L('Draft', 'খসড়া')}</option>
             <option value="SUBMITTED">{L('Submitted', 'জমা দেওয়া')}</option>
@@ -132,7 +132,7 @@ function JournalListPanel({
           <input type="date" value={to} onChange={(event) => { setTo(event.target.value); setOffset(0); }} className={`${INPUT_CLASS} mt-1`} />
         </label>
         <div className="flex items-end">
-          <button type="button" onClick={() => void load()} disabled={loading} className="lv-btn lv-btn-secondary min-h-11 w-full text-[13px]">
+          <button type="button" onClick={() => void load()} disabled={loading} className="ql-btn ql-btn-secondary min-h-11 w-full text-[13px]">
             {loading ? L('Loading…', 'লোড হচ্ছে…') : L('Apply filters', 'ফিল্টার প্রয়োগ')}
           </button>
         </div>
@@ -141,7 +141,7 @@ function JournalListPanel({
       {error ? <div className="mt-4"><ErrorBanner message={error} /></div> : null}
 
       <div className="mt-4 overflow-x-auto">
-        <table className="lv-table w-full min-w-[900px] text-[13px]">
+        <table className="ql-table w-full min-w-[900px] text-[13px]">
           <caption className="sr-only">{L('Journal entries', 'জার্নাল এন্ট্রি')}</caption>
           <thead>
             <tr>
@@ -195,10 +195,10 @@ function JournalListPanel({
           {L('Showing', 'দেখানো হচ্ছে')} {entries.length === 0 ? 0 : offset + 1}–{offset + entries.length} {L('of', 'এর মধ্যে')} {total}
         </span>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setOffset((value) => Math.max(0, value - limit))} disabled={offset === 0 || loading} className="lv-btn lv-btn-ghost min-h-9 text-[12px]">
+          <button type="button" onClick={() => setOffset((value) => Math.max(0, value - limit))} disabled={offset === 0 || loading} className="ql-btn ql-btn-ghost min-h-9 text-[12px]">
             <ChevronLeft size={13} /> {L('Previous', 'পূর্ববর্তী')}
           </button>
-          <button type="button" onClick={() => setOffset((value) => value + limit)} disabled={offset + entries.length >= total || loading} className="lv-btn lv-btn-ghost min-h-9 text-[12px]">
+          <button type="button" onClick={() => setOffset((value) => value + limit)} disabled={offset + entries.length >= total || loading} className="ql-btn ql-btn-ghost min-h-9 text-[12px]">
             {L('Next', 'পরবর্তী')} <ChevronRight size={13} />
           </button>
         </div>
@@ -331,7 +331,7 @@ export default function LedgerPage() {
 
   if (!company) {
     return (
-      <section className="lv-card p-6">
+      <section className="ql-card p-6">
         <h1 className="text-[22px] font-semibold text-ink-900">{L('No company selected', 'কোনো কোম্পানি নির্বাচিত নয়')}</h1>
         <p className="mt-2 text-[14px] text-ink-500">
           {L('Choose a company before opening the ledger.', 'লেজার খোলার আগে একটি কোম্পানি নির্বাচন করুন।')}
@@ -384,7 +384,7 @@ export default function LedgerPage() {
                 if (meta.key !== 'NEW') setEditingJournal(null);
                 if (meta.key === 'JOURNALS') setSelectedJournalId(null);
               }}
-              className={`lv-btn min-h-10 text-[13px] ${active ? 'lv-btn-primary' : 'lv-btn-secondary'}`}
+              className={`ql-btn min-h-10 text-[13px] ${active ? 'ql-btn-primary' : 'ql-btn-secondary'}`}
             >
               <Icon size={14} /> {L(meta.en, meta.bn)}
             </button>

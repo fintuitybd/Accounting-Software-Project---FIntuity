@@ -122,14 +122,14 @@ export function DocumentDetailPanel({
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <button type="button" onClick={onBack} className="mt-0.5 grid h-9 w-9 place-items-center rounded-xl border border-line text-ink-500 hover:bg-surface-2" aria-label={L('Back to list', 'তালিকায় ফিরুন')}>
               <ArrowLeft size={16} />
             </button>
             <div>
-              <p className="lv-kicker">{isCredit ? L('Mushak 6.7 concept', 'মূসক ৬.৭ ধারণা') : L('Mushak 6.3 concept', 'মূসক ৬.৩ ধারণা')}</p>
+              <p className="ql-kicker">{isCredit ? L('Mushak 6.7 concept', 'মূসক ৬.৭ ধারণা') : L('Mushak 6.3 concept', 'মূসক ৬.৩ ধারণা')}</p>
               <h2 className="mt-1 flex flex-wrap items-center gap-2 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
                 {document.documentNo ?? L('Draft', 'খসড়া')}
                 <StatusChip status={document.status} />
@@ -141,27 +141,27 @@ export function DocumentDetailPanel({
           </div>
           <div className="flex flex-wrap gap-2">
             {isDraft && canCreateDraft ? (
-              <button type="button" onClick={onEdit} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+              <button type="button" onClick={onEdit} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                 <FileText size={15} /> {L('Edit draft', 'খসড়া সম্পাদনা')}
               </button>
             ) : null}
             {isDraft && document.approvalRequired && canApprove ? (
-              <button type="button" onClick={() => setConfirm('APPROVE')} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+              <button type="button" onClick={() => setConfirm('APPROVE')} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                 <ShieldCheck size={15} /> {L('Approve high-value document', 'উচ্চ-মূল্যের ডকুমেন্ট অনুমোদন')}
               </button>
             ) : null}
             {(isDraft || isApproved) && canPost ? (
-              <button type="button" onClick={() => setConfirm('POST')} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+              <button type="button" onClick={() => setConfirm('POST')} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
                 <Send size={15} /> {L('Review & post', 'পর্যালোচনা ও পোস্ট')}
               </button>
             ) : null}
             {isPosted && !isCredit && canPost ? (
-              <button type="button" onClick={() => onNewReceipt(document)} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+              <button type="button" onClick={() => onNewReceipt(document)} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                 <Receipt size={15} /> {L('Record receipt', 'রিসিট রেকর্ড')}
               </button>
             ) : null}
             {isPosted && canReverse ? (
-              <button type="button" onClick={() => setConfirm('REVERSE')} className="lv-btn lv-btn-secondary min-h-11 border-rose-500/30 text-[13px] text-rose-700 dark:text-rose-300">
+              <button type="button" onClick={() => setConfirm('REVERSE')} className="ql-btn ql-btn-secondary min-h-11 border-rose-500/30 text-[13px] text-rose-700 dark:text-rose-300">
                 <RotateCcw size={15} /> {L('Reverse', 'বাতিল')}
               </button>
             ) : null}
@@ -188,10 +188,10 @@ export function DocumentDetailPanel({
                   )}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void post()} disabled={busy} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+                  <button type="button" onClick={() => void post()} disabled={busy} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
                     <CheckCircle2 size={15} /> {busy ? L('Posting…', 'পোস্ট হচ্ছে…') : L('Confirm post', 'পোস্ট নিশ্চিত')}
                   </button>
-                  <button type="button" onClick={() => setConfirm(null)} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+                  <button type="button" onClick={() => setConfirm(null)} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                     <XCircle size={15} /> {L('Cancel', 'বাতিল')}
                   </button>
                 </div>
@@ -207,10 +207,10 @@ export function DocumentDetailPanel({
                   <textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={500} className={`${SALES_INPUT} mt-1 min-h-20`} />
                 </label>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void approve()} disabled={busy || reason.trim().length < 3} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+                  <button type="button" onClick={() => void approve()} disabled={busy || reason.trim().length < 3} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
                     <ShieldCheck size={15} /> {busy ? L('Approving…', 'অনুমোদন হচ্ছে…') : L('Confirm approval', 'অনুমোদন নিশ্চিত')}
                   </button>
-                  <button type="button" onClick={() => setConfirm(null)} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">{L('Cancel', 'বাতিল')}</button>
+                  <button type="button" onClick={() => setConfirm(null)} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">{L('Cancel', 'বাতিল')}</button>
                 </div>
               </div>
             ) : (
@@ -233,10 +233,10 @@ export function DocumentDetailPanel({
                   </label>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void reverse()} disabled={busy || reason.trim().length < 3} className="lv-btn lv-btn-secondary min-h-11 border-rose-500/30 text-[13px] text-rose-700 dark:text-rose-300">
+                  <button type="button" onClick={() => void reverse()} disabled={busy || reason.trim().length < 3} className="ql-btn ql-btn-secondary min-h-11 border-rose-500/30 text-[13px] text-rose-700 dark:text-rose-300">
                     <RotateCcw size={15} /> {busy ? L('Reversing…', 'বাতিল হচ্ছে…') : L('Confirm reversal', 'রিভার্সাল নিশ্চিত')}
                   </button>
-                  <button type="button" onClick={() => setConfirm(null)} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">{L('Cancel', 'বাতিল')}</button>
+                  <button type="button" onClick={() => setConfirm(null)} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">{L('Cancel', 'বাতিল')}</button>
                 </div>
               </div>
             )}
@@ -288,10 +288,10 @@ export function DocumentDetailPanel({
         ) : null}
       </section>
 
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <h3 className="text-[18px] font-semibold text-ink-900">{L('Lines and tax', 'লাইন ও কর')}</h3>
         <div className="mt-3 overflow-x-auto">
-          <table className="lv-table w-full min-w-[1000px] text-[13px]">
+          <table className="ql-table w-full min-w-[1000px] text-[13px]">
             <caption className="sr-only">{L('Document lines', 'ডকুমেন্ট লাইন')}</caption>
             <thead>
               <tr>
@@ -380,7 +380,7 @@ export function DocumentDetailPanel({
         ) : null}
       </section>
 
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <h3 className="text-[18px] font-semibold text-ink-900">{L('Status timeline', 'স্ট্যাটাস টাইমলাইন')}</h3>
         {document.events.length === 0 ? (
           <p className="mt-2 text-[13px] text-ink-500">{L('No timeline events recorded.', 'কোনো টাইমলাইন ইভেন্ট নেই।')}</p>

@@ -95,7 +95,7 @@ export function StatementDrillDownDrawer({
               type="button"
               onClick={() => void loadData()}
               disabled={loading}
-              className="lv-btn lv-btn-ghost min-h-9 px-2 text-ink-500"
+              className="ql-btn ql-btn-ghost min-h-9 px-2 text-ink-500"
               title={L('Refresh', 'রিফ্রেশ')}
             >
               <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
@@ -103,7 +103,7 @@ export function StatementDrillDownDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="lv-btn lv-btn-ghost min-h-9 px-2 text-ink-500"
+              className="ql-btn ql-btn-ghost min-h-9 px-2 text-ink-500"
               aria-label={L('Close', 'বন্ধ করুন')}
             >
               <X size={18} />

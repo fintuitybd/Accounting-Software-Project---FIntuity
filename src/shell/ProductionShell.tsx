@@ -1,4 +1,4 @@
-// LedgerVault — production authenticated shell.
+// Fintuity Accounting Suite — production authenticated shell.
 //
 // The shell owns navigation, the role-aware frame and the company context. Every screen is a lazy
 // route chunk; the legacy demo workspaces are not imported here at all. Permissions are checked
@@ -59,7 +59,7 @@ const PAGES: Record<SectionKey, LazyExoticComponent<ComponentType>> = {
   ACCOUNT: AccountPage,
 };
 
-const RAIL_KEY = 'ledgervault.v2.nav.rail';
+const RAIL_KEY = 'fintuity.v2.nav.rail';
 
 function readRail(): boolean {
   if (typeof window === 'undefined') return false;

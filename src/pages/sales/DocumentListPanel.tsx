@@ -93,10 +93,10 @@ export function DocumentListPanel({
   const pages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{docType === 'SALES_INVOICE' ? L('Receivables', 'প্রাপ্য') : L('Mushak 6.7 concept', 'মূসক ৬.৭ ধারণা')}</p>
+          <p className="ql-kicker">{docType === 'SALES_INVOICE' ? L('Receivables', 'প্রাপ্য') : L('Mushak 6.7 concept', 'মূসক ৬.৭ ধারণা')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {docType === 'SALES_INVOICE' ? L('Sales invoices', 'বিক্রয় চালান') : L('Credit notes', 'ক্রেডিট নোট')}
           </h2>
@@ -107,7 +107,7 @@ export function DocumentListPanel({
           </p>
         </div>
         {canCreate ? (
-          <button type="button" onClick={onNew} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+          <button type="button" onClick={onNew} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
             <FilePlus2 size={15} /> {docType === 'SALES_INVOICE' ? L('New invoice', 'নতুন চালান') : L('New credit note', 'নতুন ক্রেডিট নোট')}
           </button>
         ) : null}
@@ -169,7 +169,7 @@ export function DocumentListPanel({
         <p className="text-[12px] text-ink-500">
           {total} {L('document(s)', 'ডকুমেন্ট')} · {L('page', 'পৃষ্ঠা')} {page}/{pages}
         </p>
-        <button type="button" onClick={() => void load()} disabled={loading} className="lv-btn lv-btn-secondary min-h-10 text-[12px]">
+        <button type="button" onClick={() => void load()} disabled={loading} className="ql-btn ql-btn-secondary min-h-10 text-[12px]">
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> {L('Refresh', 'রিফ্রেশ')}
         </button>
       </div>
@@ -183,7 +183,7 @@ export function DocumentListPanel({
         </div>
       ) : (
         <div className="mt-3 overflow-x-auto">
-          <table className="lv-table w-full min-w-[980px] text-[13px]">
+          <table className="ql-table w-full min-w-[980px] text-[13px]">
             <caption className="sr-only">{L('Sales documents', 'বিক্রয় ডকুমেন্ট')}</caption>
             <thead>
               <tr>
@@ -228,10 +228,10 @@ export function DocumentListPanel({
 
       {total > limit ? (
         <div className="mt-4 flex items-center justify-end gap-2">
-          <button type="button" onClick={() => setOffset(Math.max(0, offset - limit))} disabled={offset === 0} className="lv-btn lv-btn-secondary min-h-10 text-[12px]">
+          <button type="button" onClick={() => setOffset(Math.max(0, offset - limit))} disabled={offset === 0} className="ql-btn ql-btn-secondary min-h-10 text-[12px]">
             {L('Previous', 'পূর্ববর্তী')}
           </button>
-          <button type="button" onClick={() => setOffset(offset + limit)} disabled={offset + limit >= total} className="lv-btn lv-btn-secondary min-h-10 text-[12px]">
+          <button type="button" onClick={() => setOffset(offset + limit)} disabled={offset + limit >= total} className="ql-btn ql-btn-secondary min-h-10 text-[12px]">
             {L('Next', 'পরবর্তী')}
           </button>
         </div>

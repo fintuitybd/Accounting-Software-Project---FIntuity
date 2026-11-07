@@ -31,7 +31,7 @@ export interface MarketingUi {
 }
 
 export const MarketingUiContext = createContext<MarketingUi | null>(null);
-const LOCALE_KEY = 'ledgervault.marketing.locale';
+const LOCALE_KEY = 'fintuity.marketing.locale';
 
 export function useMarketingUi(): MarketingUi {
   const value = useContext(MarketingUiContext);

@@ -1,4 +1,4 @@
-// LedgerVault — master data workbench.
+// Fintuity Accounting Suite — master data workbench.
 //
 // One focused modal, three masters: the chart of accounts, customers & suppliers, and inventory
 // items with live stock valuation. This file only renders the forms — every mutation is permission
@@ -288,7 +288,7 @@ function Field({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="lv-label">{label}</span>
+      <span className="ql-label">{label}</span>
       {children}
       {hint ? <span className="mt-1 block text-[9px] leading-snug text-ink-400">{hint}</span> : null}
     </label>
@@ -324,7 +324,7 @@ function SummaryCard({
         ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
         : 'bg-ink-100 text-ink-600 dark:bg-white/[0.06] dark:text-ink-300';
   return (
-    <div className="lv-card flex items-center gap-3 px-3.5 py-3">
+    <div className="ql-card flex items-center gap-3 px-3.5 py-3">
       <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${toneClass}`}>
         <Icon size={16} />
       </span>
@@ -701,7 +701,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
 
             <div className="shrink-0 border-b border-line bg-surface px-4 py-2 sm:px-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="lv-seg flex-wrap" role="tablist" aria-label={L('Master data sections', 'মাস্টার ডেটা বিভাগ')}>
+                <div className="ql-seg flex-wrap" role="tablist" aria-label={L('Master data sections', 'মাস্টার ডেটা বিভাগ')}>
                   {tabs.map((entry) => {
                     const Icon = entry.icon;
                     return (
@@ -712,7 +712,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                         aria-selected={tab === entry.id}
                         data-active={tab === entry.id}
                         onClick={() => selectTab(entry.id)}
-                        className="lv-seg-item inline-flex items-center gap-1.5 !text-[10.5px]"
+                        className="ql-seg-item inline-flex items-center gap-1.5 !text-[10.5px]"
                       >
                         <Icon size={11} />
                         <span className="hidden sm:inline">{L(entry.label_en, entry.label_bn)}</span>
@@ -745,9 +745,9 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
 
               {tab === 'accounts' ? (
                 <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                  <section className="lv-card overflow-hidden">
+                  <section className="ql-card overflow-hidden">
                     <div className="border-b border-line/80 bg-surface-2 px-4 py-2.5">
-                      <p className="lv-kicker">{L('Chart of accounts', 'হিসাবের চার্ট')}</p>
+                      <p className="ql-kicker">{L('Chart of accounts', 'হিসাবের চার্ট')}</p>
                       <p className="mt-1 text-[10px] text-ink-500">
                         {L(
                           `${filteredAccounts.length} of ${accounts.length} accounts`,
@@ -762,7 +762,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                           value={query}
                           onChange={(event) => setQuery(event.target.value)}
                           placeholder={L('Search code or name…', 'কোড বা নাম খুঁজুন…')}
-                          className="lv-input !py-1.5 !pl-8 !text-[11px]"
+                          className="ql-input !py-1.5 !pl-8 !text-[11px]"
                           aria-label={L('Search accounts', 'হিসাব খুঁজুন')}
                         />
                       </div>
@@ -770,13 +770,13 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                         type="button"
                         onClick={resetAccount}
                         disabled={!canManage}
-                        className="lv-btn lv-btn-secondary shrink-0 !px-2.5 !py-1.5 !text-[10.5px]"
+                        className="ql-btn ql-btn-secondary shrink-0 !px-2.5 !py-1.5 !text-[10.5px]"
                       >
                         <Plus size={12} /> {L('New', 'নতুন')}
                       </button>
                     </div>
                     <div className="max-h-[430px] overflow-y-auto">
-                      <table className="lv-table">
+                      <table className="ql-table">
                         <thead>
                           <tr>
                             <th>{L('Code', 'কোড')}</th>
@@ -799,7 +799,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                                 </span>
                               </td>
                               <td>
-                                <span className="lv-chip lv-chip-neutral !px-2 !py-0.5 !text-[9px]">
+                                <span className="ql-badge ql-badge-neutral !px-2 !py-0.5 !text-[9px]">
                                   {L(...ACCOUNT_TYPE_LABELS[account.account_type])}
                                 </span>
                               </td>
@@ -835,10 +835,10 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                     </div>
                   </section>
 
-                  <section className="lv-card overflow-hidden">
+                  <section className="ql-card overflow-hidden">
                     <div className="flex items-start justify-between gap-2 border-b border-line/80 bg-surface-2 px-4 py-2.5">
                       <div>
-                        <p className="lv-kicker">
+                        <p className="ql-kicker">
                           {editingAccount ? L('Edit GL account', 'জিএল হিসাব সম্পাদনা') : L('New GL account', 'নতুন জিএল হিসাব')}
                         </p>
                         <p className="mt-1 text-[10px] text-ink-500">
@@ -869,7 +869,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             inputMode="numeric"
                             maxLength={4}
                             placeholder="1310"
-                            className="lv-input font-mono !py-1.5 !text-[12px]"
+                            className="ql-input font-mono !py-1.5 !text-[12px]"
                           />
                         </Field>
                         <Field label={L('Account type', 'হিসাবের ধরন')}>
@@ -883,7 +883,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                                 sub_category: SUB_CATEGORIES[accountType][0],
                               }));
                             }}
-                            className="lv-select !py-1.5 !text-[12px]"
+                            className="ql-select !py-1.5 !text-[12px]"
                           >
                             {ACCOUNT_TYPE_ORDER.map((type) => (
                               <option key={type} value={type}>
@@ -899,7 +899,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             value={accountForm.name_en}
                             onChange={(event) => setAccountForm((form) => ({ ...form, name_en: event.target.value }))}
                             placeholder={L('Merchandise Inventory', 'পণ্যসামগ্রী মজুদ')}
-                            className="lv-input !py-1.5 !text-[12px]"
+                            className="ql-input !py-1.5 !text-[12px]"
                           />
                         </Field>
                         <Field label={L('Name (Bangla)', 'নাম (বাংলা)')}>
@@ -907,7 +907,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             value={accountForm.name_bn}
                             onChange={(event) => setAccountForm((form) => ({ ...form, name_bn: event.target.value }))}
                             placeholder="পণ্যসামগ্রী মজুদ"
-                            className="lv-input !py-1.5 !text-[12px]"
+                            className="ql-input !py-1.5 !text-[12px]"
                           />
                         </Field>
                       </div>
@@ -920,7 +920,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               sub_category: event.target.value as AccountSubCategory,
                             }))
                           }
-                          className="lv-select !py-1.5 !text-[12px]"
+                          className="ql-select !py-1.5 !text-[12px]"
                         >
                           {SUB_CATEGORIES[accountForm.account_type].map((subCategory) => (
                             <option key={subCategory} value={subCategory}>
@@ -936,7 +936,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             onChange={(event) => setAccountForm((form) => ({ ...form, opening_debit_text: event.target.value }))}
                             inputMode="decimal"
                             placeholder="0.00"
-                            className="lv-input font-money !py-1.5 !text-[12px]"
+                            className="ql-input font-money !py-1.5 !text-[12px]"
                           />
                         </Field>
                         <Field label={L('Opening credit (BDT)', 'প্রারম্ভিক ক্রেডিট (টাকা)')}>
@@ -945,7 +945,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             onChange={(event) => setAccountForm((form) => ({ ...form, opening_credit_text: event.target.value }))}
                             inputMode="decimal"
                             placeholder="0.00"
-                            className="lv-input font-money !py-1.5 !text-[12px]"
+                            className="ql-input font-money !py-1.5 !text-[12px]"
                           />
                         </Field>
                       </div>
@@ -959,7 +959,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                         {L('Active — available for posting', 'সক্রিয় — পোস্টিংয়ের জন্য উপলব্ধ')}
                       </label>
                       {formError ? <ErrorBanner message={formError} /> : null}
-                      <button type="button" onClick={submitAccount} disabled={!canManage} className="lv-btn lv-btn-primary w-full !py-2 !text-[12px]">
+                      <button type="button" onClick={submitAccount} disabled={!canManage} className="ql-btn ql-btn-primary w-full !py-2 !text-[12px]">
                         <Save size={13} />
                         {editingAccount ? L('Update account', 'হিসাব হালনাগাদ') : L('Create account', 'হিসাব তৈরি')}
                       </button>
@@ -976,9 +976,9 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
 
               {tab === 'parties' ? (
                 <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                  <section className="lv-card overflow-hidden">
+                  <section className="ql-card overflow-hidden">
                     <div className="border-b border-line/80 bg-surface-2 px-4 py-2.5">
-                      <p className="lv-kicker">{L('Customers & suppliers', 'গ্রাহক ও সরবরাহকারী')}</p>
+                      <p className="ql-kicker">{L('Customers & suppliers', 'গ্রাহক ও সরবরাহকারী')}</p>
                       <p className="mt-1 text-[10px] text-ink-500">
                         {L(
                           `${filteredParties.length} of ${parties.length} parties · BIN 13 digits · e-TIN 12 digits`,
@@ -993,7 +993,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                           value={query}
                           onChange={(event) => setQuery(event.target.value)}
                           placeholder={L('Search name, code, BIN or e-TIN…', 'নাম, কোড, বিআইএন বা ই-টিআইএন খুঁজুন…')}
-                          className="lv-input !py-1.5 !pl-8 !text-[11px]"
+                          className="ql-input !py-1.5 !pl-8 !text-[11px]"
                           aria-label={L('Search parties', 'পক্ষ খুঁজুন')}
                         />
                       </div>
@@ -1001,13 +1001,13 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                         type="button"
                         onClick={resetParty}
                         disabled={!canManage}
-                        className="lv-btn lv-btn-secondary shrink-0 !px-2.5 !py-1.5 !text-[10.5px]"
+                        className="ql-btn ql-btn-secondary shrink-0 !px-2.5 !py-1.5 !text-[10.5px]"
                       >
                         <Plus size={12} /> {L('New', 'নতুন')}
                       </button>
                     </div>
                     <div className="max-h-[430px] overflow-y-auto">
-                      <table className="lv-table">
+                      <table className="ql-table">
                         <thead>
                           <tr>
                             <th>{L('Party', 'পক্ষ')}</th>
@@ -1028,7 +1028,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                                 </span>
                               </td>
                               <td>
-                                <span className="lv-chip lv-chip-neutral !px-2 !py-0.5 !text-[9px]">
+                                <span className="ql-badge ql-badge-neutral !px-2 !py-0.5 !text-[9px]">
                                   {L(...PARTY_TYPE_LABELS[party.type])}
                                 </span>
                               </td>
@@ -1061,10 +1061,10 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                     </div>
                   </section>
 
-                  <section className="lv-card overflow-hidden">
+                  <section className="ql-card overflow-hidden">
                     <div className="flex items-start justify-between gap-2 border-b border-line/80 bg-surface-2 px-4 py-2.5">
                       <div>
-                        <p className="lv-kicker">
+                        <p className="ql-kicker">
                           {editingParty ? L('Edit party', 'পক্ষ সম্পাদনা') : L('New customer or supplier', 'নতুন গ্রাহক বা সরবরাহকারী')}
                         </p>
                         <p className="mt-1 text-[10px] text-ink-500">
@@ -1089,7 +1089,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                           <select
                             value={partyForm.type}
                             onChange={(event) => setPartyForm((form) => ({ ...form, type: event.target.value as PartyType }))}
-                            className="lv-select !py-1.5 !text-[12px]"
+                            className="ql-select !py-1.5 !text-[12px]"
                           >
                             {(Object.keys(PARTY_TYPE_LABELS) as PartyType[]).map((type) => (
                               <option key={type} value={type}>
@@ -1103,7 +1103,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             value={partyForm.code}
                             onChange={(event) => setPartyForm((form) => ({ ...form, code: event.target.value.toUpperCase() }))}
                             placeholder="P-0011"
-                            className="lv-input font-mono !py-1.5 !text-[12px]"
+                            className="ql-input font-mono !py-1.5 !text-[12px]"
                           />
                         </Field>
                       </div>
@@ -1113,7 +1113,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             value={partyForm.name_en}
                             onChange={(event) => setPartyForm((form) => ({ ...form, name_en: event.target.value }))}
                             placeholder="Meghna Traders"
-                            className="lv-input !py-1.5 !text-[12px]"
+                            className="ql-input !py-1.5 !text-[12px]"
                           />
                         </Field>
                         <Field label={L('Name (Bangla)', 'নাম (বাংলা)')}>
@@ -1121,7 +1121,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             value={partyForm.name_bn}
                             onChange={(event) => setPartyForm((form) => ({ ...form, name_bn: event.target.value }))}
                             placeholder="মেঘনা ট্রেডার্স"
-                            className="lv-input !py-1.5 !text-[12px]"
+                            className="ql-input !py-1.5 !text-[12px]"
                           />
                         </Field>
                       </div>
@@ -1135,7 +1135,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             onChange={(event) => setPartyForm((form) => ({ ...form, bin: event.target.value }))}
                             inputMode="numeric"
                             placeholder="0014829100101"
-                            className={`lv-input font-mono !py-1.5 !text-[12px] ${
+                            className={`ql-input font-mono !py-1.5 !text-[12px] ${
                               partyForm.bin && !isValidBin(partyForm.bin) ? '!border-rose-400/70' : ''
                             }`}
                           />
@@ -1149,7 +1149,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             onChange={(event) => setPartyForm((form) => ({ ...form, tin: event.target.value }))}
                             inputMode="numeric"
                             placeholder="123456789012"
-                            className={`lv-input font-mono !py-1.5 !text-[12px] ${
+                            className={`ql-input font-mono !py-1.5 !text-[12px] ${
                               partyForm.tin && !isValidTin(partyForm.tin) ? '!border-rose-400/70' : ''
                             }`}
                           />
@@ -1161,7 +1161,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             value={partyForm.mobile}
                             onChange={(event) => setPartyForm((form) => ({ ...form, mobile: event.target.value }))}
                             placeholder="+880 17XX XXXXXX"
-                            className="lv-input !py-1.5 !text-[12px]"
+                            className="ql-input !py-1.5 !text-[12px]"
                           />
                         </Field>
                         <Field label={L('Email', 'ইমেইল')}>
@@ -1170,7 +1170,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             onChange={(event) => setPartyForm((form) => ({ ...form, email: event.target.value }))}
                             type="email"
                             placeholder="ap@example.com"
-                            className="lv-input !py-1.5 !text-[12px]"
+                            className="ql-input !py-1.5 !text-[12px]"
                           />
                         </Field>
                       </div>
@@ -1179,7 +1179,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                           value={partyForm.address_en}
                           onChange={(event) => setPartyForm((form) => ({ ...form, address_en: event.target.value }))}
                           placeholder="Gulshan-1, Dhaka 1212"
-                          className="lv-input !py-1.5 !text-[12px]"
+                          className="ql-input !py-1.5 !text-[12px]"
                         />
                       </Field>
                       <div className="grid grid-cols-2 gap-2.5">
@@ -1190,7 +1190,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               setPartyForm((form) => ({ ...form, credit_days_text: event.target.value.replace(/\D/g, '').slice(0, 3) }))
                             }
                             inputMode="numeric"
-                            className="lv-input font-mono !py-1.5 !text-[12px]"
+                            className="ql-input font-mono !py-1.5 !text-[12px]"
                           />
                         </Field>
                         <div className="flex flex-col justify-end gap-1.5 pb-1">
@@ -1226,7 +1226,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                         {L('Active counterparty', 'সক্রিয় পক্ষ')}
                       </label>
                       {formError ? <ErrorBanner message={formError} /> : null}
-                      <button type="button" onClick={submitParty} disabled={!canManage} className="lv-btn lv-btn-primary w-full !py-2 !text-[12px]">
+                      <button type="button" onClick={submitParty} disabled={!canManage} className="ql-btn ql-btn-primary w-full !py-2 !text-[12px]">
                         <Save size={13} />
                         {editingParty ? L('Update party', 'পক্ষ হালনাগাদ') : L('Create party', 'পক্ষ তৈরি')}
                       </button>
@@ -1268,9 +1268,9 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                   </div>
 
                   <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                    <section className="lv-card overflow-hidden">
+                    <section className="ql-card overflow-hidden">
                       <div className="border-b border-line/80 bg-surface-2 px-4 py-2.5">
-                        <p className="lv-kicker">{L('Inventory items', 'মজুদ আইটেম')}</p>
+                        <p className="ql-kicker">{L('Inventory items', 'মজুদ আইটেম')}</p>
                         <p className="mt-1 text-[10px] text-ink-500">
                           {L(
                             `${filteredItems.length} of ${items.length} items · live qty_on_hand and unit_cost_poisha`,
@@ -1285,7 +1285,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                             placeholder={L('Search SKU, HS code or item…', 'এসকেইউ, এইচএস কোড বা আইটেম খুঁজুন…')}
-                            className="lv-input !py-1.5 !pl-8 !text-[11px]"
+                            className="ql-input !py-1.5 !pl-8 !text-[11px]"
                             aria-label={L('Search items', 'আইটেম খুঁজুন')}
                           />
                         </div>
@@ -1293,13 +1293,13 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                           type="button"
                           onClick={resetItem}
                           disabled={!canManage}
-                          className="lv-btn lv-btn-secondary shrink-0 !px-2.5 !py-1.5 !text-[10.5px]"
+                          className="ql-btn ql-btn-secondary shrink-0 !px-2.5 !py-1.5 !text-[10.5px]"
                         >
                           <Plus size={12} /> {L('New', 'নতুন')}
                         </button>
                       </div>
                       <div className="max-h-[430px] overflow-y-auto">
-                        <table className="lv-table">
+                        <table className="ql-table">
                           <thead>
                             <tr>
                               <th>{L('Item', 'আইটেম')}</th>
@@ -1327,11 +1327,11 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                                   </td>
                                   <td>
                                     {stock ? (
-                                      <span className={`lv-chip !px-2 !py-0.5 !text-[9px] ${low ? 'lv-chip-rose' : 'lv-chip-emerald'}`}>
+                                      <span className={`ql-badge !px-2 !py-0.5 !text-[9px] ${low ? 'ql-badge-danger' : 'ql-badge-success'}`}>
                                         {low ? L('Low', 'কম') : L('Stock', 'স্টক')}
                                       </span>
                                     ) : (
-                                      <span className="lv-chip lv-chip-neutral !px-2 !py-0.5 !text-[9px]">{L('Service', 'সেবা')}</span>
+                                      <span className="ql-badge ql-badge-neutral !px-2 !py-0.5 !text-[9px]">{L('Service', 'সেবা')}</span>
                                     )}
                                   </td>
                                   <td className="text-right font-mono text-[10px] tabular-nums text-ink-700">
@@ -1369,10 +1369,10 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                       </div>
                     </section>
 
-                    <section className="lv-card overflow-hidden">
+                    <section className="ql-card overflow-hidden">
                       <div className="flex items-start justify-between gap-2 border-b border-line/80 bg-surface-2 px-4 py-2.5">
                         <div>
-                          <p className="lv-kicker">
+                          <p className="ql-kicker">
                             {editingItem ? L('Edit inventory item', 'মজুদ আইটেম সম্পাদনা') : L('New inventory item', 'নতুন মজুদ আইটেম')}
                           </p>
                           <p className="mt-1 text-[10px] text-ink-500">
@@ -1398,7 +1398,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               value={itemForm.sku}
                               onChange={(event) => setItemForm((form) => ({ ...form, sku: event.target.value.toUpperCase() }))}
                               placeholder="HS-8471.30"
-                              className="lv-input font-mono !py-1.5 !text-[12px]"
+                              className="ql-input font-mono !py-1.5 !text-[12px]"
                             />
                           </Field>
                           <Field label={L('HS code', 'এইচএস কোড')}>
@@ -1406,7 +1406,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               value={itemForm.hs_code}
                               onChange={(event) => setItemForm((form) => ({ ...form, hs_code: event.target.value }))}
                               placeholder="8471.30.00"
-                              className="lv-input font-mono !py-1.5 !text-[12px]"
+                              className="ql-input font-mono !py-1.5 !text-[12px]"
                             />
                           </Field>
                         </div>
@@ -1416,7 +1416,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               value={itemForm.name_en}
                               onChange={(event) => setItemForm((form) => ({ ...form, name_en: event.target.value }))}
                               placeholder="Portable laptop computers"
-                              className="lv-input !py-1.5 !text-[12px]"
+                              className="ql-input !py-1.5 !text-[12px]"
                             />
                           </Field>
                           <Field label={L('Name (Bangla)', 'নাম (বাংলা)')}>
@@ -1424,7 +1424,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               value={itemForm.name_bn}
                               onChange={(event) => setItemForm((form) => ({ ...form, name_bn: event.target.value }))}
                               placeholder="বহনযোগ্য ল্যাপটপ কম্পিউটার"
-                              className="lv-input !py-1.5 !text-[12px]"
+                              className="ql-input !py-1.5 !text-[12px]"
                             />
                           </Field>
                         </div>
@@ -1433,14 +1433,14 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             <input
                               value={itemForm.unit_en}
                               onChange={(event) => setItemForm((form) => ({ ...form, unit_en: event.target.value }))}
-                              className="lv-input !py-1.5 !text-[12px]"
+                              className="ql-input !py-1.5 !text-[12px]"
                             />
                           </Field>
                           <Field label={L('Unit (Bangla)', 'একক (বাংলা)')}>
                             <input
                               value={itemForm.unit_bn}
                               onChange={(event) => setItemForm((form) => ({ ...form, unit_bn: event.target.value }))}
-                              className="lv-input !py-1.5 !text-[12px]"
+                              className="ql-input !py-1.5 !text-[12px]"
                             />
                           </Field>
                         </div>
@@ -1451,7 +1451,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               onChange={(event) => setItemForm((form) => ({ ...form, unit_price_text: event.target.value }))}
                               inputMode="decimal"
                               placeholder="98500.00"
-                              className="lv-input font-money !py-1.5 !text-[12px]"
+                              className="ql-input font-money !py-1.5 !text-[12px]"
                             />
                           </Field>
                           <Field
@@ -1475,7 +1475,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               inputMode="decimal"
                               placeholder="68950.00"
                               disabled={!itemForm.is_stock_item}
-                              className="lv-input font-money !py-1.5 !text-[12px]"
+                              className="ql-input font-money !py-1.5 !text-[12px]"
                             />
                           </Field>
                         </div>
@@ -1486,7 +1486,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               onChange={(event) => setItemForm((form) => ({ ...form, qty_on_hand_text: event.target.value }))}
                               inputMode="decimal"
                               disabled={!itemForm.is_stock_item}
-                              className="lv-input font-mono !py-1.5 !text-[12px]"
+                              className="ql-input font-mono !py-1.5 !text-[12px]"
                             />
                           </Field>
                           <Field label={L('Inventory account', 'মজুদ হিসাব')}>
@@ -1494,7 +1494,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                               value={itemForm.inventory_account}
                               onChange={(event) => setItemForm((form) => ({ ...form, inventory_account: event.target.value }))}
                               placeholder="1310"
-                              className="lv-input font-mono !py-1.5 !text-[12px]"
+                              className="ql-input font-mono !py-1.5 !text-[12px]"
                             />
                           </Field>
                         </div>
@@ -1504,7 +1504,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                             onChange={(event) =>
                               setItemForm((form) => ({ ...form, tax_category: event.target.value as TaxCategory }))
                             }
-                            className="lv-select !py-1.5 !text-[12px]"
+                            className="ql-select !py-1.5 !text-[12px]"
                           >
                             {TAX_CATEGORY_ORDER.map((category) => (
                               <option key={category} value={category}>
@@ -1535,7 +1535,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                           {L('Stock item — perpetual inventory & COGS', 'স্টক আইটেম — চিরস্থায়ী মজুদ ও সিওজিএস')}
                         </label>
                         {formError ? <ErrorBanner message={formError} /> : null}
-                        <button type="button" onClick={submitItem} disabled={!canManage} className="lv-btn lv-btn-primary w-full !py-2 !text-[12px]">
+                        <button type="button" onClick={submitItem} disabled={!canManage} className="ql-btn ql-btn-primary w-full !py-2 !text-[12px]">
                           <Save size={13} />
                           {editingItem ? L('Update item', 'আইটেম হালনাগাদ') : L('Create item', 'আইটেম তৈরি')}
                         </button>
@@ -1561,7 +1561,7 @@ export function MasterDataModal({ open, onClose, initialTab = 'accounts' }: Mast
                   'প্রতিটি পরিবর্তন অনুমতি-যাচাইকৃত এবং ভল্ট স্ন্যাপশটে সংরক্ষিত।',
                 )}
               </p>
-              <button type="button" onClick={onClose} className="lv-btn lv-btn-secondary !px-3 !py-1.5 !text-[11px]">
+              <button type="button" onClick={onClose} className="ql-btn ql-btn-secondary !px-3 !py-1.5 !text-[11px]">
                 {L('Close', 'বন্ধ করুন')}
               </button>
             </footer>

@@ -9,9 +9,9 @@ import { apiErrorMessage, ErrorBanner, Notice } from '../setup/setupUi';
 import { formatDate } from './ledgerUi';
 
 const PERIOD_TONE: Record<string, string> = {
-  OPEN: 'lv-chip-emerald',
-  CLOSED: 'lv-chip-gold',
-  LOCKED: 'lv-chip-rose',
+  OPEN: 'ql-badge-success',
+  CLOSED: 'ql-badge-warn',
+  LOCKED: 'ql-badge-danger',
 };
 
 export function PeriodsPanel({
@@ -65,10 +65,10 @@ export function PeriodsPanel({
   };
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{L('Period control', 'হিসাবকাল নিয়ন্ত্রণ')}</p>
+          <p className="ql-kicker">{L('Period control', 'হিসাবকাল নিয়ন্ত্রণ')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {L('Period status and controlled reopen', 'হিসাবকালের অবস্থা ও নিয়ন্ত্রিত পুনরায় খোলা')}
           </h2>
@@ -80,7 +80,7 @@ export function PeriodsPanel({
           </p>
         </div>
         {!canManage ? (
-          <span className="lv-chip lv-chip-neutral">
+          <span className="ql-badge ql-badge-neutral">
             <ShieldCheck size={12} /> {L('Read-only', 'শুধু পাঠযোগ্য')}
           </span>
         ) : null}
@@ -94,7 +94,7 @@ export function PeriodsPanel({
       ) : null}
 
       <div className="mt-5 overflow-x-auto">
-        <table className="lv-table w-full min-w-[760px] text-[13px]">
+        <table className="ql-table w-full min-w-[760px] text-[13px]">
           <caption className="sr-only">{L('Accounting periods', 'হিসাবকালসমূহ')}</caption>
           <thead>
             <tr>
@@ -112,7 +112,7 @@ export function PeriodsPanel({
                 <td className="text-ink-900">{period.label}</td>
                 <td className="text-ink-500">{formatDate(period.startDate, locale)} – {formatDate(period.endDate, locale)}</td>
                 <td>
-                  <span className={`lv-chip ${PERIOD_TONE[period.status] ?? 'lv-chip-neutral'}`}>
+                  <span className={`ql-badge ${PERIOD_TONE[period.status] ?? 'ql-badge-neutral'}`}>
                     {period.status === 'LOCKED' ? <Lock size={11} /> : period.status === 'OPEN' ? <LockOpen size={11} /> : null}
                     {period.status}
                   </span>
@@ -120,7 +120,7 @@ export function PeriodsPanel({
                 </td>
                 <td className="text-right">
                   {canReopen && period.status !== 'OPEN' ? (
-                    <button type="button" onClick={() => void reopen(period)} disabled={busy !== null} className="lv-btn lv-btn-ghost min-h-9 text-[12px]">
+                    <button type="button" onClick={() => void reopen(period)} disabled={busy !== null} className="ql-btn ql-btn-ghost min-h-9 text-[12px]">
                       <LockOpen size={12} /> {busy === period.id ? L('Reopening…', 'খোলা হচ্ছে…') : L('Reopen', 'পুনরায় খুলুন')}
                     </button>
                   ) : (

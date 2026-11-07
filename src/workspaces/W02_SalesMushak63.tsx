@@ -1,4 +1,4 @@
-// LedgerVault — W02 Sales & Mushak 6.3.
+// Fintuity Accounting Suite — W02 Sales & Mushak 6.3.
 //
 // Zone A (header + O2C pipeline tabs + search/filter) over Zone B (clean commercial master table)
 // and Zone C (a focused slide-over document workbench with a four-stage stepper). The workbench is
@@ -363,7 +363,7 @@ function CostBadge({ item, money, isBn }: { item: SeedItem | undefined; money: M
 function Field({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
   return (
     <div className={`block ${className}`}>
-      <span className="lv-label">{label}</span>
+      <span className="ql-label">{label}</span>
       {children}
     </div>
   );
@@ -439,14 +439,14 @@ function SalesLineEditor({
         </div>
         <div className="flex items-center gap-1.5">
           {onNewItem ? (
-            <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 !text-[10px]" onClick={onNewItem}>
+            <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 !text-[10px]" onClick={onNewItem}>
               <PackagePlus size={12} /> {isBn ? 'নতুন আইটেম' : '+ New Item'}
             </button>
           ) : null}
           {!readOnly ? (
             <button
               type="button"
-              className="lv-btn lv-btn-secondary !px-2.5 !py-1 !text-[10.5px]"
+              className="ql-btn ql-btn-secondary !px-2.5 !py-1 !text-[10.5px]"
               onClick={() => onChange([...lines, newDraftLine()])}
             >
               <Plus size={12} /> {isBn ? 'লাইন' : 'Add line'}
@@ -456,7 +456,7 @@ function SalesLineEditor({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="lv-table min-w-[860px]">
+        <table className="ql-table min-w-[860px]">
           <thead>
             <tr>
               <th className="w-8">#</th>
@@ -486,7 +486,7 @@ function SalesLineEditor({
                       </>
                     ) : (
                       <>
-                        <select className="lv-input !py-1 text-[10.5px]" value={line.item_id} onChange={(event) => selectItem(line, event.target.value)}>
+                        <select className="ql-input !py-1 text-[10.5px]" value={line.item_id} onChange={(event) => selectItem(line, event.target.value)}>
                           <option value="CUSTOM">{isBn ? 'কাস্টম বিবরণ' : 'Custom description'}</option>
                           {items.map((entry) => (
                             <option key={entry.id} value={entry.id}>
@@ -495,7 +495,7 @@ function SalesLineEditor({
                           ))}
                         </select>
                         <input
-                          className="lv-input !py-1 text-[10.5px]"
+                          className="ql-input !py-1 text-[10.5px]"
                           value={isBn ? line.description_bn : line.description_en}
                           onChange={(event) =>
                             update(line.id, isBn ? { description_bn: event.target.value } : { description_en: event.target.value })
@@ -513,7 +513,7 @@ function SalesLineEditor({
                         type="number"
                         min={1}
                         step={1}
-                        className="lv-input !py-1 text-right font-money text-[11px]"
+                        className="ql-input !py-1 text-right font-money text-[11px]"
                         value={line.quantity}
                         onChange={(event) => update(line.id, { quantity: Math.max(1, Number(event.target.value) || 1) })}
                       />
@@ -524,7 +524,7 @@ function SalesLineEditor({
                       <span className="font-money text-[11px] text-ink-700">{money(parseBdt(line.unit_price_text))}</span>
                     ) : (
                       <input
-                        className="lv-input !py-1 text-right font-money text-[11px]"
+                        className="ql-input !py-1 text-right font-money text-[11px]"
                         value={line.unit_price_text}
                         onChange={(event) => update(line.id, { unit_price_text: event.target.value })}
                       />
@@ -545,7 +545,7 @@ function SalesLineEditor({
                       <span className="text-[10px] text-ink-500">{categoryLabel(line.tax_category, isBn)}</span>
                     ) : (
                       <select
-                        className="lv-input !py-1 text-[10px]"
+                        className="ql-input !py-1 text-[10px]"
                         value={line.tax_category}
                         onChange={(event) => update(line.id, { tax_category: event.target.value as TaxCategory })}
                       >
@@ -1224,10 +1224,10 @@ export default function W02_SalesMushak63() {
   const stepCurrent = mode === 'create' ? 0 : stageIndex(activeStage);
   const decisionTone =
     activeDecision.decision === 'SUPPORTED'
-      ? 'lv-chip-emerald'
+      ? 'ql-badge-success'
       : activeDecision.decision === 'SUPPORTED_WITH_CONDITIONS'
-        ? 'lv-chip-gold'
-        : 'lv-chip-rose';
+        ? 'ql-badge-warn'
+        : 'ql-badge-danger';
 
   const drawerOpen = workbench !== null && (workbench.kind === 'create' || activeEntry !== null);
 
@@ -1242,16 +1242,16 @@ export default function W02_SalesMushak63() {
         isBn={isBn}
         chips={
           <>
-            <span className="lv-chip lv-chip-emerald">
+            <span className="ql-badge ql-badge-success">
               <Hash size={12} /> {L('Next serial', 'পরবর্তী সিরিয়াল')} <span className="font-mono">{nextSerial}</span>
             </span>
-            <span className="lv-chip lv-chip-gold">
+            <span className="ql-badge ql-badge-warn">
               <BadgeCheck size={12} /> {L('Gap-free sequence', 'ফাঁকহীন ক্রম')}
             </span>
-            <span className="lv-chip lv-chip-neutral">
+            <span className="ql-badge ql-badge-neutral">
               <UserCheck size={12} /> {customers.length} {L('buyers', 'ক্রেতা')}
             </span>
-            <span className="lv-chip lv-chip-neutral">
+            <span className="ql-badge ql-badge-neutral">
               <Wallet size={12} /> {L('Oct sales', 'অক্টোবর বিক্রয়')} <span className="font-money">{money(periodGross)}</span>
             </span>
           </>
@@ -1259,7 +1259,7 @@ export default function W02_SalesMushak63() {
         actions={
           <button
             type="button"
-            className="lv-btn lv-btn-primary !py-1.5"
+            className="ql-btn ql-btn-primary !py-1.5"
             onClick={openCreate}
             disabled={!canDraft}
             title={canDraft ? L('Open the sales document workbench', 'বিক্রয় দলিল ওয়ার্কবেঞ্চ খুলুন') : isAuditor ? 'Read-Only Auditor Mode' : 'CREATE_COMMERCIAL_DRAFT required'}
@@ -1281,7 +1281,7 @@ export default function W02_SalesMushak63() {
           )}
         </div>
         {/* ZONE A — module header, pipeline stage bar, search & filters */}
-        <section className="lv-card overflow-hidden">
+        <section className="ql-card overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/70 bg-surface-2/60 px-4 py-2.5 sm:px-5">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
@@ -1335,7 +1335,7 @@ export default function W02_SalesMushak63() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="lv-input !py-1.5 pl-8 text-[11.5px]"
+                className="ql-input !py-1.5 pl-8 text-[11.5px]"
                 placeholder={L('Search by Doc #, buyer, BIN or Mushak serial…', 'দলিল নং, ক্রেতা, বিআইএন বা মূসক সিরিয়াল দিয়ে খুঁজুন…')}
                 aria-label={L('Search sales documents', 'বিক্রয় দলিল খুঁজুন')}
               />
@@ -1343,7 +1343,7 @@ export default function W02_SalesMushak63() {
             <select
               value={lifecycleFilter}
               onChange={(event) => setLifecycleFilter(event.target.value as LifecycleFilter)}
-              className="lv-input w-auto !py-1.5 !text-[10.5px]"
+              className="ql-input w-auto !py-1.5 !text-[10.5px]"
               aria-label={L('Status filter', 'অবস্থা ফিল্টার')}
             >
               {LIFECYCLE_FILTERS.map((filter) => (
@@ -1355,7 +1355,7 @@ export default function W02_SalesMushak63() {
             <select
               value={dateWindow}
               onChange={(event) => setDateWindow(event.target.value as DateWindow)}
-              className="lv-input w-auto !py-1.5 !text-[10.5px]"
+              className="ql-input w-auto !py-1.5 !text-[10.5px]"
               aria-label={L('Date filter', 'তারিখ ফিল্টার')}
             >
               <option value="ALL">{L('All dates', 'সব তারিখ')}</option>
@@ -1366,17 +1366,17 @@ export default function W02_SalesMushak63() {
             <span className="hidden text-[10px] text-ink-400 lg:inline">
               {filteredEntries.length}/{entries.length} {L('shown', 'দেখানো')}
             </span>
-            <button type="button" className="lv-btn lv-btn-secondary ml-auto !py-1.5 !text-[10.5px]" onClick={exportCsv}>
+            <button type="button" className="ql-btn ql-btn-secondary ml-auto !py-1.5 !text-[10.5px]" onClick={exportCsv}>
               <Download size={12} /> {L('Export', 'রপ্তানি')}
             </button>
           </div>
         </section>
 
         {/* ZONE B — clean master table, no inline creation form */}
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker flex items-center gap-1.5">
+              <p className="ql-kicker flex items-center gap-1.5">
                 <Layers size={12} /> {L('Commercial master data', 'বাণিজ্যিক মাস্টার ডেটা')}
               </p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">
@@ -1387,17 +1387,17 @@ export default function W02_SalesMushak63() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="lv-chip lv-chip-neutral">
+              <span className="ql-badge ql-badge-neutral">
                 {filteredEntries.length}/{entries.length} {L('docs', 'দলিল')}
               </span>
-              <span className="lv-chip lv-chip-emerald">
+              <span className="ql-badge ql-badge-success">
                 {L('Filtered gross', 'ফিল্টারকৃত মোট')} <span className="font-money">{money(filteredGross)}</span>
               </span>
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="lv-table min-w-[1140px]">
+            <table className="ql-table min-w-[1140px]">
               <thead>
                 <tr>
                   <th>{L('Document', 'দলিল')}</th>
@@ -1479,7 +1479,7 @@ export default function W02_SalesMushak63() {
                       <td className="text-right">
                         <button
                           type="button"
-                          className={`lv-btn !px-2.5 !py-1 !text-[10px] ${entry.stage === 'SETTLED' ? 'lv-btn-ghost' : 'lv-btn-secondary'}`}
+                          className={`ql-btn !px-2.5 !py-1 !text-[10px] ${entry.stage === 'SETTLED' ? 'ql-btn-ghost' : 'ql-btn-secondary'}`}
                           onClick={(event) => {
                             event.stopPropagation();
                             quickAction(entry);
@@ -1517,7 +1517,7 @@ export default function W02_SalesMushak63() {
                         <p className="text-xs font-semibold text-ink-600">
                           {L('No sales document matches these filters.', 'এই ফিল্টারে কোনো বিক্রয় দলিল মেলেনি।')}
                         </p>
-                        <button type="button" className="lv-btn lv-btn-secondary !py-1.5 !text-[11px]" onClick={openCreate} disabled={!canDraft}>
+                        <button type="button" className="ql-btn ql-btn-secondary !py-1.5 !text-[11px]" onClick={openCreate} disabled={!canDraft}>
                           <Plus size={13} /> {L('Create the first sales document', 'প্রথম বিক্রয় দলিল তৈরি করুন')}
                         </button>
                       </div>
@@ -1559,7 +1559,7 @@ export default function W02_SalesMushak63() {
                         {mode === 'create' ? <FilePlus2 size={18} /> : activeStage === 'SETTLED' ? <CheckCheck size={18} /> : <ReceiptText size={18} />}
                       </span>
                       <div className="min-w-0">
-                        <p className="lv-kicker">
+                        <p className="ql-kicker">
                           {L(
                             mode === 'create'
                               ? 'Zone C · New sales document'
@@ -1582,14 +1582,14 @@ export default function W02_SalesMushak63() {
                         </h2>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                           {mode === 'create' ? (
-                            <span className="lv-chip lv-chip-neutral">
+                            <span className="ql-badge ql-badge-neutral">
                               <Hash size={11} /> {nextSerial}
                             </span>
                           ) : (
                             <>
                               <StageBadge stage={activeStage} isBn={isBn} />
                               <StatusPill status={displayStatus(activeDoc as TaxAnnotatedDoc, journals)} />
-                              <span className="lv-chip lv-chip-neutral !text-[9px]">
+                              <span className="ql-badge ql-badge-neutral !text-[9px]">
                                 {L('Buyer', 'ক্রেতা')} {activeDoc?.party_name_en}
                               </span>
                             </>
@@ -1656,14 +1656,14 @@ export default function W02_SalesMushak63() {
                       <>
                         <div className="flex items-center justify-between gap-2">
                           <div>
-                            <p className="lv-label !mb-0">{L('Document type', 'দলিলের ধরন')}</p>
+                            <p className="ql-label !mb-0">{L('Document type', 'দলিলের ধরন')}</p>
                             <p className="text-[9.5px] text-ink-400">{L('Credit notes post a linked Mushak 6.7 reversal.', 'ক্রেডিট নোট লিংকড মূসক ৬.৭ রিভার্সাল পোস্ট করে।')}</p>
                           </div>
-                          <div className="lv-seg">
-                            <button type="button" className="lv-seg-item" data-active={!isCreditNote} onClick={() => setIsCreditNote(false)}>
+                          <div className="ql-seg">
+                            <button type="button" className="ql-seg-item" data-active={!isCreditNote} onClick={() => setIsCreditNote(false)}>
                               {L('Invoice', 'চালান')}
                             </button>
-                            <button type="button" className="lv-seg-item" data-active={isCreditNote} onClick={() => setIsCreditNote(true)}>
+                            <button type="button" className="ql-seg-item" data-active={isCreditNote} onClick={() => setIsCreditNote(true)}>
                               {L('Credit note', 'ক্রেডিট নোট')}
                             </button>
                           </div>
@@ -1674,7 +1674,7 @@ export default function W02_SalesMushak63() {
                             <div className="flex items-end gap-1.5">
                               <Field label={L('Buyer (customer)', 'ক্রেতা (গ্রাহক)')} className="min-w-0 flex-1">
                                 <select
-                                  className="lv-input !py-1.5 text-[11px]"
+                                  className="ql-input !py-1.5 text-[11px]"
                                   value={partyId}
                                   onChange={(event) => {
                                     setPartyId(event.target.value);
@@ -1689,16 +1689,16 @@ export default function W02_SalesMushak63() {
                                   ))}
                                 </select>
                               </Field>
-                              <button type="button" className="lv-btn lv-btn-secondary shrink-0 !px-2 !py-1.5 !text-[9.5px]" onClick={() => setMasterTab('parties')}>
+                              <button type="button" className="ql-btn ql-btn-secondary shrink-0 !px-2 !py-1.5 !text-[9.5px]" onClick={() => setMasterTab('parties')}>
                                 <UserPlus size={11} /> {L('New Customer', 'নতুন ক্রেতা')}
                               </button>
                             </div>
                           </div>
                           <Field label={L('Document date', 'দলিলের তারিখ')}>
-                            <input type="date" className="lv-input !py-1.5 text-[11px]" value={docDate} onChange={(event) => setDocDate(event.target.value)} />
+                            <input type="date" className="ql-input !py-1.5 text-[11px]" value={docDate} onChange={(event) => setDocDate(event.target.value)} />
                           </Field>
                           <Field label={L('BIN unit', 'বিআইএন ইউনিট')}>
-                            <select className="lv-input !py-1.5 text-[11px]" value={binUnitId} onChange={(event) => setBinUnitId(event.target.value)}>
+                            <select className="ql-input !py-1.5 text-[11px]" value={binUnitId} onChange={(event) => setBinUnitId(event.target.value)}>
                               {tenant.bin_units.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
                                   {unit.unit_name_en} · {unit.bin_number}
@@ -1707,7 +1707,7 @@ export default function W02_SalesMushak63() {
                             </select>
                           </Field>
                           <Field label={L('Payment method', 'পরিশোধ পদ্ধতি')}>
-                            <select className="lv-input !py-1.5 text-[11px]" value={paymentChoice} onChange={(event) => setPaymentChoice(event.target.value)}>
+                            <select className="ql-input !py-1.5 text-[11px]" value={paymentChoice} onChange={(event) => setPaymentChoice(event.target.value)}>
                               {PAYMENT_RAILS.map((option) => (
                                 <option key={option.id} value={option.id}>
                                   {isBn ? option.labelBn : option.labelEn} · {option.channel}
@@ -1716,7 +1716,7 @@ export default function W02_SalesMushak63() {
                             </select>
                           </Field>
                           <Field label={L('Document VAT treatment', 'দলিলের ভ্যাট নির্ধারণ')}>
-                            <select className="lv-input !py-1.5 text-[11px]" value={category} onChange={(event) => setCategory(event.target.value as TaxCategory)}>
+                            <select className="ql-input !py-1.5 text-[11px]" value={category} onChange={(event) => setCategory(event.target.value as TaxCategory)}>
                               {VAT_CATEGORIES.map((option) => (
                                 <option key={option} value={option}>
                                   {categoryLabel(option, isBn)}
@@ -1725,13 +1725,13 @@ export default function W02_SalesMushak63() {
                             </select>
                           </Field>
                           <Field label={L('Vehicle no.', 'যানবাহন নং')}>
-                            <input className="lv-input !py-1.5 font-mono text-[10.5px]" value={vehicleNo} onChange={(event) => setVehicleNo(event.target.value)} />
+                            <input className="ql-input !py-1.5 font-mono text-[10.5px]" value={vehicleNo} onChange={(event) => setVehicleNo(event.target.value)} />
                           </Field>
                           <Field label={L('Destination', 'গন্তব্য')}>
-                            <input className="lv-input !py-1.5 text-[11px]" value={destination} onChange={(event) => setDestination(event.target.value)} />
+                            <input className="ql-input !py-1.5 text-[11px]" value={destination} onChange={(event) => setDestination(event.target.value)} />
                           </Field>
                           <Field label={L('Narration', 'বিবরণ')} className="sm:col-span-2">
-                            <input className="lv-input !py-1.5 text-[11px]" value={narration} onChange={(event) => setNarration(event.target.value)} />
+                            <input className="ql-input !py-1.5 text-[11px]" value={narration} onChange={(event) => setNarration(event.target.value)} />
                           </Field>
                         </div>
 
@@ -1852,7 +1852,7 @@ export default function W02_SalesMushak63() {
                               <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-500">
                                 <Split size={12} /> {L('Customer receipt split', 'গ্রাহক প্রাপ্তি বিভাজন')}
                               </p>
-                              <span className="lv-chip lv-chip-neutral !text-[9px]">{receiptBankCode}</span>
+                              <span className="ql-badge ql-badge-neutral !text-[9px]">{receiptBankCode}</span>
                             </div>
                             <dl className="space-y-1 px-3 py-2.5 text-[10.5px]">
                               <Metric label={`Dr ${accountName(receiptBankCode)}`} value={money(activeDoc.net_payable_poisha)} tone="emerald" />
@@ -1938,10 +1938,10 @@ export default function W02_SalesMushak63() {
                   <aside className="space-y-3 border-t border-line bg-surface-2/25 p-4 sm:p-5 xl:border-l xl:border-t-0">
                     <section className="rounded-2xl border border-line bg-surface p-3.5">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="lv-kicker flex items-center gap-1.5">
+                        <p className="ql-kicker flex items-center gap-1.5">
                           <Split size={12} /> {L('Compact tax summary', 'সংক্ষিপ্ত কর সারাংশ')}
                         </p>
-                        <span className={`lv-chip ${decisionTone} !text-[9px]`}>{activeDecision.decision.replaceAll('_', ' ')}</span>
+                        <span className={`ql-badge ${decisionTone} !text-[9px]`}>{activeDecision.decision.replaceAll('_', ' ')}</span>
                       </div>
                       <dl className="mt-2.5 space-y-1.5 text-[10.5px]">
                         <Metric label={L('Taxable base', 'করযোগ্য ভিত্তি')} value={money(activeDecision.base_poisha)} />
@@ -1953,14 +1953,14 @@ export default function W02_SalesMushak63() {
                         <Metric label={L('Net receivable', 'নিট প্রাপ্য')} value={money(activeDecision.net_payable_poisha)} tone="emerald" />
                         <Metric label={L('Treasury payable', 'কোষাগারে প্রদেয়')} value={money(activeDecision.treasury_payable_poisha)} />
                       </dl>
-                      <p className="lv-hint mt-2.5 text-[9.5px]">
+                      <p className="ql-hint mt-2.5 text-[9.5px]">
                         {L('VAT rate', 'ভ্যাট হার')} {formatPercentBps(activeDecision.vat_bps, 'latin')} · {L('VDS', 'ভিডিএস')}{' '}
                         {formatPercentBps(activeDecision.vds_bps, 'latin')} · {activeDecision.rule_pack_version}
                       </p>
                     </section>
 
                     <section className="rounded-2xl border border-line bg-surface p-3.5">
-                      <p className="lv-kicker flex items-center gap-1.5">
+                      <p className="ql-kicker flex items-center gap-1.5">
                         <Warehouse size={12} /> {L('Stock & cost context', 'স্টক ও ব্যয় প্রসঙ্গ')}
                       </p>
                       <dl className="mt-2 space-y-1.5 text-[10px]">
@@ -1972,7 +1972,7 @@ export default function W02_SalesMushak63() {
                           tone={stockShortLines.length > 0 ? 'rose' : 'emerald'}
                         />
                       </dl>
-                      <p className="lv-hint mt-2 text-[9.5px]">
+                      <p className="ql-hint mt-2 text-[9.5px]">
                         {L('COGS = Σ(scaled qty × weighted-average unit cost) ÷ 100, posted atomically with the Mushak 6.3 invoice.', 'সিওজিএস = Σ(স্কেলকৃত পরিমাণ × ওয়েটেড-এভারেজ একক ব্যয়) ÷ ১০০, মূসক ৬.৩ চালানের সঙ্গে পোস্ট হয়।')}
                       </p>
                     </section>
@@ -1986,9 +1986,9 @@ export default function W02_SalesMushak63() {
                       </summary>
                       <div className="mt-2.5 space-y-2">
                         <div className="flex flex-wrap gap-1">
-                          <span className="lv-chip lv-chip-neutral !text-[8.5px]">{activeDecision.rule_ids.length} {L('rules', 'নিয়ম')}</span>
-                          <span className="lv-chip lv-chip-neutral !text-[8.5px]">{activeDecision.citations.length} {L('citations', 'উদ্ধৃতি')}</span>
-                          <span className="lv-chip lv-chip-neutral !text-[8.5px]">{activeDecision.trace_id.slice(0, 12)}…</span>
+                          <span className="ql-badge ql-badge-neutral !text-[8.5px]">{activeDecision.rule_ids.length} {L('rules', 'নিয়ম')}</span>
+                          <span className="ql-badge ql-badge-neutral !text-[8.5px]">{activeDecision.citations.length} {L('citations', 'উদ্ধৃতি')}</span>
+                          <span className="ql-badge ql-badge-neutral !text-[8.5px]">{activeDecision.trace_id.slice(0, 12)}…</span>
                         </div>
                         <ul className="space-y-1 text-[9.5px] leading-relaxed text-ink-500">
                           {activeDecision.explanations_en.slice(0, 3).map((explanation) => (
@@ -2023,12 +2023,12 @@ export default function W02_SalesMushak63() {
                     </details>
 
                     <section className="rounded-2xl border border-line bg-surface p-3.5">
-                      <p className="lv-kicker flex items-center gap-1.5">
+                      <p className="ql-kicker flex items-center gap-1.5">
                         <ShieldCheck size={12} /> {L('Controls & posting evidence', 'নিয়ন্ত্রণ ও পোস্টিং প্রমাণ')}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1">
-                        <span className={`lv-chip !text-[9px] ${canDraft ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}>CREATE_COMMERCIAL_DRAFT</span>
-                        <span className={`lv-chip !text-[9px] ${canPost ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}>POST_TO_GL</span>
+                        <span className={`ql-badge !text-[9px] ${canDraft ? 'ql-badge-success' : 'ql-badge-neutral'}`}>CREATE_COMMERCIAL_DRAFT</span>
+                        <span className={`ql-badge !text-[9px] ${canPost ? 'ql-badge-success' : 'ql-badge-neutral'}`}>POST_TO_GL</span>
                       </div>
                       <p className="mt-2 text-[9.5px] leading-relaxed text-ink-500">
                         {L(
@@ -2072,14 +2072,14 @@ export default function W02_SalesMushak63() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
-                      <button type="button" className="lv-btn lv-btn-ghost !py-1.5 !text-[10.5px]" onClick={closeWorkbench}>
+                      <button type="button" className="ql-btn ql-btn-ghost !py-1.5 !text-[10.5px]" onClick={closeWorkbench}>
                         {L('Close', 'বন্ধ')}
                       </button>
                       {mode === 'create' ? (
                         <>
                           <button
                             type="button"
-                            className="lv-btn lv-btn-secondary !py-1.5 !text-[10.5px]"
+                            className="ql-btn ql-btn-secondary !py-1.5 !text-[10.5px]"
                             onClick={() => saveDraft('QUOTATION')}
                             disabled={!canDraft}
                             title={isAuditor ? 'Read-Only Auditor Mode' : undefined}
@@ -2088,7 +2088,7 @@ export default function W02_SalesMushak63() {
                           </button>
                           <button
                             type="button"
-                            className="lv-btn lv-btn-primary !py-1.5 !text-[10.5px]"
+                            className="ql-btn ql-btn-primary !py-1.5 !text-[10.5px]"
                             onClick={() => postSalesInvoice(false)}
                             disabled={!canPost}
                             title={isAuditor ? 'Read-Only Auditor Mode' : !canPost ? 'POST_TO_GL required' : undefined}
@@ -2100,7 +2100,7 @@ export default function W02_SalesMushak63() {
                       {mode === 'review' && activeEntry ? (
                         <button
                           type="button"
-                          className="lv-btn lv-btn-primary !py-1.5 !text-[10.5px]"
+                          className="ql-btn ql-btn-primary !py-1.5 !text-[10.5px]"
                           onClick={() => advanceEntry(activeEntry)}
                           disabled={activeStage === 'DELIVERY_CHALLAN' ? !canPost : !canDraft}
                           title={isAuditor ? 'Read-Only Auditor Mode' : undefined}
@@ -2110,12 +2110,12 @@ export default function W02_SalesMushak63() {
                       ) : null}
                       {mode === 'settle' && activeDoc ? (
                         <>
-                          <button type="button" className="lv-btn lv-btn-secondary !py-1.5 !text-[10.5px]" onClick={() => openLens(activeDoc)}>
+                          <button type="button" className="ql-btn ql-btn-secondary !py-1.5 !text-[10.5px]" onClick={() => openLens(activeDoc)}>
                             <Eye size={13} /> {L('Ledger Lens', 'লেজার লেন্স')}
                           </button>
                           <button
                             type="button"
-                            className="lv-btn lv-btn-primary !py-1.5 !text-[10.5px]"
+                            className="ql-btn ql-btn-primary !py-1.5 !text-[10.5px]"
                             onClick={() => recordReceipt(activeDoc)}
                             disabled={!canPost || Boolean(receiptJournal)}
                             title={isAuditor ? 'Read-Only Auditor Mode' : !canPost ? 'POST_TO_GL required' : undefined}
@@ -2126,15 +2126,15 @@ export default function W02_SalesMushak63() {
                       ) : null}
                       {mode === 'view' && activeDoc ? (
                         <>
-                          <button type="button" className="lv-btn lv-btn-secondary !py-1.5 !text-[10.5px]" onClick={() => setPrintDoc(activeDoc)}>
+                          <button type="button" className="ql-btn ql-btn-secondary !py-1.5 !text-[10.5px]" onClick={() => setPrintDoc(activeDoc)}>
                             <Printer size={13} /> {L('Print A4 6.3', 'এ৪ ৬.৩ প্রিন্ট')}
                           </button>
                           {activeDoc.status !== 'DRAFT' && canReverse ? (
-                            <button type="button" className="lv-btn lv-btn-ghost !py-1.5 !text-[10.5px] text-rose-600" onClick={() => openLens(activeDoc, 'REVERSAL')}>
+                            <button type="button" className="ql-btn ql-btn-ghost !py-1.5 !text-[10.5px] text-rose-600" onClick={() => openLens(activeDoc, 'REVERSAL')}>
                               <RotateCcw size={13} /> {L('Reverse', 'রিভার্স')}
                             </button>
                           ) : null}
-                          <button type="button" className="lv-btn lv-btn-primary !py-1.5 !text-[10.5px]" onClick={() => openLens(activeDoc)}>
+                          <button type="button" className="ql-btn ql-btn-primary !py-1.5 !text-[10.5px]" onClick={() => openLens(activeDoc)}>
                             <Eye size={13} /> {activeStage === 'SETTLED' ? L('View Receipt & Ledger Lens', 'প্রাপ্তি ও লেন্স দেখুন') : L('Ledger Lens', 'লেজার লেন্স')}
                           </button>
                         </>

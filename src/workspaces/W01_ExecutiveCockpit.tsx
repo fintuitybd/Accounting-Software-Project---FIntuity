@@ -1,4 +1,4 @@
-// LedgerVault — W01 Executive & CFO cockpit.
+// Fintuity Accounting Suite — W01 Executive & CFO cockpit.
 //
 // The board-level landing screen, deliberately reduced to four financial KPI cards and one action
 // inbox, with the composer, money-flow Sankey and 13-week stress lab tucked behind collapsible tabs.
@@ -58,25 +58,25 @@ const KPI_TONES: Record<KpiTone, { icon: string; bar: string; chip: string; glow
   emerald: {
     icon: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/15',
     bar: 'from-emerald-500 via-emerald-400/50 to-transparent',
-    chip: 'lv-chip-emerald',
+    chip: 'ql-badge-success',
     glow: 'bg-emerald-500',
   },
   gold: {
     icon: 'bg-gold-50 text-gold-600 dark:bg-gold-500/10 dark:text-gold-300 ring-1 ring-inset ring-gold-500/15',
     bar: 'from-gold-500 via-gold-400/50 to-transparent',
-    chip: 'lv-chip-gold',
+    chip: 'ql-badge-warn',
     glow: 'bg-gold-500',
   },
   rose: {
     icon: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 ring-1 ring-inset ring-rose-500/15',
     bar: 'from-rose-500 via-rose-400/50 to-transparent',
-    chip: 'lv-chip-rose',
+    chip: 'ql-badge-danger',
     glow: 'bg-rose-500',
   },
   sky: {
     icon: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 ring-1 ring-inset ring-sky-500/15',
     bar: 'from-sky-500 via-sky-400/50 to-transparent',
-    chip: 'lv-chip-neutral',
+    chip: 'ql-badge-neutral',
     glow: 'bg-sky-500',
   },
 };
@@ -938,14 +938,14 @@ export default function W01_ExecutiveCockpit() {
         </div>
 
         {/* Action Required Inbox */}
-        <aside className="lv-card relative flex flex-col overflow-hidden" aria-label={L('Action required inbox', 'করণীয় ইনবক্স')}>
+        <aside className="ql-card relative flex flex-col overflow-hidden" aria-label={L('Action required inbox', 'করণীয় ইনবক্স')}>
           <div
             aria-hidden
             className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-gold-500/[0.07] blur-3xl"
           />
           <div className="relative flex flex-wrap items-start justify-between gap-2 border-b border-line/70 px-4 py-3.5">
             <div>
-              <p className="lv-kicker flex items-center gap-1.5">
+              <p className="ql-kicker flex items-center gap-1.5">
                 <CircleAlert size={11} className="text-gold-500" />
                 {L('Action required inbox', 'করণীয় ইনবক্স')}
               </p>
@@ -1032,7 +1032,7 @@ export default function W01_ExecutiveCockpit() {
       {/* Composer · Sankey · forecast — one calm, collapsible tab at a time ------------------ */}
       <section className="space-y-2.5" aria-label={L('Cockpit detail views', 'ককপিট বিস্তারিত দৃশ্য')}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="lv-seg !p-1" role="tablist" aria-label={L('Detail views', 'বিস্তারিত দৃশ্য')}>
+          <div className="ql-seg !p-1" role="tablist" aria-label={L('Detail views', 'বিস্তারিত দৃশ্য')}>
             {panelTabs.map((tab) => {
               const Icon = tab.icon;
               const active = activePanel === tab.key && panelOpen;
@@ -1044,7 +1044,7 @@ export default function W01_ExecutiveCockpit() {
                   aria-selected={active}
                   aria-expanded={active}
                   onClick={() => choosePanel(tab.key)}
-                  className="lv-seg-item"
+                  className="ql-seg-item"
                   data-active={active}
                 >
                   <Icon size={12} />
@@ -1083,10 +1083,10 @@ export default function W01_ExecutiveCockpit() {
               ) : null}
 
               {activePanel === 'FLOW' ? (
-                <section className="lv-card overflow-hidden">
-                  <div className="lv-card-header">
+                <section className="ql-card overflow-hidden">
+                  <div className="ql-card-header">
                     <div>
-                      <p className="lv-kicker flex items-center gap-1.5">
+                      <p className="ql-kicker flex items-center gap-1.5">
                         <Activity size={11} className="text-brand-bright" />
                         {L('Money-flow Sankey', 'অর্থপ্রবাহ সাঙ্কি')}
                       </p>
@@ -1101,15 +1101,15 @@ export default function W01_ExecutiveCockpit() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="lv-chip lv-chip-neutral">
+                      <span className="ql-badge ql-badge-neutral">
                         <CircleDollarSign size={10} />
                         {compactMoney(flow.revenue)} {L('inflow', 'আগমন')}
                       </span>
-                      <span className="lv-chip lv-chip-gold">
+                      <span className="ql-badge ql-badge-warn">
                         <Landmark size={10} />
                         {compactMoney(flow.treasuryTotal)} {L('treasury', 'কোষাগার')}
                       </span>
-                      <span className="lv-chip lv-chip-emerald">
+                      <span className="ql-badge ql-badge-success">
                         <ShieldCheck size={10} />
                         {L('Conserved to the poisha', 'পয়সা-নির্ভুল')}
                       </span>
@@ -1138,10 +1138,10 @@ export default function W01_ExecutiveCockpit() {
               ) : null}
 
               {activePanel === 'FORECAST' ? (
-                <section className="lv-card overflow-hidden">
-                  <div className="lv-card-header">
+                <section className="ql-card overflow-hidden">
+                  <div className="ql-card-header">
                     <div>
-                      <p className="lv-kicker flex items-center gap-1.5">
+                      <p className="ql-kicker flex items-center gap-1.5">
                         <Beaker size={11} className="text-gold-500" />
                         {L('Liquidity lab · stress sandbox', 'তারল্য ল্যাব · স্ট্রেস স্যান্ডবক্স')}
                       </p>
@@ -1156,17 +1156,17 @@ export default function W01_ExecutiveCockpit() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="lv-chip lv-chip-neutral">
+                      <span className="ql-badge ql-badge-neutral">
                         <CalendarClock size={10} />
                         {L('13 weeks from', '১৩ সপ্তাহ শুরু')} {formatDate(TODAY, locale)}
                       </span>
                       <span
-                        className={`lv-chip ${
+                        className={`ql-badge ${
                           belowFloorWeeks.length === 0
-                            ? 'lv-chip-emerald'
+                            ? 'ql-badge-success'
                             : belowFloorWeeks.length <= 3
-                              ? 'lv-chip bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                              : 'lv-chip-rose'
+                              ? 'ql-badge bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                              : 'ql-badge-danger'
                         }`}
                       >
                         {belowFloorWeeks.length === 0 ? <ShieldCheck size={10} /> : <TriangleAlert size={10} />}
@@ -1223,7 +1223,7 @@ export default function W01_ExecutiveCockpit() {
 
                     <aside className="border-t border-line/70 bg-surface-2/35 p-3.5 sm:p-4 xl:border-l xl:border-t-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="lv-kicker flex items-center gap-1.5">
+                        <p className="ql-kicker flex items-center gap-1.5">
                           <SlidersHorizontal size={11} className="text-gold-500" />
                           {L('Stress levers', 'স্ট্রেস লিভার')}
                         </p>
@@ -1279,8 +1279,8 @@ export default function W01_ExecutiveCockpit() {
                                 step={1}
                                 value={slider.value}
                                 onChange={(event) => slider.set(Number(event.target.value))}
-                                className="lv-range mt-1.5"
-                                style={{ ['--lv-range-fill' as string]: fill } as CSSProperties}
+                                className="ql-range mt-1.5"
+                                style={{ ['--ql-range-fill' as string]: fill } as CSSProperties}
                                 aria-label={slider.label}
                               />
                               <span className="mt-0.5 block text-[8.5px] leading-snug text-ink-400">{slider.hint}</span>
@@ -1354,7 +1354,7 @@ function KpiCard({
     <button
       type="button"
       onClick={onClick}
-      className="lv-card lv-card-interactive group relative flex flex-col overflow-hidden p-4 text-left"
+      className="ql-card ql-card-interactive group relative flex flex-col overflow-hidden p-4 text-left"
     >
       <span
         aria-hidden
@@ -1365,7 +1365,7 @@ function KpiCard({
         <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[11px] ${palette.icon}`}>
           <Icon size={15} />
         </span>
-        <span className={`lv-chip !py-1 ${palette.chip}`}>{chip}</span>
+        <span className={`ql-badge !py-1 ${palette.chip}`}>{chip}</span>
       </span>
       <span className="relative mt-3.5 block text-[8.5px] font-bold uppercase tracking-[0.14em] text-ink-400">
         {title}
@@ -1541,8 +1541,8 @@ function ForecastChart({
             const y = yFor(tick);
             return (
               <g key={`tick-${index}`}>
-                <line x1={plotLeft} y1={y} x2={width - plotRight} y2={y} stroke="rgb(var(--lv-line))" strokeWidth="0.6" strokeDasharray="1 6" />
-                <text x={plotLeft - 8} y={y + 3} textAnchor="end" fontFamily="ui-monospace, monospace" fontSize="8.2" fill="rgb(var(--lv-ink-400))">
+                <line x1={plotLeft} y1={y} x2={width - plotRight} y2={y} stroke="rgb(var(--ql-border))" strokeWidth="0.6" strokeDasharray="1 6" />
+                <text x={plotLeft - 8} y={y + 3} textAnchor="end" fontFamily="ui-monospace, monospace" fontSize="8.2" fill="rgb(var(--ql-ink-subtle))">
                   {compactMoney(tick)}
                 </text>
               </g>
@@ -1566,7 +1566,7 @@ function ForecastChart({
 
           {/* zero and safety lines */}
           {min < 0n && max > 0n ? (
-            <line x1={plotLeft} y1={zeroY} x2={width - plotRight} y2={zeroY} stroke="rgb(var(--lv-line-strong))" strokeWidth="1" />
+            <line x1={plotLeft} y1={zeroY} x2={width - plotRight} y2={zeroY} stroke="rgb(var(--ql-border-strong))" strokeWidth="1" />
           ) : null}
           {floorVisible ? (
             <>
@@ -1601,7 +1601,7 @@ function ForecastChart({
                   cy={point.y}
                   r={hover === index ? 4 : below ? 3.1 : 2.2}
                   fill={below ? '#f43f5e' : '#6366f1'}
-                  stroke="rgb(var(--lv-surface))"
+                  stroke="rgb(var(--ql-surface))"
                   strokeWidth="1.4"
                   style={{ transition: 'r 150ms ease' }}
                 />
@@ -1615,7 +1615,7 @@ function ForecastChart({
           {/* hover guide */}
           {hover !== null && points[hover] ? (
             <g pointerEvents="none">
-              <line x1={points[hover].x} y1={plotTop} x2={points[hover].x} y2={barBottom + 8} stroke="rgb(var(--lv-ink-400))" strokeWidth="0.8" strokeDasharray="2 4" opacity="0.65" />
+              <line x1={points[hover].x} y1={plotTop} x2={points[hover].x} y2={barBottom + 8} stroke="rgb(var(--ql-ink-subtle))" strokeWidth="0.8" strokeDasharray="2 4" opacity="0.65" />
               <circle cx={points[hover].x} cy={points[hover].y} r="5" fill="none" stroke="#6366f1" strokeWidth="1.4" />
             </g>
           ) : null}
@@ -1653,7 +1653,7 @@ function ForecastChart({
                   textAnchor="middle"
                   fontFamily="ui-monospace, monospace"
                   fontSize="7.4"
-                  fill={belowSet.has(week.week) ? '#f43f5e' : 'rgb(var(--lv-ink-400))'}
+                  fill={belowSet.has(week.week) ? '#f43f5e' : 'rgb(var(--ql-ink-subtle))'}
                   fontWeight={belowSet.has(week.week) ? '700' : '400'}
                 >
                   W{week.week}

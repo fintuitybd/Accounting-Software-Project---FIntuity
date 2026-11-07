@@ -1,4 +1,4 @@
-// LedgerVault — commercial workspace primitives.
+// Fintuity Accounting Suite — commercial workspace primitives.
 //
 // W02 and W03 are the two halves of the same commercial engine: a multi-line voucher, a live tax
 // advisor and a statutory register. These primitives keep the two screens visually identical and
@@ -237,7 +237,7 @@ export function KpiCard({
     <Tag
       type={onClick ? 'button' : undefined}
       onClick={onClick}
-      className={`lv-card group relative overflow-hidden border bg-gradient-to-br p-4 text-left transition ${tones[tone]} ${
+      className={`ql-card group relative overflow-hidden border bg-gradient-to-br p-4 text-left transition ${tones[tone]} ${
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lift' : ''
       } ${active ? 'ring-2 ring-vault-400' : ''}`}
     >
@@ -339,7 +339,7 @@ export function DemoPresetBar({
   activeId?: string | null;
 }) {
   return (
-    <section className="lv-card overflow-hidden">
+    <section className="ql-card overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 bg-gradient-to-r from-vault-950 via-vault-900 to-vault-800 px-4 py-2.5 text-white">
         <div className="flex items-center gap-2">
           <Sparkles size={14} className="text-gold-300" />
@@ -433,14 +433,14 @@ export function LineItemsEditor({
         <button
           type="button"
           onClick={() => onChange([...lines, newDraftLine()])}
-          className="lv-btn lv-btn-secondary !py-1.5"
+          className="ql-btn ql-btn-secondary !py-1.5"
         >
           <Plus size={13} /> {isBn ? 'লাইন যোগ' : 'Add line'}
         </button>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="lv-table min-w-[900px]">
+        <table className="ql-table min-w-[900px]">
           <thead>
             <tr>
               <th className="w-8">#</th>
@@ -462,7 +462,7 @@ export function LineItemsEditor({
                   <td className="pt-3 font-mono text-[10px] text-ink-400">{String(index + 1).padStart(2, '0')}</td>
                   <td className="space-y-1.5 py-2">
                     <select
-                      className="lv-input !py-1.5 text-[11px]"
+                      className="ql-input !py-1.5 text-[11px]"
                       value={line.item_id}
                       onChange={(event) => selectItem(line, event.target.value)}
                     >
@@ -474,7 +474,7 @@ export function LineItemsEditor({
                       ))}
                     </select>
                     <input
-                      className="lv-input !py-1.5 text-[11px]"
+                      className="ql-input !py-1.5 text-[11px]"
                       value={isBn ? line.description_bn : line.description_en}
                       onChange={(event) =>
                         update(
@@ -489,7 +489,7 @@ export function LineItemsEditor({
                   </td>
                   <td className="py-2">
                     <input
-                      className="lv-input !py-1.5 font-mono text-[10px]"
+                      className="ql-input !py-1.5 font-mono text-[10px]"
                       value={line.hs_code}
                       onChange={(event) => update(line.id, { hs_code: event.target.value })}
                       placeholder="8471.30.00"
@@ -500,7 +500,7 @@ export function LineItemsEditor({
                       type="number"
                       min={1}
                       step={1}
-                      className="lv-input !py-1.5 text-right font-money text-[11px]"
+                      className="ql-input !py-1.5 text-right font-money text-[11px]"
                       value={line.quantity}
                       onChange={(event) =>
                         update(line.id, { quantity: Math.max(1, Number(event.target.value) || 1) })
@@ -510,7 +510,7 @@ export function LineItemsEditor({
                   <td className="py-2 text-[10px] text-ink-500">{isBn ? line.unit_bn : line.unit_en}</td>
                   <td className="py-2">
                     <input
-                      className="lv-input !py-1.5 text-right font-money text-[11px]"
+                      className="ql-input !py-1.5 text-right font-money text-[11px]"
                       value={line.unit_price_text}
                       onChange={(event) => update(line.id, { unit_price_text: event.target.value })}
                     />
@@ -520,7 +520,7 @@ export function LineItemsEditor({
                   </td>
                   <td className="py-2">
                     <select
-                      className="lv-input !py-1.5 text-[10px]"
+                      className="ql-input !py-1.5 text-[10px]"
                       value={line.tax_category}
                       onChange={(event) => update(line.id, { tax_category: event.target.value as TaxCategory })}
                     >
@@ -594,7 +594,7 @@ export function SearchFilterBar({
           <input
             value={query}
             onChange={(event) => onQuery(event.target.value)}
-            className="lv-input !py-1.5 pl-8 text-[12px]"
+            className="ql-input !py-1.5 pl-8 text-[12px]"
             placeholder={
               isBn
                 ? 'চালান / মূসক সিরিয়াল / পক্ষ দিয়ে খুঁজুন…'
@@ -602,12 +602,12 @@ export function SearchFilterBar({
             }
           />
         </label>
-        <div className="lv-seg">
+        <div className="ql-seg">
           {statuses.map((entry) => (
             <button
               key={entry.id}
               type="button"
-              className="lv-seg-item"
+              className="ql-seg-item"
               data-active={status === entry.id}
               onClick={() => onStatus(entry.id)}
             >

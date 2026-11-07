@@ -1,4 +1,4 @@
-// LedgerVault — Phase 1 core foundation lab.
+// Fintuity Accounting Suite — Phase 1 core foundation lab.
 //
 // This screen is the proving ground for the four Phase 1 engines: BigInt poisha arithmetic
 // (money.ts), the 1,220-key bilingual dictionary (i18n.ts + locales), the deterministic tax engine
@@ -151,17 +151,17 @@ const PAYMENT_LABEL_KEY: Record<PaymentMethod, string> = {
 function decisionVisuals(state: DecisionState): { chip: string; panel: string } {
   switch (state) {
     case 'SUPPORTED':
-      return { chip: 'lv-chip-emerald', panel: 'ring-vault-200' };
+      return { chip: 'ql-badge-success', panel: 'ring-vault-200' };
     case 'SUPPORTED_WITH_CONDITIONS':
-      return { chip: 'lv-chip-gold', panel: 'ring-gold-200' };
+      return { chip: 'ql-badge-warn', panel: 'ring-gold-200' };
     case 'MANUAL_REVIEW':
       return { chip: 'bg-amber-50 text-amber-700', panel: 'ring-amber-200' };
     case 'NOT_SUPPORTED':
-      return { chip: 'lv-chip-rose', panel: 'ring-rose-200' };
+      return { chip: 'ql-badge-danger', panel: 'ring-rose-200' };
     case 'SOURCE_DISPUTED_OR_EXPIRED':
       return { chip: 'bg-red-50 text-red-700', panel: 'ring-red-200' };
     default:
-      return { chip: 'lv-chip-neutral', panel: 'ring-ink-200' };
+      return { chip: 'ql-badge-neutral', panel: 'ring-ink-200' };
   }
 }
 
@@ -175,12 +175,12 @@ function DecisionGlyph({ state, className }: { state: DecisionState; className?:
 
 function severityTone(severity: TaxCondition['severity']): { chip: string; icon: JSX.Element } {
   if (severity === 'BLOCKER') {
-    return { chip: 'lv-chip-rose', icon: <ShieldAlert size={13} /> };
+    return { chip: 'ql-badge-danger', icon: <ShieldAlert size={13} /> };
   }
   if (severity === 'WARNING') {
-    return { chip: 'lv-chip-gold', icon: <TriangleAlert size={13} /> };
+    return { chip: 'ql-badge-warn', icon: <TriangleAlert size={13} /> };
   }
-  return { chip: 'lv-chip-neutral', icon: <Info size={13} /> };
+  return { chip: 'ql-badge-neutral', icon: <Info size={13} /> };
 }
 
 interface SegmentedProps<T extends string> {
@@ -193,13 +193,13 @@ interface SegmentedProps<T extends string> {
 function Segmented<T extends string>({ label, value, options, onChange }: SegmentedProps<T>) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="lv-kicker">{label}</span>
-      <div className="lv-seg" role="group" aria-label={label}>
+      <span className="ql-kicker">{label}</span>
+      <div className="ql-seg" role="group" aria-label={label}>
         {options.map((option) => (
           <button
             key={option.value}
             type="button"
-            className="lv-seg-item"
+            className="ql-seg-item"
             data-active={option.value === value}
             title={option.title}
             aria-pressed={option.value === value}
@@ -282,16 +282,16 @@ interface StatCardProps {
 
 function StatCard({ icon, label, value, hint, badge }: StatCardProps) {
   return (
-    <div className="lv-card lv-card-pad flex flex-col gap-2">
+    <div className="ql-card ql-card-pad flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="lv-kicker">{label}</span>
+        <span className="ql-kicker">{label}</span>
         <span className="text-vault-600">{icon}</span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="lv-kpi-value font-money">{value}</span>
+        <span className="ql-heading font-money">{value}</span>
         {badge}
       </div>
-      <p className="lv-hint">{hint}</p>
+      <p className="ql-hint">{hint}</p>
     </div>
   );
 }
@@ -467,26 +467,26 @@ export default function W12_RulePackAndCoreLab() {
         <FirmCockpit />
         <RuleImpactSimulator />
         <section className="grid gap-4 lg:grid-cols-[1.4fr_2fr]">
-          <div className="lv-card lv-card-pad relative overflow-hidden">
+          <div className="ql-card ql-card-pad relative overflow-hidden">
             <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-vault-100/70" />
             <div className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-gold-100/60" />
             <div className="relative">
               <div className="flex items-center gap-2">
                 <Sparkles size={15} className="text-gold-600" />
-                <span className="lv-kicker">{t('lab.badge')}</span>
+                <span className="ql-kicker">{t('lab.badge')}</span>
               </div>
               <h2 className="mt-2 font-display text-2xl font-semibold leading-tight text-ink-900">
                 {t('lab.title')}
               </h2>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-ink-600">{t('lab.subtitle')}</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="lv-chip lv-chip-emerald">
+                <span className="ql-badge ql-badge-success">
                   <BadgeCheck size={13} /> {RULE_PACK_VERSION}
                 </span>
-                <span className="lv-chip lv-chip-gold">
+                <span className="ql-badge ql-badge-warn">
                   <FlaskConical size={13} /> {GOLDEN_CASE_COUNT} {t('lab.goldenShort')}
                 </span>
-                <span className="lv-chip lv-chip-neutral">
+                <span className="ql-badge ql-badge-neutral">
                   <Languages size={13} /> EN / BN
                 </span>
               </div>
@@ -499,7 +499,7 @@ export default function W12_RulePackAndCoreLab() {
               label={t('rulepack.activePack')}
               value={RULE_PACK_VERSION}
               hint={`${activeRuleCount} / ${BD_2026_V1.rules.length} ${t('lab.activeRules')}`}
-              badge={<span className="lv-chip lv-chip-gold">{t('rulepack.reviewPending')}</span>}
+              badge={<span className="ql-badge ql-badge-warn">{t('rulepack.reviewPending')}</span>}
             />
             <StatCard
               icon={<FlaskConical size={16} />}
@@ -508,7 +508,7 @@ export default function W12_RulePackAndCoreLab() {
               hint={suite ? `${suite.checks_run} ${t('lab.assertions')} · ${suite.duration_ms} ms` : t('lab.suiteIdle')}
               badge={
                 suite ? (
-                  <span className={`lv-chip ${allPassed ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                  <span className={`ql-badge ${allPassed ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                     {allPassed ? <Check size={13} /> : <CircleX size={13} />}
                     {allPassed ? t('rulepack.passCount') : t('rulepack.failCount')}
                   </span>
@@ -521,7 +521,7 @@ export default function W12_RulePackAndCoreLab() {
               value={`${parity.en_keys}`}
               hint={`EN ${parity.en_keys} · BN ${parity.bn_keys} · ${t('lab.parity')}`}
               badge={
-                <span className={`lv-chip ${parity.complete ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                <span className={`ql-badge ${parity.complete ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                   {parity.complete ? t('lab.parityComplete') : t('lab.parityIncomplete')}
                 </span>
               }
@@ -536,15 +536,15 @@ export default function W12_RulePackAndCoreLab() {
         </section>
 
         <section className="grid gap-4 xl:grid-cols-2">
-          <div className="lv-card">
+          <div className="ql-card">
             <SectionHeading
               icon={<Coins size={16} />}
               title={t('lab.moneyTitle')}
               subtitle={t('lab.moneySubtitle')}
-              badge={<span className="lv-chip lv-chip-neutral">bigint</span>}
+              badge={<span className="ql-badge ql-badge-neutral">bigint</span>}
             />
             <div className="overflow-x-auto">
-              <table className="lv-table">
+              <table className="ql-table">
                 <thead>
                   <tr>
                     <th className="text-right">{t('lab.columnSample')}</th>
@@ -575,15 +575,15 @@ export default function W12_RulePackAndCoreLab() {
             </div>
           </div>
 
-          <div className="lv-card">
+          <div className="ql-card">
             <SectionHeading
               icon={<Percent size={16} />}
               title={t('lab.rateTitle')}
               subtitle={t('lab.rateSubtitle')}
-              badge={<span className="lv-chip lv-chip-neutral">bps</span>}
+              badge={<span className="ql-badge ql-badge-neutral">bps</span>}
             />
             <div className="overflow-x-auto">
-              <table className="lv-table">
+              <table className="ql-table">
                 <thead>
                   <tr>
                     <th className="text-right">{t('lab.columnBase')}</th>
@@ -618,7 +618,7 @@ export default function W12_RulePackAndCoreLab() {
         </section>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          <div className="lv-card h-fit">
+          <div className="ql-card h-fit">
             <SectionHeading
               icon={<Calculator size={16} />}
               title={t('lab.inputs')}
@@ -636,7 +636,7 @@ export default function W12_RulePackAndCoreLab() {
               />
 
               <div>
-                <label className="lv-label" htmlFor="lab-base">
+                <label className="ql-label" htmlFor="lab-base">
                   {t('lab.baseAmount')}
                 </label>
                 <div className="relative">
@@ -645,7 +645,7 @@ export default function W12_RulePackAndCoreLab() {
                   </span>
                   <input
                     id="lab-base"
-                    className="lv-input pl-7 font-money"
+                    className="ql-input pl-7 font-money"
                     inputMode="decimal"
                     value={facts.baseText}
                     onChange={(event) => patch({ baseText: event.target.value })}
@@ -662,12 +662,12 @@ export default function W12_RulePackAndCoreLab() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="lv-label" htmlFor="lab-category">
+                  <label className="ql-label" htmlFor="lab-category">
                     {t('sales.taxCategory')}
                   </label>
                   <select
                     id="lab-category"
-                    className="lv-input"
+                    className="ql-input"
                     value={facts.category}
                     onChange={(event) => {
                       const next = event.target.value as TaxCategory;
@@ -682,12 +682,12 @@ export default function W12_RulePackAndCoreLab() {
                   </select>
                 </div>
                 <div>
-                  <label className="lv-label" htmlFor="lab-tds">
+                  <label className="ql-label" htmlFor="lab-tds">
                     {t('lab.tdsNature')}
                   </label>
                   <select
                     id="lab-tds"
-                    className="lv-input"
+                    className="ql-input"
                     value={facts.tdsNature}
                     onChange={(event) => patch({ tdsNature: event.target.value as TdsNature })}
                   >
@@ -699,12 +699,12 @@ export default function W12_RulePackAndCoreLab() {
                   </select>
                 </div>
                 <div>
-                  <label className="lv-label" htmlFor="lab-payment">
+                  <label className="ql-label" htmlFor="lab-payment">
                     {t('sales.paymentMethod')}
                   </label>
                   <select
                     id="lab-payment"
-                    className="lv-input"
+                    className="ql-input"
                     value={facts.payment}
                     onChange={(event) => patch({ payment: event.target.value as PaymentMethod })}
                   >
@@ -716,13 +716,13 @@ export default function W12_RulePackAndCoreLab() {
                   </select>
                 </div>
                 <div>
-                  <label className="lv-label" htmlFor="lab-period">
+                  <label className="ql-label" htmlFor="lab-period">
                     {t('lab.periodEnd')}
                   </label>
                   <input
                     id="lab-period"
                     type="date"
-                    className="lv-input font-money"
+                    className="ql-input font-money"
                     value={facts.periodEnd}
                     onChange={(event) => patch({ periodEnd: event.target.value })}
                   />
@@ -731,34 +731,34 @@ export default function W12_RulePackAndCoreLab() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="lv-label" htmlFor="lab-bin">
+                  <label className="ql-label" htmlFor="lab-bin">
                     {t('lab.partyBin')}
                   </label>
                   <input
                     id="lab-bin"
-                    className="lv-input font-money"
+                    className="ql-input font-money"
                     value={facts.bin}
                     onChange={(event) => patch({ bin: event.target.value })}
                   />
                   <span className={`mt-1 inline-flex ${isValidBin(facts.bin) ? 'text-vault-700' : 'text-rose-600'}`}>
-                    <span className="lv-chip lv-chip-neutral">
+                    <span className="ql-badge ql-badge-neutral">
                       {isValidBin(facts.bin) ? <BadgeCheck size={13} /> : <CircleX size={13} />}
                       {isValidBin(facts.bin) ? t('tax.check.valid') : t('tax.check.invalid')}
                     </span>
                   </span>
                 </div>
                 <div>
-                  <label className="lv-label" htmlFor="lab-tin">
+                  <label className="ql-label" htmlFor="lab-tin">
                     {t('lab.partyTin')}
                   </label>
                   <input
                     id="lab-tin"
-                    className="lv-input font-money"
+                    className="ql-input font-money"
                     value={facts.tin}
                     onChange={(event) => patch({ tin: event.target.value })}
                   />
                   <span className="mt-1 inline-flex">
-                    <span className="lv-chip lv-chip-neutral">
+                    <span className="ql-badge ql-badge-neutral">
                       {isValidTin(facts.tin) ? <BadgeCheck size={13} /> : <CircleX size={13} />}
                       {isValidTin(facts.tin) ? t('tax.check.valid') : t('tax.check.invalid')}
                     </span>
@@ -829,7 +829,7 @@ export default function W12_RulePackAndCoreLab() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="lv-card overflow-hidden"
+                className="ql-card overflow-hidden"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-ink-100 bg-gradient-to-br from-white to-vault-50/60 px-5 py-4 dark:border-line/80 dark:from-surface dark:to-vault-950">
                   <div className="flex items-start gap-3">
@@ -837,9 +837,9 @@ export default function W12_RulePackAndCoreLab() {
                       <Scale size={17} />
                     </span>
                     <div>
-                      <p className="lv-kicker">{t('lab.taxTitle')}</p>
+                      <p className="ql-kicker">{t('lab.taxTitle')}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className={`lv-chip ${decisionVisuals(decision.decision).chip}`}>
+                        <span className={`ql-badge ${decisionVisuals(decision.decision).chip}`}>
                           <DecisionGlyph state={decision.decision} className="h-3.5 w-3.5" />
                           {t(`tax.decision.${decision.decision}`)}
                         </span>
@@ -852,7 +852,7 @@ export default function W12_RulePackAndCoreLab() {
                       </div>
                     </div>
                   </div>
-                  <button type="button" className="lv-btn lv-btn-secondary" onClick={copyDecision}>
+                  <button type="button" className="ql-btn ql-btn-secondary" onClick={copyDecision}>
                     {copied ? <Check size={14} /> : <Copy size={14} />}
                     {copied ? t('lab.copied') : t('lab.copyJson')}
                   </button>
@@ -860,7 +860,7 @@ export default function W12_RulePackAndCoreLab() {
 
                 <div className="grid gap-4 p-5 lg:grid-cols-2">
                   <div>
-                    <p className="lv-kicker mb-2">{t('tax.advisor.breakdown')}</p>
+                    <p className="ql-kicker mb-2">{t('tax.advisor.breakdown')}</p>
                     <table className="w-full text-sm">
                       <tbody>
                         {[
@@ -907,7 +907,7 @@ export default function W12_RulePackAndCoreLab() {
                               <span className="flex items-center gap-2">
                                 {row.label}
                                 {row.rate ? (
-                                  <span className="lv-chip lv-chip-neutral font-money">{row.rate}</span>
+                                  <span className="ql-badge ql-badge-neutral font-money">{row.rate}</span>
                                 ) : null}
                               </span>
                             </td>
@@ -925,14 +925,14 @@ export default function W12_RulePackAndCoreLab() {
 
                     <div className="mt-3 rounded-xl border border-ink-100 bg-ink-50/60 p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="lv-kicker">{t('tax.advisor.inputCredit')}</span>
+                        <span className="ql-kicker">{t('tax.advisor.inputCredit')}</span>
                         <span
-                          className={`lv-chip ${
+                          className={`ql-badge ${
                             input.direction === 'SALE'
-                              ? 'lv-chip-neutral'
+                              ? 'ql-badge-neutral'
                               : decision.input_credit.eligible
-                                ? 'lv-chip-emerald'
-                                : 'lv-chip-rose'
+                                ? 'ql-badge-success'
+                                : 'ql-badge-danger'
                           }`}
                         >
                           {input.direction === 'SALE'
@@ -977,14 +977,14 @@ export default function W12_RulePackAndCoreLab() {
 
                   <div className="space-y-3">
                     <div>
-                      <p className="lv-kicker mb-2">{t('tax.advisor.conditions')}</p>
+                      <p className="ql-kicker mb-2">{t('tax.advisor.conditions')}</p>
                       <ul className="space-y-1.5">
                         {decision.conditions.map((condition, index) => (
                           <li
                             key={`${condition.code}-${index}`}
                             className="flex items-start gap-2 rounded-lg border border-ink-100 px-2.5 py-2"
                           >
-                            <span className={`lv-chip shrink-0 ${severityTone(condition.severity).chip}`}>
+                            <span className={`ql-badge shrink-0 ${severityTone(condition.severity).chip}`}>
                               {severityTone(condition.severity).icon}
                               {condition.severity}
                             </span>
@@ -999,10 +999,10 @@ export default function W12_RulePackAndCoreLab() {
                     {decision.filing ? (
                       <div className="rounded-xl border border-gold-200 bg-gold-50/70 p-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="lv-kicker flex items-center gap-1.5">
+                          <span className="ql-kicker flex items-center gap-1.5">
                             <CalendarClock size={13} /> {t('tax.filing.title')}
                           </span>
-                          <span className="lv-chip lv-chip-gold">
+                          <span className="ql-badge ql-badge-warn">
                             {localized(locale, 'PENDING TAX-COUNSEL VERIFICATION', 'কর পরামর্শকের যাচাইয়ের অপেক্ষায়')}
                           </span>
                         </div>
@@ -1017,7 +1017,7 @@ export default function W12_RulePackAndCoreLab() {
                     ) : null}
 
                     <div>
-                      <p className="lv-kicker mb-2">{t('tax.advisor.citations')}</p>
+                      <p className="ql-kicker mb-2">{t('tax.advisor.citations')}</p>
                       <ul className="space-y-1">
                         {decision.rule_ids.map((ruleId) => {
                           const rule = BD_2026_V1.rules.find((entry) => entry.id === ruleId);
@@ -1039,10 +1039,10 @@ export default function W12_RulePackAndCoreLab() {
 
                 <div className="border-t border-ink-100 bg-ink-50/40 px-5 py-4">
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <p className="lv-kicker flex items-center gap-1.5">
+                    <p className="ql-kicker flex items-center gap-1.5">
                       <Table2 size={13} /> {t('tax.advisor.journal')}
                     </p>
-                    <span className={`lv-chip ${preview.balanced ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                    <span className={`ql-badge ${preview.balanced ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                       {preview.balanced ? <Check size={13} /> : <CircleX size={13} />}
                       {preview.balanced ? t('lab.journalBalanced') : t('lab.journalUnbalanced')}
                     </span>
@@ -1058,7 +1058,7 @@ export default function W12_RulePackAndCoreLab() {
                             {money(group.total_debit_poisha)}
                           </span>
                         </div>
-                        <table className="lv-table text-[11px]">
+                        <table className="ql-table text-[11px]">
                           <tbody>
                             {group.lines.map((line) => (
                               <tr key={`${group.id}-${line.line_no}`}>
@@ -1098,22 +1098,22 @@ export default function W12_RulePackAndCoreLab() {
           </div>
         </section>
 
-        <section className="lv-card">
+        <section className="ql-card">
           <SectionHeading
             icon={<BookOpen size={16} />}
             title={t('rulepack.ruleExplorer')}
             subtitle={localized(locale, BD_2026_V1.title_en, BD_2026_V1.title_bn)}
             badge={
               <>
-                <span className="lv-chip lv-chip-emerald">{RULE_PACK_VERSION}</span>
-                <span className="lv-chip lv-chip-gold">{t('rulepack.reviewPending')}</span>
+                <span className="ql-badge ql-badge-success">{RULE_PACK_VERSION}</span>
+                <span className="ql-badge ql-badge-warn">{t('rulepack.reviewPending')}</span>
               </>
             }
             action={
               <div className="flex flex-wrap gap-1">
                 <button
                   type="button"
-                  className="lv-seg-item"
+                  className="ql-seg-item"
                   data-active={domain === 'ALL'}
                   onClick={() => setDomain('ALL')}
                 >
@@ -1123,7 +1123,7 @@ export default function W12_RulePackAndCoreLab() {
                   <button
                     key={entry}
                     type="button"
-                    className="lv-seg-item"
+                    className="ql-seg-item"
                     data-active={domain === entry}
                     onClick={() => setDomain(entry)}
                   >
@@ -1134,7 +1134,7 @@ export default function W12_RulePackAndCoreLab() {
             }
           />
           <div className="max-h-[560px] overflow-auto">
-            <table className="lv-table">
+            <table className="ql-table">
               <thead className="sticky top-0 z-10">
                 <tr>
                   <th>{t('rulepack.domain')}</th>
@@ -1149,7 +1149,7 @@ export default function W12_RulePackAndCoreLab() {
                 {ruleList.map((rule) => (
                   <tr key={rule.id}>
                     <td>
-                      <span className="lv-chip lv-chip-neutral">{rule.domain}</span>
+                      <span className="ql-badge ql-badge-neutral">{rule.domain}</span>
                     </td>
                     <td className="min-w-[240px]">
                       <p className="font-medium text-ink-900">{localized(locale, rule.title_en, rule.title_bn)}</p>
@@ -1161,7 +1161,7 @@ export default function W12_RulePackAndCoreLab() {
                     <td className="max-w-[420px] text-[11px] leading-relaxed text-ink-500">
                       {rule.citation}
                       {rule.verify_flag ? (
-                        <span className="ml-1.5 lv-chip bg-amber-50 text-amber-700">{t('tax.badge.verify')}</span>
+                        <span className="ml-1.5 ql-badge bg-amber-50 text-amber-700">{t('tax.badge.verify')}</span>
                       ) : null}
                     </td>
                     <td className="whitespace-nowrap font-money text-[11px] text-ink-500">
@@ -1170,12 +1170,12 @@ export default function W12_RulePackAndCoreLab() {
                     </td>
                     <td>
                       <span
-                        className={`lv-chip ${
+                        className={`ql-badge ${
                           rule.status === 'ACTIVE'
-                            ? 'lv-chip-emerald'
+                            ? 'ql-badge-success'
                             : rule.status === 'SUPERSEDED'
-                              ? 'lv-chip-gold'
-                              : 'lv-chip-rose'
+                              ? 'ql-badge-warn'
+                              : 'ql-badge-danger'
                         }`}
                       >
                         {rule.status}
@@ -1188,7 +1188,7 @@ export default function W12_RulePackAndCoreLab() {
           </div>
         </section>
 
-        <section className="lv-card">
+        <section className="ql-card">
           <SectionHeading
             icon={<FlaskConical size={16} />}
             title={t('rulepack.goldenSuite')}
@@ -1196,20 +1196,20 @@ export default function W12_RulePackAndCoreLab() {
             badge={
               suite ? (
                 <>
-                  <span className="lv-chip lv-chip-neutral">
+                  <span className="ql-badge ql-badge-neutral">
                     {t('rulepack.passCount')}: {suite.passed}
                   </span>
-                  <span className={`lv-chip ${suite.failed === 0 ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                  <span className={`ql-badge ${suite.failed === 0 ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                     {t('rulepack.failCount')}: {suite.failed}
                   </span>
-                  <span className="lv-chip lv-chip-neutral">
+                  <span className="ql-badge ql-badge-neutral">
                     {suite.checks_run} {t('lab.assertions')}
                   </span>
                 </>
               ) : undefined
             }
             action={
-              <button type="button" className="lv-btn lv-btn-primary" onClick={runSuite}>
+              <button type="button" className="ql-btn ql-btn-primary" onClick={runSuite}>
                 {suite ? <RotateCcw size={15} /> : <Play size={15} />}
                 {t('rulepack.runSuite')}
               </button>
@@ -1220,7 +1220,7 @@ export default function W12_RulePackAndCoreLab() {
               <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-ink-200 py-10 text-center">
                 <Gauge size={22} className="text-vault-500" />
                 <p className="text-sm text-ink-500">{t('lab.suiteIdle')}</p>
-                <button type="button" className="lv-btn lv-btn-secondary" onClick={runSuite}>
+                <button type="button" className="ql-btn ql-btn-secondary" onClick={runSuite}>
                   <Play size={14} /> {t('rulepack.runSuite')}
                 </button>
               </div>
@@ -1243,7 +1243,7 @@ export default function W12_RulePackAndCoreLab() {
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-ink-200">
-                  <table className="lv-table">
+                  <table className="ql-table">
                     <thead>
                       <tr>
                         <th className="w-10" />
@@ -1286,7 +1286,7 @@ export default function W12_RulePackAndCoreLab() {
                                 </p>
                               </td>
                               <td>
-                                <span className={`lv-chip ${decisionVisuals(result.decision.decision).chip}`}>
+                                <span className={`ql-badge ${decisionVisuals(result.decision.decision).chip}`}>
                                   {t(`tax.decision.${result.decision.decision}`)}
                                 </span>
                               </td>
@@ -1310,7 +1310,7 @@ export default function W12_RulePackAndCoreLab() {
                                     </p>
                                   ) : null}
                                   <div className="max-h-64 overflow-auto rounded-lg border border-ink-200 bg-white">
-                                    <table className="lv-table text-[11px]">
+                                    <table className="ql-table text-[11px]">
                                       <thead>
                                         <tr>
                                           <th className="w-8" />
@@ -1358,7 +1358,7 @@ export default function W12_RulePackAndCoreLab() {
         </section>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          <div className="lv-card">
+          <div className="ql-card">
             <SectionHeading
               icon={<Search size={16} />}
               title={t('lab.searchDictionary')}
@@ -1368,7 +1368,7 @@ export default function W12_RulePackAndCoreLab() {
               <div className="relative">
                 <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
                 <input
-                  className="lv-input pl-9"
+                  className="ql-input pl-9"
                   value={query}
                   aria-label={t('lab.searchDictionary')}
                   placeholder={t('lab.searchDictionary')}
@@ -1380,7 +1380,7 @@ export default function W12_RulePackAndCoreLab() {
                   <button
                     key={term}
                     type="button"
-                    className="lv-chip lv-chip-neutral hover:bg-vault-100 hover:text-vault-900"
+                    className="ql-badge ql-badge-neutral hover:bg-vault-100 hover:text-vault-900"
                     onClick={() => setQuery(term)}
                   >
                     {term}
@@ -1388,7 +1388,7 @@ export default function W12_RulePackAndCoreLab() {
                 ))}
               </div>
               {hits.length === 0 ? (
-                <p className="lv-hint">{t('lab.searchNoResults')}</p>
+                <p className="ql-hint">{t('lab.searchNoResults')}</p>
               ) : (
                 <ul className="divide-y divide-ink-100 overflow-hidden rounded-xl border border-ink-200">
                   {hits.map((hit) => (
@@ -1399,7 +1399,7 @@ export default function W12_RulePackAndCoreLab() {
                           {hit.text}
                         </p>
                       </div>
-                      <span className="lv-chip lv-chip-neutral shrink-0 font-money">{hit.score}</span>
+                      <span className="ql-badge ql-badge-neutral shrink-0 font-money">{hit.score}</span>
                     </li>
                   ))}
                 </ul>
@@ -1408,18 +1408,18 @@ export default function W12_RulePackAndCoreLab() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="lv-card lv-card-pad">
+            <div className="ql-card ql-card-pad">
               <div className="flex items-center gap-2">
                 <Sigma size={16} className="text-vault-600" />
-                <span className="lv-kicker">{t('lab.bigintTitle')}</span>
+                <span className="ql-kicker">{t('lab.bigintTitle')}</span>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-ink-600">{t('lab.bigintSubtitle')}</p>
-              <pre className="lv-code mt-3 overflow-x-auto">{jsonPatchPreview}</pre>
+              <pre className="ql-mono mt-3 overflow-x-auto">{jsonPatchPreview}</pre>
             </div>
-            <div className="lv-card lv-card-pad">
+            <div className="ql-card ql-card-pad">
               <div className="flex items-center gap-2">
                 <Layers size={16} className="text-vault-600" />
-                <span className="lv-kicker">{t('rulepack.traceability')}</span>
+                <span className="ql-kicker">{t('rulepack.traceability')}</span>
               </div>
               <ul className="mt-3 space-y-2 text-xs leading-relaxed text-ink-600">
                 <li className="flex gap-2">
@@ -1436,10 +1436,10 @@ export default function W12_RulePackAndCoreLab() {
                 </li>
               </ul>
               <div className="mt-3 flex flex-wrap gap-2">
-                <span className="lv-chip lv-chip-emerald">
+                <span className="ql-badge ql-badge-success">
                   <Hash size={12} /> {decision.trace_id.slice(0, 18)}
                 </span>
-                <span className="lv-chip lv-chip-neutral">
+                <span className="ql-badge ql-badge-neutral">
                   <Landmark size={12} /> {t('tax.advisor.toTreasury')}
                 </span>
               </div>

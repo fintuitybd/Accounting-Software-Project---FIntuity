@@ -34,9 +34,9 @@ import { EmptyState, ProofRow, SectionCard, formatDate, newKey, oneYearAgoIso, r
 type TabKey = 'PENDING' | 'CHALLANS' | 'CERTIFICATES' | 'PROOF';
 
 function statusChip(status: string) {
-  if (status === 'PENDING' || status === 'DRAFT') return <span className="lv-chip lv-chip-gold">{status}</span>;
-  if (status === 'DEPOSITED' || status === 'POSTED') return <span className="lv-chip lv-chip-emerald">{status}</span>;
-  return <span className="lv-chip lv-chip-rose">{status}</span>;
+  if (status === 'PENDING' || status === 'DRAFT') return <span className="ql-badge ql-badge-warn">{status}</span>;
+  if (status === 'DEPOSITED' || status === 'POSTED') return <span className="ql-badge ql-badge-success">{status}</span>;
+  return <span className="ql-badge ql-badge-danger">{status}</span>;
 }
 
 function taxLabel(taxType: TreasuryTaxType | string): string {
@@ -83,7 +83,7 @@ export default function TreasuryPage() {
 
   if (!companyId) {
     return (
-      <section className="lv-card mx-auto mt-6 max-w-3xl p-6">
+      <section className="ql-card mx-auto mt-6 max-w-3xl p-6">
         <h2 className="text-[22px] font-semibold text-ink-900">{L('No company selected', 'কোনো কোম্পানি নির্বাচিত নেই')}</h2>
         <p className="mt-2 text-[14px] text-ink-500">
           {L('Choose a company before working with treasury challans.', 'ট্রেজারি চালানের কাজ করার আগে একটি কোম্পানি নির্বাচন করুন।')}
@@ -386,7 +386,7 @@ function PendingChallansPanel({
         title="Pending withholding liabilities"
         kicker="Created from posted supplier payments and reverse-charge bills"
         action={
-          <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
+          <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
             <RefreshCw size={15} /> Refresh
           </button>
         }
@@ -469,7 +469,7 @@ function PendingChallansPanel({
                       <td className="px-2 py-2 text-right font-mono font-semibold">{entry.amountBdt}</td>
                       <td className="px-2 py-2">
                         <input
-                          className="lv-input min-h-9 w-[150px] text-[13px]"
+                          className="ql-input min-h-9 w-[150px] text-[13px]"
                           value={codes[entry.id] ?? ''}
                           maxLength={32}
                           disabled={!selectable || !canPost}
@@ -521,7 +521,7 @@ function PendingChallansPanel({
             <p className="text-[13px] text-ink-600">
               {selected.length} selected · total <span className="font-mono font-semibold">{formatPoisha(total)} BDT</span>
             </p>
-            <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || selected.length === 0} onClick={() => void deposit()}>
+            <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || selected.length === 0} onClick={() => void deposit()}>
               <Banknote size={15} /> {busy ? 'Posting…' : 'Post treasury challan'}
             </button>
           </div>
@@ -607,7 +607,7 @@ function ChallansPanel({
         title="Treasury deposit register"
         kicker="Persisted challans, bank evidence and linked liabilities"
         action={
-          <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
+          <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
             <RefreshCw size={15} /> Refresh
           </button>
         }
@@ -664,7 +664,7 @@ function ChallansPanel({
                     <td className="px-2 py-2 text-ink-600">{entry.journalNumber ?? '—'}</td>
                     <td className="px-2 py-2">{statusChip(entry.status)}</td>
                     <td className="px-2 py-2 text-right">
-                      <button type="button" className="lv-btn lv-btn-ghost min-h-9 text-[12px]" onClick={() => setSelected(entry)}>
+                      <button type="button" className="ql-btn ql-btn-ghost min-h-9 text-[12px]" onClick={() => setSelected(entry)}>
                         Open
                       </button>
                     </td>
@@ -723,7 +723,7 @@ function ChallansPanel({
                 Reversing the deposit returns every selected liability to PENDING and cancels its draft certificates. The posted journal is reversed, never deleted.
               </p>
               {!reverseOpen ? (
-                <button type="button" className="lv-btn lv-btn-secondary mt-3 min-h-11 text-[13px]" onClick={() => setReverseOpen(true)}>
+                <button type="button" className="ql-btn ql-btn-secondary mt-3 min-h-11 text-[13px]" onClick={() => setReverseOpen(true)}>
                   <RotateCcw size={15} /> Reverse deposit
                 </button>
               ) : (
@@ -737,10 +737,10 @@ function ChallansPanel({
                     <input className={INPUT_CLASS} value={reverseReason} maxLength={500} onChange={(event) => setReverseReason(event.target.value)} />
                   </label>
                   <div className="flex gap-2 sm:col-span-2">
-                    <button type="button" className="lv-btn lv-btn-danger min-h-11 text-[13px]" disabled={busy || reverseReason.trim().length < 3} onClick={() => void reverse()}>
+                    <button type="button" className="ql-btn ql-btn-danger min-h-11 text-[13px]" disabled={busy || reverseReason.trim().length < 3} onClick={() => void reverse()}>
                       <XCircle size={15} /> {busy ? 'Reversing…' : 'Confirm reversal'}
                     </button>
-                    <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" onClick={() => setReverseOpen(false)}>
+                    <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" onClick={() => setReverseOpen(false)}>
                       Cancel
                     </button>
                   </div>
@@ -892,12 +892,12 @@ function CertificatesPanel({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="lv-btn lv-btn-primary min-h-11 text-[13px]"
+              className="ql-btn ql-btn-primary min-h-11 text-[13px]"
               onClick={() => setCustomerModalOpen(true)}
             >
               <Plus size={15} /> Record Customer Mushak 6.6 (Note 29)
             </button>
-            <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
+            <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
               <RefreshCw size={15} /> Refresh
             </button>
           </div>
@@ -978,7 +978,7 @@ function CertificatesPanel({
                       {entry.status === 'DRAFT' ? <span className="ml-1 text-[12px] text-ink-400">Draft format</span> : null}
                     </td>
                     <td className="px-2 py-2 text-right">
-                      <button type="button" className="lv-btn lv-btn-ghost min-h-9 text-[12px]" onClick={() => { setSelected(entry); setReason(''); setEvidence(''); }}>
+                      <button type="button" className="ql-btn ql-btn-ghost min-h-9 text-[12px]" onClick={() => { setSelected(entry); setReason(''); setEvidence(''); }}>
                         Open
                       </button>
                     </td>
@@ -999,7 +999,7 @@ function CertificatesPanel({
               {statusChip(selected.status)}
               <button
                 type="button"
-                className="lv-btn lv-btn-secondary min-h-9 px-2.5 text-[12px]"
+                className="ql-btn ql-btn-secondary min-h-9 px-2.5 text-[12px]"
                 onClick={() => setPrintModalOpen(true)}
               >
                 <Printer size={13} /> Mushak 6.6 Preview
@@ -1028,10 +1028,10 @@ function CertificatesPanel({
                 <input className={INPUT_CLASS} value={evidence} maxLength={500} onChange={(event) => setEvidence(event.target.value)} />
               </label>
               <div className="flex flex-wrap gap-2 sm:col-span-2">
-                <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" disabled={busy || reason.trim().length < 3} onClick={() => void cancel()}>
+                <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" disabled={busy || reason.trim().length < 3} onClick={() => void cancel()}>
                   <XCircle size={15} /> Cancel draft
                 </button>
-                <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || reason.trim().length < 3} onClick={() => void reissue()}>
+                <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || reason.trim().length < 3} onClick={() => void reissue()}>
                   <FileCheck2 size={15} /> Cancel and reissue draft
                 </button>
               </div>
@@ -1044,7 +1044,7 @@ function CertificatesPanel({
                 <input className={INPUT_CLASS} value={reason} maxLength={500} onChange={(event) => setReason(event.target.value)} />
               </label>
               <div className="flex items-end">
-                <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || reason.trim().length < 3} onClick={() => void reissue()}>
+                <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || reason.trim().length < 3} onClick={() => void reissue()}>
                   <FileCheck2 size={15} /> Reissue draft
                 </button>
               </div>
@@ -1067,7 +1067,7 @@ function CertificatesPanel({
               <button
                 type="button"
                 onClick={() => setCustomerModalOpen(false)}
-                className="lv-btn lv-btn-ghost min-h-8 px-2 text-ink-500"
+                className="ql-btn ql-btn-ghost min-h-8 px-2 text-ink-500"
               >
                 <XCircle size={18} />
               </button>
@@ -1155,7 +1155,7 @@ function CertificatesPanel({
               <button
                 type="button"
                 onClick={() => setCustomerModalOpen(false)}
-                className="lv-btn lv-btn-ghost min-h-10 text-[13px]"
+                className="ql-btn ql-btn-ghost min-h-10 text-[13px]"
               >
                 Cancel
               </button>
@@ -1163,7 +1163,7 @@ function CertificatesPanel({
                 type="button"
                 disabled={!customerPartyId || !customerCertNo.trim() || !customerTaxBdt}
                 onClick={() => void handleRecordCustomer()}
-                className="lv-btn lv-btn-primary min-h-10 text-[13px]"
+                className="ql-btn ql-btn-primary min-h-10 text-[13px]"
               >
                 Save Certificate
               </button>
@@ -1184,14 +1184,14 @@ function CertificatesPanel({
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="lv-btn lv-btn-primary min-h-9 px-3 text-[12px]"
+                  className="ql-btn ql-btn-primary min-h-9 px-3 text-[12px]"
                 >
                   <Printer size={13} /> Print / Save PDF
                 </button>
                 <button
                   type="button"
                   onClick={() => setPrintModalOpen(false)}
-                  className="lv-btn lv-btn-ghost min-h-9 px-2 text-gray-600"
+                  className="ql-btn ql-btn-ghost min-h-9 px-2 text-gray-600"
                 >
                   <XCircle size={18} />
                 </button>
@@ -1324,7 +1324,7 @@ function ProofPanel({ companyId, canView, onError }: { companyId: string; canVie
         title="Treasury control proof"
         kicker="Pending liabilities agree to the VDS/TDS/reverse-charge control accounts"
         action={
-          <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
+          <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => void load()}>
             <RefreshCw size={15} /> Refresh
           </button>
         }

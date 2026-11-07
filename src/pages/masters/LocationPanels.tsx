@@ -154,7 +154,7 @@ export function BranchPanel() {
                   <td className="px-3 py-2"><p className="font-semibold">{branch.nameEn}</p>{branch.nameBn ? <p className="text-[12px] text-ink-500">{branch.nameBn}</p> : null}</td>
                   <td className="px-3 py-2 font-mono text-[12px]">{branch.bin || '—'}</td>
                   <td className="px-3 py-2">{branch.isPrincipal ? L('Yes', 'হ্যাঁ') : '—'}</td>
-                  <td className="px-3 py-2"><span className={branch.status === 'ACTIVE' ? 'lv-chip lv-chip-emerald' : 'lv-chip lv-chip-neutral'}>{branch.status}</span></td>
+                  <td className="px-3 py-2"><span className={branch.status === 'ACTIVE' ? 'ql-badge ql-badge-success' : 'ql-badge ql-badge-neutral'}>{branch.status}</span></td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1.5">
                       {canManage ? <button type="button" onClick={() => { setEditingId(branch.id); setForm({ code: branch.code, nameEn: branch.nameEn, nameBn: branch.nameBn ?? '', address: branch.address ?? '', bin: branch.bin ?? '', isPrincipal: branch.isPrincipal }); setFormOpen(true); }} className="inline-flex items-center gap-1 rounded-lg border border-line px-2 py-1 text-[12px] font-semibold text-ink-700"><Pencil size={12} />{L('Edit', 'সম্পাদনা')}</button> : null}
@@ -305,7 +305,7 @@ export function WarehousePanel() {
                   <td className="px-3 py-2 font-mono text-[12px]">{warehouse.code}</td>
                   <td className="px-3 py-2"><p className="font-semibold">{warehouse.nameEn}</p>{warehouse.nameBn ? <p className="text-[12px] text-ink-500">{warehouse.nameBn}</p> : null}</td>
                   <td className="px-3 py-2">{warehouse.branchCode ? `${warehouse.branchCode} · ${warehouse.branchName}` : '—'}</td>
-                  <td className="px-3 py-2"><span className={warehouse.status === 'ACTIVE' ? 'lv-chip lv-chip-emerald' : 'lv-chip lv-chip-neutral'}>{warehouse.status}</span></td>
+                  <td className="px-3 py-2"><span className={warehouse.status === 'ACTIVE' ? 'ql-badge ql-badge-success' : 'ql-badge ql-badge-neutral'}>{warehouse.status}</span></td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1.5">
                       {canManage ? <button type="button" onClick={() => { setEditingId(warehouse.id); setForm({ branchId: warehouse.branchId ?? '', code: warehouse.code, nameEn: warehouse.nameEn, nameBn: warehouse.nameBn ?? '', address: warehouse.address ?? '' }); setFormOpen(true); }} className="inline-flex items-center gap-1 rounded-lg border border-line px-2 py-1 text-[12px] font-semibold text-ink-700"><Pencil size={12} />{L('Edit', 'সম্পাদনা')}</button> : null}

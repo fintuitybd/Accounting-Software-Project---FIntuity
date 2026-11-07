@@ -8,11 +8,11 @@ import { apiErrorMessage, ErrorBanner, Notice } from '../setup/setupUi';
 import { formatDate, formatDateTime, newIdempotencyKey, poishaToBdtString } from './ledgerUi';
 
 const OPENING_STATUS_TONE: Record<string, string> = {
-  DRAFT: 'lv-chip-neutral',
-  SUBMITTED: 'lv-chip-gold',
-  APPROVED: 'lv-chip-gold',
-  POSTED: 'lv-chip-emerald',
-  REVERSED: 'lv-chip-rose',
+  DRAFT: 'ql-badge-neutral',
+  SUBMITTED: 'ql-badge-warn',
+  APPROVED: 'ql-badge-warn',
+  POSTED: 'ql-badge-success',
+  REVERSED: 'ql-badge-danger',
 };
 
 export function OpeningBalancesPanel({
@@ -99,10 +99,10 @@ export function OpeningBalancesPanel({
   };
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{L('Opening balances', 'উদ্বোধনী ব্যালেন্স')}</p>
+          <p className="ql-kicker">{L('Opening balances', 'উদ্বোধনী ব্যালেন্স')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">
             {L('Review, approve and post once', 'পর্যালোচনা, অনুমোদন এবং একবার পোস্ট')}
           </h2>
@@ -114,10 +114,10 @@ export function OpeningBalancesPanel({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link to="/app/setup" className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+          <Link to="/app/setup" className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
             <ArrowUpRight size={14} /> {L('Open setup & draft editor', 'সেটআপ ও খসড়া সম্পাদক')}
           </Link>
-          <button type="button" onClick={() => void load()} disabled={loading} className="lv-btn lv-btn-ghost min-h-11 text-[13px]">
+          <button type="button" onClick={() => void load()} disabled={loading} className="ql-btn ql-btn-ghost min-h-11 text-[13px]">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> {L('Refresh', 'রিফ্রেশ')}
           </button>
         </div>
@@ -141,7 +141,7 @@ export function OpeningBalancesPanel({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`lv-chip ${OPENING_STATUS_TONE[batch.status] ?? 'lv-chip-neutral'}`}>
+                  <span className={`ql-badge ${OPENING_STATUS_TONE[batch.status] ?? 'ql-badge-neutral'}`}>
                     {batch.status}
                   </span>
                   <span className="font-mono text-[12px] text-ink-500">{batch.periodCode}</span>
@@ -160,12 +160,12 @@ export function OpeningBalancesPanel({
               </div>
               <div className="flex flex-wrap gap-2">
                 {batch.status === 'DRAFT' && canSubmit ? (
-                  <button type="button" onClick={() => void run(batch, 'submit')} disabled={busy !== null} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+                  <button type="button" onClick={() => void run(batch, 'submit')} disabled={busy !== null} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                     <Send size={14} /> {L('Submit', 'জমা দিন')}
                   </button>
                 ) : null}
                 {batch.status === 'SUBMITTED' && canApprove ? (
-                  <button type="button" onClick={() => void run(batch, 'approve')} disabled={busy !== null} className="lv-btn lv-btn-saffron min-h-11 text-[13px]">
+                  <button type="button" onClick={() => void run(batch, 'approve')} disabled={busy !== null} className="ql-btn ql-btn-accent min-h-11 text-[13px]">
                     <CheckCircle2 size={14} /> {L('Approve', 'অনুমোদন')}
                   </button>
                 ) : null}
@@ -175,17 +175,17 @@ export function OpeningBalancesPanel({
                   </span>
                 ) : null}
                 {batch.status === 'APPROVED' && canPost ? (
-                  <button type="button" onClick={() => void run(batch, 'post')} disabled={busy !== null} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+                  <button type="button" onClick={() => void run(batch, 'post')} disabled={busy !== null} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
                     <UploadCloud size={14} /> {L('Post to ledger', 'লেজারে পোস্ট')}
                   </button>
                 ) : null}
                 {batch.journalId ? (
-                  <button type="button" onClick={() => onOpenJournal(batch.journalId!)} className="lv-btn lv-btn-ghost min-h-11 text-[13px]">
+                  <button type="button" onClick={() => onOpenJournal(batch.journalId!)} className="ql-btn ql-btn-ghost min-h-11 text-[13px]">
                     <Link2 size={14} /> {batch.journalNumber ?? L('Posted journal', 'পোস্টেড জার্নাল')}
                   </button>
                 ) : null}
                 {batch.reversalJournalId ? (
-                  <button type="button" onClick={() => onOpenJournal(batch.reversalJournalId!)} className="lv-btn lv-btn-ghost min-h-11 text-[13px]">
+                  <button type="button" onClick={() => onOpenJournal(batch.reversalJournalId!)} className="ql-btn ql-btn-ghost min-h-11 text-[13px]">
                     {L('Reversal', 'রিভার্সাল')} {batch.reversalJournalNumber ?? ''}
                   </button>
                 ) : null}
@@ -193,7 +193,7 @@ export function OpeningBalancesPanel({
             </div>
 
             <div className="mt-3 overflow-x-auto">
-              <table className="lv-table w-full min-w-[560px] text-[13px]">
+              <table className="ql-table w-full min-w-[560px] text-[13px]">
                 <caption className="sr-only">{L('Opening-balance lines', 'উদ্বোধনী ব্যালেন্স লাইন')}</caption>
                 <thead>
                   <tr>

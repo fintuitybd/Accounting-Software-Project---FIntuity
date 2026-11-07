@@ -155,7 +155,7 @@ export default function TeamAccessPage() {
 
   if (auth.demoMode) {
     return (
-      <section className="lv-card p-6">
+      <section className="ql-card p-6">
         <h2 className="text-[22px] font-semibold tracking-[-0.03em] text-ink-900">{L('Team & access', 'টিম ও প্রবেশাধিকার')}</h2>
         <p className="mt-2 text-[14px] text-ink-500">
           {L(
@@ -169,7 +169,7 @@ export default function TeamAccessPage() {
 
   if (!canManage) {
     return (
-      <section className="lv-card p-6">
+      <section className="ql-card p-6">
         <h2 className="text-[22px] font-semibold tracking-[-0.03em] text-ink-900">{L('Team & access', 'টিম ও প্রবেশাধিকার')}</h2>
         <p className="mt-2 text-[14px] text-ink-500">
           {L('Your role cannot manage users or invitations. Ask an owner or administrator.', 'আপনার ভূমিকা ব্যবহারকারী বা আমন্ত্রণ পরিচালনা করতে পারে না। মালিক বা প্রশাসকের কাছে জিজ্ঞাসা করুন।')}
@@ -180,16 +180,16 @@ export default function TeamAccessPage() {
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-5 sm:p-6">
+      <section className="ql-card p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Users size={13} /> {L('Organisation access', 'প্রতিষ্ঠানের প্রবেশাধিকার')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Users size={13} /> {L('Organisation access', 'প্রতিষ্ঠানের প্রবেশাধিকার')}</p>
             <h2 className="mt-1 text-[24px] font-semibold tracking-[-0.035em] text-ink-900">{L('Team & access', 'টিম ও প্রবেশাধিকার')}</h2>
             <p className="mt-1 text-[14px] text-ink-500">
               {L('Invite people to this organisation, assign a role and restrict them to specific companies.', 'এই প্রতিষ্ঠানে ব্যক্তি আমন্ত্রণ করুন, ভূমিকা দিন এবং নির্দিষ্ট কোম্পানিতে সীমাবদ্ধ করুন।')}
             </p>
           </div>
-          <span className="lv-chip lv-chip-neutral"><ShieldCheck size={12} /> {L('Server-enforced permissions', 'সার্ভার-নিয়ন্ত্রিত অনুমতি')}</span>
+          <span className="ql-badge ql-badge-neutral"><ShieldCheck size={12} /> {L('Server-enforced permissions', 'সার্ভার-নিয়ন্ত্রিত অনুমতি')}</span>
         </div>
 
         {error ? <div role="alert" className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-[13px] text-rose-700 dark:text-rose-300">{error}</div> : null}
@@ -199,7 +199,7 @@ export default function TeamAccessPage() {
           <label className="block">
             <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{L('Email address', 'ইমেইল ঠিকানা')}</span>
             <input
-              className="lv-input min-h-11 w-full text-[14px]"
+              className="ql-input min-h-11 w-full text-[14px]"
               type="email"
               required
               value={email}
@@ -211,7 +211,7 @@ export default function TeamAccessPage() {
           <label className="block">
             <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{L('Role', 'ভূমিকা')}</span>
             <select
-              className="lv-input min-h-11 w-full text-[14px]"
+              className="ql-input min-h-11 w-full text-[14px]"
               value={role}
               onChange={(event) => setRole(event.target.value as ServerRole)}
               disabled={saving}
@@ -244,20 +244,20 @@ export default function TeamAccessPage() {
               {L('Owner and Admin invitations may be organisation-wide. Other roles need at least one company.', 'মালিক ও প্রশাসক আমন্ত্রণ প্রতিষ্ঠান-ব্যাপী হতে পারে। অন্য ভূমিকার জন্য অন্তত একটি কোম্পানি প্রয়োজন।')}
             </p>
           </fieldset>
-          <button type="submit" disabled={saving} className="lv-btn lv-btn-primary min-h-11 justify-center text-[14px]">
+          <button type="submit" disabled={saving} className="ql-btn ql-btn-primary min-h-11 justify-center text-[14px]">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <MailPlus size={16} />}
             {L('Send invitation', 'আমন্ত্রণ পাঠান')}
           </button>
         </form>
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header flex items-center justify-between gap-3">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header flex items-center justify-between gap-3">
           <div>
             <h3 className="text-[16px] font-semibold text-ink-900">{L('Members', 'সদস্য')}</h3>
             <p className="mt-0.5 text-[13px] text-ink-500">{L('Role changes revoke the member’s active sessions.', 'ভূমিকা পরিবর্তনে সদস্যের চলমান সেশন বাতিল হয়।')}</p>
           </div>
-          <button type="button" onClick={() => void load()} className="lv-btn lv-btn-secondary min-h-10 text-[13px]">
+          <button type="button" onClick={() => void load()} className="ql-btn ql-btn-secondary min-h-10 text-[13px]">
             <RefreshCw size={14} /> {L('Refresh', 'রিফ্রেশ')}
           </button>
         </div>
@@ -285,7 +285,7 @@ export default function TeamAccessPage() {
                     </td>
                     <td className="px-4 py-3">
                       <select
-                        className="lv-input min-h-10 text-[13px]"
+                        className="ql-input min-h-10 text-[13px]"
                         value={member.role}
                         onChange={(event) => void changeRole(member, event.target.value as ServerRole)}
                         disabled={busyId === member.userId || member.userId === auth.user?.id}
@@ -331,8 +331,8 @@ export default function TeamAccessPage() {
         )}
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <h3 className="text-[16px] font-semibold text-ink-900">{L('Pending invitations', 'অপেক্ষমাণ আমন্ত্রণ')}</h3>
           <p className="mt-0.5 text-[13px] text-ink-500">{L('Single-use links expire automatically. Resending rotates the link.', 'একক-ব্যবহারের লিংক স্বয়ংক্রিয়ভাবে মেয়াদোত্তীর্ণ হয়। আবার পাঠালে লিংক পরিবর্তিত হয়।')}</p>
         </div>

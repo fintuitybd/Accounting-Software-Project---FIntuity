@@ -1,4 +1,4 @@
-// LedgerVault route shell.
+// Fintuity Accounting Suite route shell.
 //
 // Authentication pages are the only screens in this entry. The authenticated shell (providers,
 // workspaces, ledger, layout and command palette) is a separate lazy chunk, so signing in does not

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { CircleAlert, CheckCircle2, Info } from 'lucide-react';
 import { ApiError } from '../../auth/api';
 
-export const INPUT_CLASS = 'lv-input min-h-11 w-full text-[14px]';
+export const INPUT_CLASS = 'ql-input min-h-11 w-full text-[14px]';
 
 export function Field({
   label,

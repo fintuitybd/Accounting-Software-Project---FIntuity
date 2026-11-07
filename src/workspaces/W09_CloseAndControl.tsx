@@ -1,4 +1,4 @@
-// LedgerVault — W09 Close & control.
+// Fintuity Accounting Suite — W09 Close & control.
 //
 // The month-end command centre. Four instruments, all reading the same immutable ledger:
 //   1. Subledger-to-GL control matrix — AR, AP, Bank/MFS, VAT current account, VDS and TDS proved
@@ -341,14 +341,14 @@ export default function W09_CloseAndControl() {
 
   return (
     <div className="space-y-5">
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><CalendarCheck2 size={12} /> {L('Close cockpit', 'সমাপনী ককপিট')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><CalendarCheck2 size={12} /> {L('Close cockpit', 'সমাপনী ককপিট')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">
               {L('Month-end control for', 'মাস শেষ নিয়ন্ত্রণ')} {isBn ? statements.period.label_bn : statements.period.label_en}
             </h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L('Proved at', 'প্রমাণিত')} {reconciliation.checked_at.slice(0, 19).replace('T', ' ')} · {reconciliation.open_item_count} {L('open items', 'খোলা আইটেম')}
             </p>
           </div>
@@ -366,7 +366,7 @@ export default function W09_CloseAndControl() {
                 </a>
               </div>
             </div>
-            <span className={`lv-chip ${reconciliation.all_reconciled ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className={`ql-badge ${reconciliation.all_reconciled ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               {reconciliation.all_reconciled ? <CheckCircle2 size={12} /> : <CircleAlert size={12} />}
               {reconciliation.all_reconciled ? L('All controls reconcile', 'সব নিয়ন্ত্রণ মিলে') : L('Control exceptions', 'নিয়ন্ত্রণ ব্যতিক্রম')}
             </span>
@@ -382,7 +382,7 @@ export default function W09_CloseAndControl() {
             { label: L('Period status', 'সময়কাল অবস্থা'), value: periodStatus, bad: locked },
           ].map((tile) => (
             <div key={tile.label} className="rounded-xl bg-ink-50/70 px-3 py-2.5">
-              <p className="lv-kicker">{tile.label}</p>
+              <p className="ql-kicker">{tile.label}</p>
               <p className={`font-money mt-1 text-sm font-semibold ${tile.bad ? 'text-rose-600' : 'text-vault-800'}`}>{tile.value}</p>
             </div>
           ))}
@@ -390,14 +390,14 @@ export default function W09_CloseAndControl() {
       </section>
 
       {/* 1 — Reconciliation matrix */}
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Control matrix', 'নিয়ন্ত্রণ ম্যাট্রিক্স')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Scale size={12} /> {L('Control matrix', 'নিয়ন্ত্রণ ম্যাট্রিক্স')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Subledger-to-GL reconciliation', 'সাবলেজার-থেকে-জিএল মিলন')}</h2>
-            <p className="lv-hint mt-1">{L('GL side is derived from journals; the subledger side from documents, registers and challans.', 'জিএল দিক জার্নাল থেকে, সাবলেজার দিক নথি, রেজিস্টার ও চালান থেকে।')}</p>
+            <p className="ql-hint mt-1">{L('GL side is derived from journals; the subledger side from documents, registers and challans.', 'জিএল দিক জার্নাল থেকে, সাবলেজার দিক নথি, রেজিস্টার ও চালান থেকে।')}</p>
           </div>
-          <span className="lv-chip lv-chip-neutral">{reconciliation.rows.length} {L('controls', 'নিয়ন্ত্রণ')}</span>
+          <span className="ql-badge ql-badge-neutral">{reconciliation.rows.length} {L('controls', 'নিয়ন্ত্রণ')}</span>
         </div>
 
         <div className="grid gap-3 border-t border-ink-100 px-5 py-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -425,17 +425,17 @@ export default function W09_CloseAndControl() {
                       <p className="font-mono text-[9px] text-ink-400">{row.account_codes.join(' · ')}</p>
                     </div>
                   </div>
-                  <span className={`lv-chip ${row.reconciled ? 'lv-chip-emerald' : 'lv-chip-rose'} !px-1.5 !py-0 text-[9px]`}>
+                  <span className={`ql-badge ${row.reconciled ? 'ql-badge-success' : 'ql-badge-danger'} !px-1.5 !py-0 text-[9px]`}>
                     {row.reconciled ? L('agrees', 'মিলে') : L('exception', 'ব্যতিক্রম')}
                   </span>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <div>
-                    <p className="lv-kicker">{L('GL control', 'জিএল নিয়ন্ত্রণ')}</p>
+                    <p className="ql-kicker">{L('GL control', 'জিএল নিয়ন্ত্রণ')}</p>
                     <p className="font-money mt-0.5 text-[12px] font-semibold text-ink-900">{money(row.gl_balance_poisha)}</p>
                   </div>
                   <div>
-                    <p className="lv-kicker">{L('Subledger', 'সাবলেজার')}</p>
+                    <p className="ql-kicker">{L('Subledger', 'সাবলেজার')}</p>
                     <p className="font-money mt-0.5 text-[12px] text-ink-700">{money(row.subledger_balance_poisha)}</p>
                   </div>
                 </div>
@@ -453,7 +453,7 @@ export default function W09_CloseAndControl() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="lv-table min-w-[880px]">
+          <table className="ql-table min-w-[880px]">
             <thead>
               <tr>
                 <th>{L('Control account', 'নিয়ন্ত্রণ হিসাব')}</th>
@@ -485,7 +485,7 @@ export default function W09_CloseAndControl() {
                       </td>
                       <td className="font-money text-right text-[12px] text-ink-600">{row.open_items}</td>
                       <td>
-                        <span className={`lv-chip ${row.reconciled ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                        <span className={`ql-badge ${row.reconciled ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                           {row.reconciled ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
                           {row.reconciled ? L('Agrees', 'মিলে') : L('Exception', 'ব্যতিক্রম')}
                         </span>
@@ -506,15 +506,15 @@ export default function W09_CloseAndControl() {
                         <td colSpan={7}>
                           <div className="grid gap-3 py-1 sm:grid-cols-3">
                             <div>
-                              <p className="lv-kicker">{L('Opening control', 'প্রারম্ভিক নিয়ন্ত্রণ')}</p>
+                              <p className="ql-kicker">{L('Opening control', 'প্রারম্ভিক নিয়ন্ত্রণ')}</p>
                               <p className="font-money mt-0.5 text-[12px]">{money(row.opening_control_poisha)}</p>
                             </div>
                             <div>
-                              <p className="lv-kicker">{L('Period movement', 'কালীন চলাচল')}</p>
+                              <p className="ql-kicker">{L('Period movement', 'কালীন চলাচল')}</p>
                               <p className="font-money mt-0.5 text-[12px]">{money(row.movement_poisha, { sign: true })}</p>
                             </div>
                             <div>
-                              <p className="lv-kicker">{L('Conversion / ageing', 'রূপান্তর / বয়স')}</p>
+                              <p className="ql-kicker">{L('Conversion / ageing', 'রূপান্তর / বয়স')}</p>
                               <p className="font-money mt-0.5 text-[12px]">
                                 {row.subledger_balance_poisha === 0n
                                   ? '—'
@@ -537,14 +537,14 @@ export default function W09_CloseAndControl() {
       </section>
 
       {/* 2 — Suspense queue */}
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><TriangleAlert size={12} /> {L('Exception queue', 'ব্যতিক্রম সারি')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><TriangleAlert size={12} /> {L('Exception queue', 'ব্যতিক্রম সারি')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Suspense & unapplied cash (2190)', 'সাসপেন্স ও অপ্রয়োজিত নগদ (২১৯০)')}</h2>
-            <p className="lv-hint mt-1">{L('Balances are surfaced, never plugged. Every item is drillable to its journal.', 'ব্যালেন্স দেখানো হয়, কখনো সমন্বয় করা হয় না। প্রতিটি আইটেম জার্নাল পর্যন্ত।')}</p>
+            <p className="ql-hint mt-1">{L('Balances are surfaced, never plugged. Every item is drillable to its journal.', 'ব্যালেন্স দেখানো হয়, কখনো সমন্বয় করা হয় না। প্রতিটি আইটেম জার্নাল পর্যন্ত।')}</p>
           </div>
-          <span className={`lv-chip ${reconciliation.suspense_items.length === 0 ? 'lv-chip-emerald' : 'lv-chip-gold'}`}>
+          <span className={`ql-badge ${reconciliation.suspense_items.length === 0 ? 'ql-badge-success' : 'ql-badge-warn'}`}>
             {reconciliation.suspense_items.length} {L('items', 'আইটেম')} · {money(reconciliation.suspense_balance_poisha)}
           </span>
         </div>
@@ -566,7 +566,7 @@ export default function W09_CloseAndControl() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="lv-table min-w-[760px]">
+            <table className="ql-table min-w-[760px]">
               <thead>
                 <tr>
                   <th>{L('Journal', 'জার্নাল')}</th>
@@ -587,7 +587,7 @@ export default function W09_CloseAndControl() {
                       {isBn ? item.description_bn : item.description_en}
                     </td>
                     <td className="text-right">
-                      <span className={`lv-chip ${item.age_days > 60 ? 'lv-chip-rose' : item.age_days > 30 ? 'lv-chip-gold' : 'lv-chip-neutral'}`}>
+                      <span className={`ql-badge ${item.age_days > 60 ? 'ql-badge-danger' : item.age_days > 30 ? 'ql-badge-warn' : 'ql-badge-neutral'}`}>
                         {item.age_days}d
                       </span>
                     </td>
@@ -617,12 +617,12 @@ export default function W09_CloseAndControl() {
       </section>
 
       {/* 3 — Close wizard */}
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><GitBranch size={12} /> {L('11-step close', '১১ ধাপ সমাপনী')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><GitBranch size={12} /> {L('11-step close', '১১ ধাপ সমাপনী')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Month-end close wizard', 'মাস শেষ সমাপনী উইজার্ড')}</h2>
-            <p className="lv-hint mt-1">{L('Signals are recomputed from the live ledger on every render.', 'প্রতিবার রেন্ডারে সংকেত লাইভ খতিয়ান থেকে পুনঃগণনা হয়।')}</p>
+            <p className="ql-hint mt-1">{L('Signals are recomputed from the live ledger on every render.', 'প্রতিবার রেন্ডারে সংকেত লাইভ খতিয়ান থেকে পুনঃগণনা হয়।')}</p>
           </div>
           <div className="min-w-[160px]">
             <div className="flex items-center justify-between text-[10px] font-semibold text-ink-500">
@@ -656,7 +656,7 @@ export default function W09_CloseAndControl() {
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5">
                         <span className="truncate text-[12px] font-semibold text-ink-900">{isBn ? step.title_bn : step.title_en}</span>
-                        {!step.automated && <span className="lv-chip lv-chip-gold shrink-0 !px-1 !py-0 text-[9px]">{L('manual', 'ম্যানুয়াল')}</span>}
+                        {!step.automated && <span className="ql-badge ql-badge-warn shrink-0 !px-1 !py-0 text-[9px]">{L('manual', 'ম্যানুয়াল')}</span>}
                       </span>
                       <span className="mt-0.5 block truncate text-[10px] text-ink-400">
                         {status === 'WARNING' ? L('Needs attention', 'মনোযোগ প্রয়োজন') : status === 'PASSED' ? L('Passed', 'সম্পন্ন') : L('Pending', 'বাকি')}
@@ -693,7 +693,7 @@ export default function W09_CloseAndControl() {
                   'এই ডেমো ওয়ার্কস্পেস স্বাক্ষর সংরক্ষণ করে না। প্রোডাকশন ওয়ার্কস্পেসে সাইন-ইন করা মেকার সংরক্ষিত সমাপনী রান প্রস্তুত করেন, ভিন্ন অনুমোদিত চেকার তা অনুমোদন করেন এবং অডিট ট্রেইল ও রপ্তানযোগ্য সমাপনী প্যাকসহ হিসাবকাল লক হয়।',
                 )}
               </p>
-              <a href="/app/close" className="lv-btn lv-btn-primary mt-2 !px-2 !py-1 text-[12px]">
+              <a href="/app/close" className="ql-btn ql-btn-primary mt-2 !px-2 !py-1 text-[12px]">
                 <ShieldCheck size={12} /> {L('Open controlled close', 'নিয়ন্ত্রিত সমাপনী খুলুন')}
               </a>
             </div>
@@ -701,7 +701,7 @@ export default function W09_CloseAndControl() {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                className="lv-btn lv-btn-ghost !px-2 !py-1 text-[12px]"
+                className="ql-btn ql-btn-ghost !px-2 !py-1 text-[12px]"
                 disabled={activeStep === 1}
                 onClick={() => setActiveStep((current) => Math.max(1, current - 1))}
               >
@@ -709,7 +709,7 @@ export default function W09_CloseAndControl() {
               </button>
               <button
                 type="button"
-                className="lv-btn lv-btn-secondary !px-2 !py-1 text-[12px]"
+                className="ql-btn ql-btn-secondary !px-2 !py-1 text-[12px]"
                 disabled={activeStep === steps.length}
                 onClick={() => setActiveStep((current) => Math.min(steps.length, current + 1))}
               >
@@ -731,12 +731,12 @@ export default function W09_CloseAndControl() {
       </section>
 
       {/* 4 — Audit chain verifier */}
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Fingerprint size={12} /> {L('Tamper evidence', 'সংশোধন প্রমাণ')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Fingerprint size={12} /> {L('Tamper evidence', 'সংশোধন প্রমাণ')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Live SHA-256 audit chain verifier', 'লাইভ শা-২৫৬ অডিট চেইন যাচাইকারী')}</h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {verifiedAt
                 ? `${L('Last re-hash', 'সর্বশেষ পুনঃহ্যাশ')}: ${verifiedAt.slice(0, 19).replace('T', ' ')}`
                 : L('Chain verified by the vault on every mutation', 'প্রতিটি পরিবর্তনে ভল্ট চেইন যাচাই করে')}
@@ -744,7 +744,7 @@ export default function W09_CloseAndControl() {
           </div>
           <div className="flex items-center gap-3">
             <CryptographicSealSvg size={62} variant={locked ? 'locked' : 'audit'} verified={verification.valid} />
-            <button type="button" className="lv-btn lv-btn-secondary" onClick={reverify}>
+            <button type="button" className="ql-btn ql-btn-secondary" onClick={reverify}>
               <RefreshCcw size={14} /> {L('Re-verify chain', 'চেইন পুনঃযাচাই')}
             </button>
           </div>
@@ -763,7 +763,7 @@ export default function W09_CloseAndControl() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="lv-table min-w-[860px]">
+          <table className="ql-table min-w-[860px]">
             <thead>
               <tr>
                 <th>{L('Journal', 'জার্নাল')}</th>
@@ -788,7 +788,7 @@ export default function W09_CloseAndControl() {
                     <td className="font-mono text-[10px] text-ink-500">{shortHash(journal.prev_audit_hash)}</td>
                     <td className="font-mono text-[10px] text-vault-800">{shortHash(journal.audit_hash)}</td>
                     <td>
-                      <span className={`lv-chip ${digestOk ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+                      <span className={`ql-badge ${digestOk ? 'ql-badge-success' : 'ql-badge-danger'}`}>
                         {digestOk ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
                         {digestOk ? 'match' : 'mismatch'}
                       </span>

@@ -131,8 +131,8 @@ export function AuthProvider({
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const onExpired = (): void => setStatus((current) => (current === 'authenticated' ? 'expired' : current));
-    window.addEventListener('ledgervault:session-expired', onExpired);
-    return () => window.removeEventListener('ledgervault:session-expired', onExpired);
+    window.addEventListener('fintuity:session-expired', onExpired);
+    return () => window.removeEventListener('fintuity:session-expired', onExpired);
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<MeResponse> => {

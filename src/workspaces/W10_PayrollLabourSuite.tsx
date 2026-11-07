@@ -43,11 +43,11 @@ const STANDARD_HOURS = 208; // monthly statutory hours for the basic hourly rate
 const SRO_REFERENCE = 'SRO 53-Law/2026 · Bangladesh Labour (Amendment) Act 2026';
 
 const CLASS_LABEL: Record<string, { en: string; bn: string; tone: string }> = {
-  PERMANENT: { en: 'Permanent', bn: 'স্থায়ী', tone: 'lv-chip-emerald' },
-  PROBATIONARY: { en: 'Probationary', bn: 'প্রেষণকালীন', tone: 'lv-chip-gold' },
-  CONTRACTUAL: { en: 'Contractual', bn: 'চুক্তিভিত্তিক', tone: 'lv-chip-neutral' },
-  PIECE_RATE: { en: 'Piece rate', bn: 'পিস রেট', tone: 'lv-chip-neutral' },
-  APPRENTICE: { en: 'Apprentice', bn: 'শিক্ষানবিশ', tone: 'lv-chip-rose' },
+  PERMANENT: { en: 'Permanent', bn: 'স্থায়ী', tone: 'ql-badge-success' },
+  PROBATIONARY: { en: 'Probationary', bn: 'প্রেষণকালীন', tone: 'ql-badge-warn' },
+  CONTRACTUAL: { en: 'Contractual', bn: 'চুক্তিভিত্তিক', tone: 'ql-badge-neutral' },
+  PIECE_RATE: { en: 'Piece rate', bn: 'পিস রেট', tone: 'ql-badge-neutral' },
+  APPRENTICE: { en: 'Apprentice', bn: 'শিক্ষানবিশ', tone: 'ql-badge-danger' },
 };
 
 function bdtNumber(poisha: bigint): number {
@@ -317,14 +317,14 @@ export default function W10_PayrollLabourSuite() {
 
   return (
     <div className="space-y-5">
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Users size={12} /> {SRO_REFERENCE}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Users size={12} /> {SRO_REFERENCE}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">
               {L('Monthly payroll register', 'মাসিক বেতন রেজিস্টার')} · {periodLabel}
             </h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L('Pay period ends', 'বেতন সময়কাল শেষ')} {formatDate(periodEnd, locale)} · {computedRows.length}{' '}
               {L('workers on the register', 'কর্মী রেজিস্টারে')} · {L('statutory hours', 'বিধিবদ্ধ ঘণ্টা')} {STANDARD_HOURS}
             </p>
@@ -333,7 +333,7 @@ export default function W10_PayrollLabourSuite() {
             <select
               value={periodCode}
               onChange={(event) => changePeriod(event.target.value)}
-              className="lv-input !w-auto !py-1.5 text-[12px]"
+              className="ql-input !w-auto !py-1.5 text-[12px]"
               aria-label={L('Payroll period', 'পে-রোল সময়কাল')}
             >
               {periodOptions.length === 0 && <option value={periodCode}>{periodCode}</option>}
@@ -343,7 +343,7 @@ export default function W10_PayrollLabourSuite() {
                 </option>
               ))}
             </select>
-            <span className={`lv-chip ${postingOpen ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className={`ql-badge ${postingOpen ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               <ShieldCheck size={11} /> {period?.status ?? 'OPEN'}
             </span>
           </div>
@@ -351,9 +351,9 @@ export default function W10_PayrollLabourSuite() {
 
         <div className="flex flex-wrap items-center gap-1.5 border-t border-ink-100 px-5 py-3">
           {classBreakdown.map(([workerClass, count]) => {
-            const meta = CLASS_LABEL[workerClass] ?? { en: workerClass, bn: workerClass, tone: 'lv-chip-neutral' };
+            const meta = CLASS_LABEL[workerClass] ?? { en: workerClass, bn: workerClass, tone: 'ql-badge-neutral' };
             return (
-              <span key={workerClass} className={`lv-chip ${meta.tone}`}>
+              <span key={workerClass} className={`ql-badge ${meta.tone}`}>
                 {L(meta.en, meta.bn)} · {count}
               </span>
             );
@@ -362,18 +362,18 @@ export default function W10_PayrollLabourSuite() {
           <button
             type="button"
             onClick={() => setIncludeFestival((current) => !current)}
-            className={`lv-chip transition ${includeFestival ? 'lv-chip-gold' : 'lv-chip-neutral'}`}
+            className={`ql-badge transition ${includeFestival ? 'ql-badge-warn' : 'ql-badge-neutral'}`}
             aria-pressed={includeFestival}
           >
             <CalendarHeart size={11} /> {L('Eid Festival Bonus 10%', 'ঈদ উৎসব ভাতা ১০%')} · {includeFestival ? 'ON' : 'OFF'}
           </button>
-          <span className={`lv-chip ${totals.festival > 0n ? 'lv-chip-gold' : 'lv-chip-neutral'}`}>
+          <span className={`ql-badge ${totals.festival > 0n ? 'ql-badge-warn' : 'ql-badge-neutral'}`}>
             {money(totals.festival)}
           </span>
-          <span className="lv-chip lv-chip-emerald">
+          <span className="ql-badge ql-badge-success">
             <BadgeCheck size={11} /> PF 10% {computedRows.length}/{computedRows.length}
           </span>
-          <span className="lv-chip lv-chip-neutral">
+          <span className="ql-badge ql-badge-neutral">
             <Clock size={11} /> OT {totals.overtimeHours.toFixed(1)}h @ 2×
           </span>
         </div>
@@ -388,27 +388,27 @@ export default function W10_PayrollLabourSuite() {
             { label: L('Salary TDS', 'বেতন টিডিএস'), value: totals.tds },
           ].map((card) => (
             <div key={card.label} className="rounded-xl bg-ink-50/70 px-3 py-2.5">
-              <p className="lv-kicker">{card.label}</p>
+              <p className="ql-kicker">{card.label}</p>
               <p className="font-money mt-1 text-sm font-semibold text-ink-900">{money(card.value)}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><FileSpreadsheet size={12} /> {L('Salary & statutory sheet', 'বেতন ও বিধিবদ্ধ শীট')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><FileSpreadsheet size={12} /> {L('Salary & statutory sheet', 'বেতন ও বিধিবদ্ধ শীট')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">
               {L('Basic · HRA · medical · transport · OT · Eid · PF · gratuity · TDS · net', 'বেসিক · এইচআরএ · চিকিৎসা · পরিবহন · ওটি · ঈদ · পিএফ · গ্র্যাচুইটি · টিডিএস · নিট')}
             </h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L('Edit the OT hours cell and the double-rate calculator re-prices the row instantly.', 'ওটি ঘণ্টা সম্পাদনা করুন — দ্বিগুণ হার ক্যালকুলেটর তাৎক্ষণিকভাবে সারিটি পুনর্মূল্যায়ন করবে।')}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="lv-chip lv-chip-neutral">{computedRows.length} {L('lines', 'লাইন')}</span>
-            <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={resetOvertime}>
+            <span className="ql-badge ql-badge-neutral">{computedRows.length} {L('lines', 'লাইন')}</span>
+            <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={resetOvertime}>
               <Clock size={12} /> {L('Reset OT', 'ওটি রিসেট')}
             </button>
           </div>
@@ -420,7 +420,7 @@ export default function W10_PayrollLabourSuite() {
           </p>
         ) : (
           <div className="max-h-[560px] overflow-auto">
-            <table className="lv-table min-w-[1240px]">
+            <table className="ql-table min-w-[1240px]">
               <thead>
                 <tr>
                   <th>{L('Employee', 'কর্মী')}</th>
@@ -441,7 +441,7 @@ export default function W10_PayrollLabourSuite() {
               </thead>
               <tbody>
                 {computedRows.map((row) => {
-                  const meta = CLASS_LABEL[row.worker_class] ?? { en: row.worker_class, bn: row.worker_class, tone: 'lv-chip-neutral' };
+                  const meta = CLASS_LABEL[row.worker_class] ?? { en: row.worker_class, bn: row.worker_class, tone: 'ql-badge-neutral' };
                   const hourly = row.basic_poisha / BigInt(STANDARD_HOURS);
                   return (
                     <tr key={`${row.employee_id}-${row.period_code}`}>
@@ -452,7 +452,7 @@ export default function W10_PayrollLabourSuite() {
                         </p>
                       </td>
                       <td>
-                        <span className={`lv-chip ${meta.tone} !px-1.5 !py-0 text-[9px]`}>{L(meta.en, meta.bn)}</span>
+                        <span className={`ql-badge ${meta.tone} !px-1.5 !py-0 text-[9px]`}>{L(meta.en, meta.bn)}</span>
                       </td>
                       <td className="font-money text-right text-[11px]">{money(row.basic_poisha)}</td>
                       <td className="font-money text-right text-[11px]">{money(row.house_rent_poisha)}</td>
@@ -512,22 +512,22 @@ export default function W10_PayrollLabourSuite() {
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker flex items-center gap-1.5"><ReceiptText size={12} /> {L('Accrual journal', 'সঞ্চিতি জার্নাল')}</p>
+              <p className="ql-kicker flex items-center gap-1.5"><ReceiptText size={12} /> {L('Accrual journal', 'সঞ্চিতি জার্নাল')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Balanced payroll journal preview', 'সুষম পে-রোল জার্নাল প্রিভিউ')}</h2>
-              <p className="lv-hint mt-1">
+              <p className="ql-hint mt-1">
                 {L('Debits', 'ডেবিট')} {money(journalLines.debitTotal)} = {L('credits', 'ক্রেডিট')} {money(journalLines.creditTotal)}
               </p>
             </div>
-            <span className={`lv-chip ${journalLines.balanced ? 'lv-chip-emerald' : 'lv-chip-rose'}`}>
+            <span className={`ql-badge ${journalLines.balanced ? 'ql-badge-success' : 'ql-badge-danger'}`}>
               {journalLines.balanced ? <CheckCircle2 size={11} /> : <CircleAlert size={11} />}
               {journalLines.balanced ? L('Balanced', 'সুষম') : L('Unbalanced', 'অসুষম')}
             </span>
           </div>
 
-          <table className="lv-table">
+          <table className="ql-table">
             <thead>
               <tr>
                 <th>{L('Account', 'হিসাব')}</th>
@@ -561,7 +561,7 @@ export default function W10_PayrollLabourSuite() {
           </table>
 
           <div className="flex flex-wrap items-center gap-2 border-t border-ink-100 px-5 py-3">
-            <button type="button" className="lv-btn lv-btn-primary" disabled={!journalLines.balanced || !postingOpen || posting || postedJournal !== null} onClick={postPayroll}>
+            <button type="button" className="ql-btn ql-btn-primary" disabled={!journalLines.balanced || !postingOpen || posting || postedJournal !== null} onClick={postPayroll}>
               <Landmark size={14} />{' '}
               {postedJournal
                 ? L('Payroll journal already posted', 'পে-রোল জার্নাল ইতিমধ্যে পোস্টেড')
@@ -570,7 +570,7 @@ export default function W10_PayrollLabourSuite() {
                   : L('1-Click Post Balanced Payroll Journal to GL', '১ ক্লিকে সুষম পে-রোল জার্নাল খতিয়ানে পোস্ট')}
             </button>
             {!postingOpen && (
-              <span className="lv-hint text-rose-600">{L('Period is not open for posting.', 'সময়কাল পোস্টের জন্য খোলা নয়।')}</span>
+              <span className="ql-hint text-rose-600">{L('Period is not open for posting.', 'সময়কাল পোস্টের জন্য খোলা নয়।')}</span>
             )}
           </div>
 
@@ -583,10 +583,10 @@ export default function W10_PayrollLabourSuite() {
                   {money(postedJournal.lines.reduce((total, line) => total + line.debit_poisha, 0n))}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  <button type="button" className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setLensJournalId(postedJournal.id)}>
+                  <button type="button" className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]" onClick={() => setLensJournalId(postedJournal.id)}>
                     <ShieldCheck size={12} /> {L('Audit hash & GL lens', 'অডিট হ্যাশ ও জিএল লেন্স')}
                   </button>
-                  <button type="button" className="lv-btn lv-btn-secondary !px-2 !py-1 text-[11px]" onClick={() => navigate('W08')}>
+                  <button type="button" className="ql-btn ql-btn-secondary !px-2 !py-1 text-[11px]" onClick={() => navigate('W08')}>
                     <ReceiptText size={12} /> {L('Open IFRS P&L now', 'এখনই আইএফআরএস পিএল খুলুন')}
                   </button>
                 </div>
@@ -603,8 +603,8 @@ export default function W10_PayrollLabourSuite() {
         </section>
 
         <div className="space-y-5">
-          <section className="lv-card lv-card-pad">
-            <p className="lv-kicker flex items-center gap-1.5"><HandCoins size={12} /> {L('Employer cost bridge', 'নিয়োগকর্তা ব্যয় সেতু')}</p>
+          <section className="ql-card ql-card-pad">
+            <p className="ql-kicker flex items-center gap-1.5"><HandCoins size={12} /> {L('Employer cost bridge', 'নিয়োগকর্তা ব্যয় সেতু')}</p>
             <div className="mt-3 space-y-1.5">
               {[
                 { label: L('Gross salaries & allowances', 'মোট বেতন ও ভাতা'), value: totals.gross },
@@ -622,7 +622,7 @@ export default function W10_PayrollLabourSuite() {
                 <span className="font-money text-sm font-semibold text-vault-800">{money(employerCost)}</span>
               </div>
             </div>
-            <p className="lv-hint mt-2 leading-relaxed">
+            <p className="ql-hint mt-2 leading-relaxed">
               {L(
                 `WPPF = 5% of profit before WPPF (${money(wppfAnnual)} annual ÷ 12). Profit before tax this period: ${money(profitBeforeTax)}.`,
                 `ডব্লিউপিপিএফ = ডব্লিউপিপিএফ-পূর্ব মুনাফার ৫% (বার্ষিক ${money(wppfAnnual)} ÷ ১২)। এই সময়কালের করপূর্ব মুনাফা: ${money(profitBeforeTax)}।`,
@@ -630,8 +630,8 @@ export default function W10_PayrollLabourSuite() {
             </p>
           </section>
 
-          <section className="lv-card lv-card-pad">
-            <p className="lv-kicker flex items-center gap-1.5"><Calculator size={12} /> {L('Double-rate overtime calculator', 'দ্বিগুণ হার ওভারটাইম ক্যালকুলেটর')}</p>
+          <section className="ql-card ql-card-pad">
+            <p className="ql-kicker flex items-center gap-1.5"><Calculator size={12} /> {L('Double-rate overtime calculator', 'দ্বিগুণ হার ওভারটাইম ক্যালকুলেটর')}</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <div className="rounded-lg bg-ink-50 px-2.5 py-2">
                 <p className="text-[9px] font-semibold uppercase tracking-wide text-ink-400">{L('Overtime hours', 'ওভারটাইম ঘণ্টা')}</p>
@@ -650,20 +650,20 @@ export default function W10_PayrollLabourSuite() {
             </p>
           </section>
 
-          <section className="lv-card lv-card-pad">
-            <p className="lv-kicker flex items-center gap-1.5"><Wallet size={12} /> {L('Bulk disbursement', 'বাল্ক বিতরণ')}</p>
+          <section className="ql-card ql-card-pad">
+            <p className="ql-kicker flex items-center gap-1.5"><Wallet size={12} /> {L('Bulk disbursement', 'বাল্ক বিতরণ')}</p>
             <p className="mt-1 text-sm font-semibold text-ink-900">{L('BEFTN & bKash .xlsx files', 'বিইএফটিএন ও বিকাশ .এক্সএলএসএক্স ফাইল')}</p>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L(
                 'Each workbook carries the payment sheet plus a statutory summary tab for the auditor and the bank mandate file.',
                 'প্রতিটি ওয়ার্কবুকে পেমেন্ট শীটের সাথে নিরীক্ষক ও ব্যাংক ম্যান্ডেটের জন্য বিধিবদ্ধ সারসংক্ষেপ ট্যাব থাকে।',
               )}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" className="lv-btn lv-btn-secondary" disabled={computedRows.length === 0} onClick={exportBeftn}>
+              <button type="button" className="ql-btn ql-btn-secondary" disabled={computedRows.length === 0} onClick={exportBeftn}>
                 <Download size={14} /> {L('BEFTN .xlsx', 'বিইএফটিএন .এক্সএলএসএক্স')}
               </button>
-              <button type="button" className="lv-btn lv-btn-secondary" disabled={computedRows.length === 0} onClick={exportBkash}>
+              <button type="button" className="ql-btn ql-btn-secondary" disabled={computedRows.length === 0} onClick={exportBkash}>
                 <Send size={14} /> {L('bKash .xlsx', 'বিকাশ .এক্সএলএসএক্স')}
               </button>
             </div>

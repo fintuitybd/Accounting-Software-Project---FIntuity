@@ -248,10 +248,10 @@ export function ReceiptsPanel({
   };
 
   return (
-    <section className="lv-card p-4 sm:p-6">
+    <section className="ql-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="lv-kicker">{L('Receivables', 'প্রাপ্য')}</p>
+          <p className="ql-kicker">{L('Receivables', 'প্রাপ্য')}</p>
           <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink-900">{L('Customer receipts', 'গ্রাহক রিসিট')}</h2>
           <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-500">
             {L(
@@ -261,7 +261,7 @@ export function ReceiptsPanel({
           </p>
         </div>
         {canPost ? (
-          <button type="button" onClick={() => { setFormOpen(true); resetForm(); }} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+          <button type="button" onClick={() => { setFormOpen(true); resetForm(); }} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
             <Receipt size={15} /> {L('New receipt', 'নতুন রিসিট')}
           </button>
         ) : null}
@@ -330,7 +330,7 @@ export function ReceiptsPanel({
           <div className="mt-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-[15px] font-semibold text-ink-900">{L('Allocate to open invoices', 'খোলা চালানে বরাদ্দ')}</h4>
-              <button type="button" onClick={autoAllocate} disabled={!receiptAmount || openInvoices.length === 0} className="lv-btn lv-btn-secondary min-h-10 text-[12px]">
+              <button type="button" onClick={autoAllocate} disabled={!receiptAmount || openInvoices.length === 0} className="ql-btn ql-btn-secondary min-h-10 text-[12px]">
                 {L('Auto-allocate oldest first', 'প্রাচীনতম আগে স্বয়ংক্রিয় বরাদ্দ')}
               </button>
             </div>
@@ -342,7 +342,7 @@ export function ReceiptsPanel({
               <div className="mt-2"><EmptyState title={L('No open invoices', 'কোনো খোলা চালান নেই')} hint={L('This receipt will remain entirely unapplied customer cash.', 'এই রিসিট সম্পূর্ণভাবে অব্যবহৃত গ্রাহক নগদ হিসেবে থাকবে।')} /></div>
             ) : (
               <div className="mt-3 overflow-x-auto">
-                <table className="lv-table w-full min-w-[760px] text-[13px]">
+                <table className="ql-table w-full min-w-[760px] text-[13px]">
                   <caption className="sr-only">{L('Open invoices for allocation', 'বরাদ্দের জন্য খোলা চালান')}</caption>
                   <thead>
                     <tr>
@@ -403,10 +403,10 @@ export function ReceiptsPanel({
             </div>
           </div>
           <div className="mt-4 flex flex-wrap justify-end gap-2">
-            <button type="button" onClick={resetForm} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+            <button type="button" onClick={resetForm} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
               <RefreshCw size={14} /> {L('Clear', 'মুছুন')}
             </button>
-            <button type="button" onClick={() => void postReceipt()} disabled={busy || !selectedParty} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+            <button type="button" onClick={() => void postReceipt()} disabled={busy || !selectedParty} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
               <Save size={15} /> {busy ? L('Posting…', 'পোস্ট হচ্ছে…') : L('Post receipt', 'রিসিট পোস্ট')}
             </button>
           </div>
@@ -422,7 +422,7 @@ export function ReceiptsPanel({
         <div className="mt-5 rounded-xl border border-line bg-surface-2/40 p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="lv-kicker">{L('Receipt detail', 'রিসিট বিস্তারিত')}</p>
+              <p className="ql-kicker">{L('Receipt detail', 'রিসিট বিস্তারিত')}</p>
               <h3 className="mt-1 flex flex-wrap items-center gap-2 text-[18px] font-semibold text-ink-900">
                 {selectedReceipt.receiptNumber}
                 <StatusChip status={selectedReceipt.status === 'POSTED' ? 'POSTED_RECEIPT' : 'REVERSED_RECEIPT'} />
@@ -443,7 +443,7 @@ export function ReceiptsPanel({
             {L('Attachment', 'সংযুক্তি')}: {selectedReceipt.attachmentReference ?? '—'}
           </p>
           <div className="mt-3 overflow-x-auto">
-            <table className="lv-table w-full min-w-[620px] text-[13px]">
+            <table className="ql-table w-full min-w-[620px] text-[13px]">
               <caption className="sr-only">{L('Receipt allocations', 'রিসিট বরাদ্দ')}</caption>
               <thead><tr><th scope="col" className="text-left">{L('Invoice', 'চালান')}</th><th scope="col" className="text-left">{L('Due', 'পরিশোধ')}</th><th scope="col" className="text-right">{L('Cash', 'নগদ')}</th><th scope="col" className="text-right">{L('Write-off', 'রাইট-অফ')}</th></tr></thead>
               <tbody>
@@ -466,7 +466,7 @@ export function ReceiptsPanel({
                 <input type="date" value={reverseDate} onChange={(event) => setReverseDate(event.target.value)} className={SALES_INPUT} aria-label={L('Reversal date', 'রিভার্সাল তারিখ')} />
                 <input value={reverseReason} onChange={(event) => setReverseReason(event.target.value)} maxLength={500} className={SALES_INPUT} placeholder={L('Reason (3–500 characters)', 'কারণ (৩–৫০০ অক্ষর)')} aria-label={L('Reversal reason', 'রিভার্সাল কারণ')} />
               </div>
-              <button type="button" onClick={() => void reverseReceipt()} disabled={reversing || reverseReason.trim().length < 3} className="lv-btn lv-btn-secondary mt-2 min-h-10 text-[12px] text-rose-700 dark:text-rose-300">
+              <button type="button" onClick={() => void reverseReceipt()} disabled={reversing || reverseReason.trim().length < 3} className="ql-btn ql-btn-secondary mt-2 min-h-10 text-[12px] text-rose-700 dark:text-rose-300">
                 <RotateCcw size={14} /> {reversing ? L('Reversing…', 'বাতিল হচ্ছে…') : L('Confirm receipt reversal', 'রিসিট রিভার্সাল নিশ্চিত')}
               </button>
             </div>
@@ -476,7 +476,7 @@ export function ReceiptsPanel({
 
       <div className="mt-5 flex items-center justify-between gap-2">
         <p className="text-[12px] text-ink-500">{total} {L('receipt(s)', 'রিসিট')}</p>
-        <button type="button" onClick={() => setRefreshKey((value) => value + 1)} disabled={loadingList} className="lv-btn lv-btn-secondary min-h-10 text-[12px]">
+        <button type="button" onClick={() => setRefreshKey((value) => value + 1)} disabled={loadingList} className="ql-btn ql-btn-secondary min-h-10 text-[12px]">
           <RefreshCw size={13} className={loadingList ? 'animate-spin' : ''} /> {L('Refresh', 'রিফ্রেশ')}
         </button>
       </div>
@@ -484,7 +484,7 @@ export function ReceiptsPanel({
         <div className="mt-3"><EmptyState title={L('No customer receipts yet', 'এখনও কোনো গ্রাহক রিসিট নেই')} hint={L('Post a receipt to clear invoices and track unapplied cash.', 'চালান পরিশোধ ও অব্যবহৃত নগদ ট্র্যাক করতে একটি রিসিট পোস্ট করুন।')} /></div>
       ) : (
         <div className="mt-3 overflow-x-auto">
-          <table className="lv-table w-full min-w-[900px] text-[13px]">
+          <table className="ql-table w-full min-w-[900px] text-[13px]">
             <caption className="sr-only">{L('Customer receipts', 'গ্রাহক রিসিট')}</caption>
             <thead>
               <tr>

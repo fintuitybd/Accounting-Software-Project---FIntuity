@@ -176,7 +176,7 @@ export function WithholdingReturnPage() {
             type="button"
             onClick={() => void handleGenerate()}
             disabled={generating}
-            className="lv-btn lv-btn-primary min-h-10 text-[13px]"
+            className="ql-btn ql-btn-primary min-h-10 text-[13px]"
           >
             <Play size={14} /> {generating ? L('Compiling Return…', 'সংকলন হচ্ছে…') : L('Generate Sec 177 Return', 'রিটার্ন তৈরি করুন')}
           </button>
@@ -184,7 +184,7 @@ export function WithholdingReturnPage() {
             type="button"
             onClick={() => void loadReturn()}
             disabled={loading}
-            className="lv-btn lv-btn-ghost min-h-10 text-[13px]"
+            className="ql-btn ql-btn-ghost min-h-10 text-[13px]"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
@@ -208,7 +208,7 @@ export function WithholdingReturnPage() {
                 type="button"
                 onClick={() => void handleVerify()}
                 disabled={submitting}
-                className="lv-btn lv-btn-secondary min-h-10 text-[13px]"
+                className="ql-btn ql-btn-secondary min-h-10 text-[13px]"
               >
                 <CheckCircle size={14} /> {L('Verify Return', 'যাচাই করুন')}
               </button>
@@ -218,7 +218,7 @@ export function WithholdingReturnPage() {
                 type="button"
                 onClick={() => void handleSubmit()}
                 disabled={submitting}
-                className="lv-btn lv-btn-primary min-h-10 text-[13px]"
+                className="ql-btn ql-btn-primary min-h-10 text-[13px]"
               >
                 <Send size={14} /> {L('Mark as Submitted', 'দাখিল সম্পন্ন')}
               </button>
@@ -227,7 +227,7 @@ export function WithholdingReturnPage() {
               <button
                 type="button"
                 onClick={handleExport}
-                className="lv-btn lv-btn-secondary min-h-10 text-[13px]"
+                className="ql-btn ql-btn-secondary min-h-10 text-[13px]"
               >
                 <Download size={14} /> {L('Download NBR Excel', 'এনবিআর এক্সেল ডাউনলোড')}
               </button>
@@ -495,7 +495,7 @@ export function WithholdingReturnPage() {
             type="button"
             onClick={() => void handleGenerate()}
             disabled={generating}
-            className="lv-btn lv-btn-primary mt-4 min-h-11 text-[13px]"
+            className="ql-btn ql-btn-primary mt-4 min-h-11 text-[13px]"
           >
             <Play size={15} /> {generating ? L('Compiling…', 'সংকলন হচ্ছে…') : L('Generate Sec 177 Return', 'রিটার্ন তৈরি করুন')}
           </button>

@@ -133,7 +133,7 @@ export function PurchaseDetailPanel({
     return (
       <SectionCard title="Purchase document">
         <EmptyState title="Document not available" hint={error ?? 'The document could not be loaded.'} />
-        <button type="button" className="lv-btn lv-btn-secondary mt-4 min-h-11 text-[13px]" onClick={onBack}>
+        <button type="button" className="ql-btn ql-btn-secondary mt-4 min-h-11 text-[13px]" onClick={onBack}>
           <ArrowLeft size={15} /> Back to bills
         </button>
       </SectionCard>
@@ -146,13 +146,13 @@ export function PurchaseDetailPanel({
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <button type="button" className="mb-2 inline-flex items-center gap-1 text-[12px] font-semibold text-brand" onClick={onBack}>
               <ArrowLeft size={14} /> Bills & payables
             </button>
-            <p className="lv-kicker">{docTypeLabel(document.docType)}</p>
+            <p className="ql-kicker">{docTypeLabel(document.docType)}</p>
             <h2 className="mt-1 text-[26px] font-semibold tracking-[-0.035em] text-ink-900">
               {document.documentNo ?? 'Draft document'}
             </h2>
@@ -164,27 +164,27 @@ export function PurchaseDetailPanel({
             {statusChip(document.status)}
             {taxStateChip(document.taxDecisionState)}
             {canEdit && isDraft ? (
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => onEdit(document)}>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => onEdit(document)}>
                 <FilePenLine size={15} /> Edit draft
               </button>
             ) : null}
             {canApprove && isDraft && document.approvalRequired && !document.approvedAt ? (
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => setApprovalOpen(true)}>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => setApprovalOpen(true)}>
                 <ShieldCheck size={15} /> Approve high-value bill
               </button>
             ) : null}
             {canPost && isDraft ? (
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" onClick={() => setConfirmPost(true)}>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" onClick={() => setConfirmPost(true)}>
                 <CheckCircle2 size={15} /> Post document
               </button>
             ) : null}
             {isPosted ? (
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => onPay(document)}>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => onPay(document)}>
                 <CreditCard size={15} /> Record payment
               </button>
             ) : null}
             {canReverse && isPosted ? (
-              <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px] text-rose-700 dark:text-rose-300" onClick={() => setReversalOpen(true)}>
+              <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px] text-rose-700 dark:text-rose-300" onClick={() => setReversalOpen(true)}>
                 <RotateCcw size={15} /> Reverse
               </button>
             ) : null}
@@ -212,10 +212,10 @@ export function PurchaseDetailPanel({
               <textarea value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={500} className={`${INPUT_CLASS} mt-1 min-h-20`} />
             </label>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" onClick={() => void approve()} disabled={busy || approvalReason.trim().length < 3} className="lv-btn lv-btn-primary min-h-11 text-[13px]">
+              <button type="button" onClick={() => void approve()} disabled={busy || approvalReason.trim().length < 3} className="ql-btn ql-btn-primary min-h-11 text-[13px]">
                 <ShieldCheck size={15} /> {busy ? 'Approving…' : 'Confirm approval'}
               </button>
-              <button type="button" onClick={() => setApprovalOpen(false)} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">Cancel</button>
+              <button type="button" onClick={() => setApprovalOpen(false)} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">Cancel</button>
             </div>
           </div>
         ) : null}
@@ -228,10 +228,10 @@ export function PurchaseDetailPanel({
               It cannot be edited afterwards; a correction requires a linked reversal.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy} onClick={() => void post()}>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy} onClick={() => void post()}>
                 {busy ? 'Posting…' : 'Yes, post document'}
               </button>
-              <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" onClick={() => setConfirmPost(false)}>
+              <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" onClick={() => setConfirmPost(false)}>
                 Cancel
               </button>
             </div>
@@ -263,13 +263,13 @@ export function PurchaseDetailPanel({
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
-                className="lv-btn lv-btn-danger min-h-11 text-[13px]"
+                className="ql-btn ql-btn-danger min-h-11 text-[13px]"
                 disabled={busy || reversalReason.trim().length < 3}
                 onClick={() => void reverse()}
               >
                 <Ban size={15} /> {busy ? 'Reversing…' : 'Post linked reversal'}
               </button>
-              <button type="button" className="lv-btn lv-btn-ghost min-h-11 text-[13px]" onClick={() => setReversalOpen(false)}>
+              <button type="button" className="ql-btn ql-btn-ghost min-h-11 text-[13px]" onClick={() => setReversalOpen(false)}>
                 Cancel
               </button>
             </div>

@@ -50,15 +50,15 @@ function checkLabel(check: CloseCheck, isBn: boolean): string {
 function statusChip(status: CloseRun['status']): string {
   switch (status) {
     case 'APPROVED':
-      return 'lv-chip lv-chip-emerald';
+      return 'ql-badge ql-badge-success';
     case 'SUBMITTED':
-      return 'lv-chip lv-chip-gold';
+      return 'ql-badge ql-badge-warn';
     case 'REJECTED':
-      return 'lv-chip lv-chip-rose';
+      return 'ql-badge ql-badge-danger';
     case 'REOPENED':
-      return 'lv-chip lv-chip-neutral';
+      return 'ql-badge ql-badge-neutral';
     default:
-      return 'lv-chip lv-chip-neutral';
+      return 'ql-badge ql-badge-neutral';
   }
 }
 
@@ -304,7 +304,7 @@ export default function ClosePage() {
 
   return (
     <div className="space-y-5">
-      <section className="lv-card p-4 sm:p-6">
+      <section className="ql-card p-4 sm:p-6">
         <PageHeader
           eyebrow={L('Close & controls', 'সমাপনী ও নিয়ন্ত্রণ')}
           title={L('Controlled month-end close', 'নিয়ন্ত্রিত মাস-শেষ সমাপনী')}
@@ -338,52 +338,52 @@ export default function ClosePage() {
             </select>
           </label>
           <div className="rounded-xl bg-ink-50/70 px-3 py-2.5">
-            <p className="lv-kicker">{L('Checks passed', 'উত্তীর্ণ নিয়ন্ত্রণ')}</p>
+            <p className="ql-kicker">{L('Checks passed', 'উত্তীর্ণ নিয়ন্ত্রণ')}</p>
             <p className="font-money mt-1 text-[14px] font-semibold text-ink-900">{passedCount} / {activeChecks.filter((check) => check.applicable).length}</p>
           </div>
           <div className="rounded-xl bg-ink-50/70 px-3 py-2.5">
-            <p className="lv-kicker">{L('Failed checks', 'ব্যর্থ নিয়ন্ত্রণ')}</p>
+            <p className="ql-kicker">{L('Failed checks', 'ব্যর্থ নিয়ন্ত্রণ')}</p>
             <p className={`font-money mt-1 text-[14px] font-semibold ${failedChecks.length ? 'text-rose-600' : 'text-vault-800'}`}>{failedChecks.length}</p>
           </div>
           <div className="rounded-xl bg-ink-50/70 px-3 py-2.5">
-            <p className="lv-kicker">{L('Open suspense items', 'খোলা সাসপেন্স আইটেম')}</p>
+            <p className="ql-kicker">{L('Open suspense items', 'খোলা সাসপেন্স আইটেম')}</p>
             <p className={`font-money mt-1 text-[14px] font-semibold ${suspenseItems.length ? 'text-rose-600' : 'text-vault-800'}`}>{suspenseItems.length}</p>
           </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
           {canPrepare && !selectedRun ? (
-            <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || !periodId} onClick={() => void createRun()}>
+            <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || !periodId} onClick={() => void createRun()}>
               <FileCheck2 size={15} /> {L('Prepare close run', 'সমাপনী রান প্রস্তুত')}
             </button>
           ) : null}
           {canPrepare && selectedRun?.status === 'DRAFT' ? (
             <>
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={() => void refreshRun()}>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={() => void refreshRun()}>
                 <RefreshCcw size={15} /> {L('Recalculate controls', 'নিয়ন্ত্রণ পুনঃগণনা')}
               </button>
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || failedChecks.length > 0 || evidenceReference.trim().length < 3} onClick={() => void submitRun()}>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || failedChecks.length > 0 || evidenceReference.trim().length < 3} onClick={() => void submitRun()}>
                 <Send size={15} /> {L('Submit for checker', 'চেকারের জন্য জমা')}
               </button>
             </>
           ) : null}
           {canApprove && selectedRun?.status === 'SUBMITTED' ? (
             <>
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy} onClick={() => setDecisionOpen('APPROVE')}>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy} onClick={() => setDecisionOpen('APPROVE')}>
                 <CheckCircle2 size={15} /> {L('Approve and lock', 'অনুমোদন ও লক')}
               </button>
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 border-rose-500/30 text-[13px] text-rose-700" disabled={busy} onClick={() => setDecisionOpen('REJECT')}>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 border-rose-500/30 text-[13px] text-rose-700" disabled={busy} onClick={() => setDecisionOpen('REJECT')}>
                 <XCircle size={15} /> {L('Reject', 'প্রত্যাখ্যান')}
               </button>
             </>
           ) : null}
           {canReopen && selectedPeriod && (selectedPeriod.status === 'CLOSED' || selectedPeriod.status === 'LOCKED') ? (
-            <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={() => setReopenOpen(true)}>
+            <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={() => setReopenOpen(true)}>
               <LockOpen size={15} /> {L('Reopen period', 'হিসাবকাল পুনরায় খুলুন')}
             </button>
           ) : null}
           {canExport && selectedRun ? (
-            <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={exportPack}>
+            <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" disabled={busy} onClick={exportPack}>
               <Download size={15} /> {L('Export close pack', 'সমাপনী প্যাক রপ্তানি')}
             </button>
           ) : null}
@@ -415,10 +415,10 @@ export default function ClosePage() {
               <textarea className={`${INPUT_CLASS} mt-1 min-h-20`} value={decisionReason} maxLength={500} onChange={(event) => setDecisionReason(event.target.value)} />
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || decisionReason.trim().length < 3} onClick={() => decide(decisionOpen)}>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || decisionReason.trim().length < 3} onClick={() => decide(decisionOpen)}>
                 {decisionOpen === 'APPROVE' ? L('Confirm approval', 'অনুমোদন নিশ্চিত') : L('Confirm rejection', 'প্রত্যাখ্যান নিশ্চিত')}
               </button>
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => setDecisionOpen(null)}>{L('Cancel', 'বাতিল')}</button>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => setDecisionOpen(null)}>{L('Cancel', 'বাতিল')}</button>
             </div>
           </div>
         ) : null}
@@ -434,17 +434,17 @@ export default function ClosePage() {
               <textarea className={`${INPUT_CLASS} mt-1 min-h-20`} value={reopenReason} maxLength={500} onChange={(event) => setReopenReason(event.target.value)} />
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || reopenReason.trim().length < 3} onClick={reopen}>{L('Confirm reopen', 'পুনরায় খোলা নিশ্চিত')}</button>
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => setReopenOpen(false)}>{L('Cancel', 'বাতিল')}</button>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || reopenReason.trim().length < 3} onClick={reopen}>{L('Confirm reopen', 'পুনরায় খোলা নিশ্চিত')}</button>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => setReopenOpen(false)}>{L('Cancel', 'বাতিল')}</button>
             </div>
           </div>
         ) : null}
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker">{L('Persisted checklist', 'সংরক্ষিত চেকলিস্ট')}</p>
+            <p className="ql-kicker">{L('Persisted checklist', 'সংরক্ষিত চেকলিস্ট')}</p>
             <h2 className="mt-1 text-[18px] font-semibold text-ink-900">{L('Control results', 'নিয়ন্ত্রণ ফলাফল')}</h2>
           </div>
           {selectedRun ? (
@@ -488,16 +488,16 @@ export default function ClosePage() {
         ) : null}
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker">{L('Suspense control', 'সাসপেন্স নিয়ন্ত্রণ')}</p>
+            <p className="ql-kicker">{L('Suspense control', 'সাসপেন্স নিয়ন্ত্রণ')}</p>
             <h2 className="mt-1 text-[18px] font-semibold text-ink-900">{L('Open suspense items', 'খোলা সাসপেন্স আইটেম')}</h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L('A target account, reason, attachment and a different checker are required. There is no one-click write-off.', 'লক্ষ্য হিসাব, কারণ, সংযুক্তি এবং ভিন্ন চেকার আবশ্যক। এক ক্লিকে অবলোপন নেই।')}
             </p>
           </div>
-          <span className={`lv-chip ${suspenseItems.length ? 'lv-chip-gold' : 'lv-chip-emerald'}`}>{suspenseItems.length} {L('items', 'আইটেম')}</span>
+          <span className={`ql-badge ${suspenseItems.length ? 'ql-badge-warn' : 'ql-badge-success'}`}>{suspenseItems.length} {L('items', 'আইটেম')}</span>
         </div>
         {suspenseAccounts.length === 0 ? (
           <p className="px-5 py-6 text-[13px] text-ink-500">
@@ -507,7 +507,7 @@ export default function ClosePage() {
           <p className="px-5 py-6 text-[13px] text-emerald-800">{L('Suspense account is clear.', 'সাসপেন্স হিসাব পরিষ্কার।')}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="lv-table min-w-[900px]">
+            <table className="ql-table min-w-[900px]">
               <thead>
                 <tr>
                   <th>{L('Journal', 'জার্নাল')}</th>
@@ -567,10 +567,10 @@ export default function ClosePage() {
               </label>
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || !resolveTarget || resolveReason.trim().length < 3 || resolveAttachment.trim().length < 3} onClick={requestSuspense}>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || !resolveTarget || resolveReason.trim().length < 3 || resolveAttachment.trim().length < 3} onClick={requestSuspense}>
                 {L('Submit for approval', 'অনুমোদনের জন্য জমা')}
               </button>
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => setResolveItem(null)}>{L('Cancel', 'বাতিল')}</button>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => setResolveItem(null)}>{L('Cancel', 'বাতিল')}</button>
             </div>
           </div>
         ) : null}
@@ -579,7 +579,7 @@ export default function ClosePage() {
           <div className="border-t border-ink-100 px-4 py-3">
             <p className="text-[12px] font-semibold uppercase tracking-wide text-ink-500">{L('Resolution history', 'নিষ্পত্তির ইতিহাস')}</p>
             <div className="mt-2 overflow-x-auto">
-              <table className="lv-table min-w-[920px]">
+              <table className="ql-table min-w-[920px]">
                 <thead>
                   <tr>
                     <th>{L('Journal', 'জার্নাল')}</th>
@@ -626,27 +626,27 @@ export default function ClosePage() {
               <textarea className={`${INPUT_CLASS} mt-1 min-h-20`} value={suspenseDecisionReason} maxLength={500} onChange={(event) => setSuspenseDecisionReason(event.target.value)} />
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
-              <button type="button" className="lv-btn lv-btn-primary min-h-11 text-[13px]" disabled={busy || suspenseDecisionReason.trim().length < 3} onClick={decideSuspense}>{L('Confirm decision', 'সিদ্ধান্ত নিশ্চিত')}</button>
-              <button type="button" className="lv-btn lv-btn-secondary min-h-11 text-[13px]" onClick={() => setSuspenseDecision(null)}>{L('Cancel', 'বাতিল')}</button>
+              <button type="button" className="ql-btn ql-btn-primary min-h-11 text-[13px]" disabled={busy || suspenseDecisionReason.trim().length < 3} onClick={decideSuspense}>{L('Confirm decision', 'সিদ্ধান্ত নিশ্চিত')}</button>
+              <button type="button" className="ql-btn ql-btn-secondary min-h-11 text-[13px]" onClick={() => setSuspenseDecision(null)}>{L('Cancel', 'বাতিল')}</button>
             </div>
           </div>
         ) : null}
       </section>
 
       {selectedRun ? (
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker">{L('Close evidence', 'সমাপনী প্রমাণ')}</p>
+              <p className="ql-kicker">{L('Close evidence', 'সমাপনী প্রমাণ')}</p>
               <h2 className="mt-1 text-[18px] font-semibold text-ink-900">{L('Maker, checker and history', 'মেকার, চেকার ও ইতিহাস')}</h2>
             </div>
             <span className="text-[12px] text-ink-500">{L('Snapshot', 'স্ন্যাপশট')} {selectedRun.snapshotHash?.slice(0, 12) ?? '—'}</span>
           </div>
           <div className="grid gap-3 border-t border-ink-100 px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div><p className="lv-kicker">{L('Maker', 'মেকার')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.preparedByName}</p><p className="text-[12px] text-ink-500">{formatInstant(selectedRun.preparedAt)}</p></div>
-            <div><p className="lv-kicker">{L('Submitter', 'জমাদানকারী')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.submittedByName ?? '—'}</p><p className="text-[12px] text-ink-500">{formatInstant(selectedRun.submittedAt)}</p></div>
-            <div><p className="lv-kicker">{L('Checker', 'চেকার')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.decidedByName ?? '—'}</p><p className="text-[12px] text-ink-500">{formatInstant(selectedRun.decidedAt)}</p></div>
-            <div><p className="lv-kicker">{L('Evidence', 'প্রমাণ')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.evidenceReference || '—'}</p><p className="text-[12px] text-ink-500">{selectedRun.evidenceNote ?? ''}</p></div>
+            <div><p className="ql-kicker">{L('Maker', 'মেকার')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.preparedByName}</p><p className="text-[12px] text-ink-500">{formatInstant(selectedRun.preparedAt)}</p></div>
+            <div><p className="ql-kicker">{L('Submitter', 'জমাদানকারী')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.submittedByName ?? '—'}</p><p className="text-[12px] text-ink-500">{formatInstant(selectedRun.submittedAt)}</p></div>
+            <div><p className="ql-kicker">{L('Checker', 'চেকার')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.decidedByName ?? '—'}</p><p className="text-[12px] text-ink-500">{formatInstant(selectedRun.decidedAt)}</p></div>
+            <div><p className="ql-kicker">{L('Evidence', 'প্রমাণ')}</p><p className="mt-0.5 text-[13px] font-semibold">{selectedRun.evidenceReference || '—'}</p><p className="text-[12px] text-ink-500">{selectedRun.evidenceNote ?? ''}</p></div>
           </div>
           <div className="border-t border-ink-100 px-4 py-3">
             <ol className="space-y-2">

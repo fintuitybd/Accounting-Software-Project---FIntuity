@@ -1,4 +1,4 @@
-// LedgerVault — Signature component #3: the Ledger Lens.
+// Fintuity Accounting Suite — Signature component #3: the Ledger Lens.
 //
 // A high-contrast slide-over microscope over one posted journal. It flips in 3D between a classic
 // T-account and the underlying journal voucher, proves the SHA-256 hash chain, and is the only place
@@ -295,7 +295,7 @@ export function LedgerLensModal({
 
         {/* Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface px-4 py-2">
-          <div className="lv-seg">
+          <div className="ql-seg">
             <TabButton active={tab === 'ENTRY'} onClick={() => setTab('ENTRY')} icon={<FileText size={12} />}>
               {L('Entry', 'এন্ট্রি')}
             </TabButton>
@@ -349,7 +349,7 @@ export function LedgerLensModal({
             <div className="flex flex-col items-center gap-2 py-16 text-center">
               <Layers size={28} className="text-ink-300" />
               <p className="text-sm font-semibold text-ink-700">{L('No journal selected', 'কোনো জার্নাল নির্বাচিত হয়নি')}</p>
-              <p className="lv-hint max-w-sm">
+              <p className="ql-hint max-w-sm">
                 {L('Open the Ledger Lens from any invoice, bill, challan, bank line or journal row.', 'যেকোনো চালান, বিল, চালান, ব্যাংক লাইন বা জার্নাল সারি থেকে লেজার লেন্স খুলুন।')}
               </p>
             </div>
@@ -399,7 +399,7 @@ export function LedgerLensModal({
               ) : null}
 
               <div className="rounded-xl border border-line bg-surface p-3">
-                <p className="lv-kicker mb-1">{L('Narration', 'বিবরণ')}</p>
+                <p className="ql-kicker mb-1">{L('Narration', 'বিবরণ')}</p>
                 <p className="text-[11.5px] leading-relaxed text-ink-700">{current.narration_en}</p>
                 <p className="mt-1 font-bangla text-[11.5px] leading-relaxed text-ink-600">{current.narration_bn}</p>
               </div>
@@ -490,7 +490,7 @@ export function LedgerLensModal({
                 <>
                   <div className="rounded-xl border border-line bg-surface p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="lv-label">{L('Mandatory audit reason', 'বাধ্যতামূলক অডিট কারণ')}</span>
+                      <span className="ql-label">{L('Mandatory audit reason', 'বাধ্যতামূলক অডিট কারণ')}</span>
                       <span className={`font-mono text-[9px] ${reason.trim().length >= 8 ? 'text-emerald-600' : 'text-ink-400'}`}>
                         {reason.trim().length}/8 {L('chars', 'অক্ষর')}
                       </span>
@@ -500,7 +500,7 @@ export function LedgerLensModal({
                       onChange={(event) => setReason(event.target.value)}
                       rows={3}
                       placeholder={L('e.g. Vendor TIN was wrong; the bill was re-entered against the correct supplier.', 'যেমন: ভেন্ডরের টিআইএন ভুল ছিল; বিলটি সঠিক সরবরাহকারীর বিরুদ্ধে পুনঃএন্ট্রি করা হয়েছে।')}
-                      className="lv-input mt-1.5 min-h-[84px] resize-y text-[12px] leading-relaxed"
+                      className="ql-input mt-1.5 min-h-[84px] resize-y text-[12px] leading-relaxed"
                     />
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {REASON_PRESETS.map((preset) => (
@@ -535,7 +535,7 @@ export function LedgerLensModal({
                     type="button"
                     onClick={handleReverse}
                     disabled={!canReverse}
-                    className="lv-btn w-full bg-rose-600 text-white hover:bg-rose-700 disabled:hover:bg-rose-600"
+                    className="ql-btn w-full bg-rose-600 text-white hover:bg-rose-700 disabled:hover:bg-rose-600"
                   >
                     <RotateCcw size={14} />
                     {reversing ? L('Reversing…', 'রিভার্স হচ্ছে…') : L('Reverse entry with mandatory audit reason', 'বাধ্যতামূলক অডিট কারণসহ এন্ট্রি রিভার্স করুন')}
@@ -568,7 +568,7 @@ export function LedgerLensModal({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={onClose} className="lv-btn lv-btn-ghost !py-1.5">
+            <button type="button" onClick={onClose} className="ql-btn ql-btn-ghost !py-1.5">
               {L('Close lens', 'লেন্স বন্ধ')} <ArrowRight size={13} />
             </button>
           </div>
@@ -728,7 +728,7 @@ function VoucherCard({
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
-        <table className="lv-table">
+        <table className="ql-table">
           <thead>
             <tr>
               <th className="w-8">#</th>
@@ -775,7 +775,7 @@ function VoucherCard({
 
 function TabButton({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: ReactNode; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} data-active={active ? 'true' : 'false'} className="lv-seg-item">
+    <button type="button" onClick={onClick} data-active={active ? 'true' : 'false'} className="ql-seg-item">
       {icon} {children}
     </button>
   );

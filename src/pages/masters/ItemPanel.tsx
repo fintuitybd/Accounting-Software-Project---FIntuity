@@ -309,7 +309,7 @@ export function ItemPanel({ initialSearch = '' }: { initialSearch?: string }) {
                   <td className="px-3 py-2 font-mono text-[12px]">
                     {item.inventoryAccountCode || '—'}<br />{item.expenseAccountCode || '—'}
                   </td>
-                  <td className="px-3 py-2"><span className={item.status === 'ACTIVE' ? 'lv-chip lv-chip-emerald' : 'lv-chip lv-chip-neutral'}>{item.status}</span></td>
+                  <td className="px-3 py-2"><span className={item.status === 'ACTIVE' ? 'ql-badge ql-badge-success' : 'ql-badge ql-badge-neutral'}>{item.status}</span></td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1.5">
                       {canManage ? (

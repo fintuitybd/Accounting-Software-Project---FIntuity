@@ -1,4 +1,4 @@
-// LedgerVault — W12 firm cockpit + rule-pack "What Changed?" impact simulator.
+// Fintuity Accounting Suite — W12 firm cockpit + rule-pack "What Changed?" impact simulator.
 //
 // Left brain of a practising chartered-accountancy firm: 60 concurrent clients, their statutory
 // deadlines, filing readiness and the one click that moves the working context. Right brain: the
@@ -113,9 +113,9 @@ function buildClients(): FirmClient[] {
 const CLIENTS = buildClients();
 
 const STATUS_META: Record<ClientStatus, { en: string; bn: string; tone: string; bar: string }> = {
-  READY: { en: 'Filing ready', bn: 'দাখিল প্রস্তুত', tone: 'lv-chip-emerald', bar: 'bg-vault-600' },
-  IN_PROGRESS: { en: 'In progress', bn: 'চলমান', tone: 'lv-chip-gold', bar: 'bg-gold-500' },
-  AT_RISK: { en: 'At risk', bn: 'ঝুঁকিতে', tone: 'lv-chip-rose', bar: 'bg-rose-500' },
+  READY: { en: 'Filing ready', bn: 'দাখিল প্রস্তুত', tone: 'ql-badge-success', bar: 'bg-vault-600' },
+  IN_PROGRESS: { en: 'In progress', bn: 'চলমান', tone: 'ql-badge-warn', bar: 'bg-gold-500' },
+  AT_RISK: { en: 'At risk', bn: 'ঝুঁকিতে', tone: 'ql-badge-danger', bar: 'bg-rose-500' },
   BLOCKED: { en: 'Blocked', bn: 'অবরুদ্ধ', tone: 'bg-rose-100 text-rose-800', bar: 'bg-rose-700' },
 };
 
@@ -191,20 +191,20 @@ export function FirmCockpit() {
   const daysToDue = daysBetween(TODAY, active.due);
 
   return (
-    <section className="lv-card overflow-hidden">
-      <div className="lv-card-header">
+    <section className="ql-card overflow-hidden">
+      <div className="ql-card-header">
         <div>
-          <p className="lv-kicker flex items-center gap-1.5"><Users size={12} /> {L('Multi-client firm cockpit', 'মাল্টি-ক্লায়েন্ট ফার্ম ককপিট')}</p>
+          <p className="ql-kicker flex items-center gap-1.5"><Users size={12} /> {L('Multi-client firm cockpit', 'মাল্টি-ক্লায়েন্ট ফার্ম ককপিট')}</p>
           <h2 className="mt-1 text-base font-semibold text-ink-900">{FIRM_NAME}</h2>
-          <p className="lv-hint mt-1">
+          <p className="ql-hint mt-1">
             {CLIENTS.length} {L('live engagements', 'সক্রিয় এনগেজমেন্ট')} · {summary.next7.length} {L('due this week', 'এই সপ্তাহে বাকি')} ·{' '}
             {summary.overdue.length} {L('overdue', 'বিলম্বিত')} · {activeRules('2026-11-02').length} {L('active rules in', 'সক্রিয় নিয়ম')} {RULE_PACK_VERSION}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
-          <span className="lv-chip lv-chip-emerald"><CheckCircle2 size={11} /> {summary.ready} {L('ready', 'প্রস্তুত')}</span>
-          <span className="lv-chip lv-chip-gold"><ClipboardCheck size={11} /> {summary.progress}</span>
-          <span className="lv-chip lv-chip-rose"><Flame size={11} /> {summary.risk + summary.blocked}</span>
+          <span className="ql-badge ql-badge-success"><CheckCircle2 size={11} /> {summary.ready} {L('ready', 'প্রস্তুত')}</span>
+          <span className="ql-badge ql-badge-warn"><ClipboardCheck size={11} /> {summary.progress}</span>
+          <span className="ql-badge ql-badge-danger"><Flame size={11} /> {summary.risk + summary.blocked}</span>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ export function FirmCockpit() {
           </div>
 
           <div className="max-h-[390px] overflow-auto">
-            <table className="lv-table min-w-[720px]">
+            <table className="ql-table min-w-[720px]">
               <thead>
                 <tr>
                   <th>{L('Client', 'ক্লায়েন্ট')}</th>
@@ -287,7 +287,7 @@ export function FirmCockpit() {
                         </div>
                       </td>
                       <td>
-                        <span className={`lv-chip ${meta.tone} !px-1.5 !py-0 text-[9px]`}>{L(meta.en, meta.bn)}</span>
+                        <span className={`ql-badge ${meta.tone} !px-1.5 !py-0 text-[9px]`}>{L(meta.en, meta.bn)}</span>
                       </td>
                       <td className="text-right">
                         <button
@@ -324,7 +324,7 @@ export function FirmCockpit() {
                 {L(active.engagement.en, active.engagement.bn)} · {active.entity.replace(/_/g, ' ')} · {active.manager}
               </p>
             </div>
-            <span className={`lv-chip ${STATUS_META[active.status].tone}`}>{L(STATUS_META[active.status].en, STATUS_META[active.status].bn)}</span>
+            <span className={`ql-badge ${STATUS_META[active.status].tone}`}>{L(STATUS_META[active.status].en, STATUS_META[active.status].bn)}</span>
           </div>
 
           <div className="mt-3 grid grid-cols-3 gap-2">
@@ -345,7 +345,7 @@ export function FirmCockpit() {
           </div>
 
           <div className="mt-3">
-            <p className="lv-kicker flex items-center gap-1.5"><FileCheck2 size={11} /> {L('Filing readiness checklist', 'দাখিল প্রস্তুতি চেকলিস্ট')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><FileCheck2 size={11} /> {L('Filing readiness checklist', 'দাখিল প্রস্তুতি চেকলিস্ট')}</p>
             <ul className="mt-1.5 space-y-1">
               {active.checklist.map((item) => (
                 <li key={item.en} className="flex items-start gap-1.5 text-[10px]">
@@ -363,7 +363,7 @@ export function FirmCockpit() {
           <div className="mt-3 grid gap-1.5">
             <button
               type="button"
-              className="lv-btn lv-btn-primary !py-1.5 text-[11px]"
+              className="ql-btn ql-btn-primary !py-1.5 text-[11px]"
               onClick={() => {
                 vault.publishToast({
                   tone: 'success',
@@ -376,15 +376,15 @@ export function FirmCockpit() {
               <ClipboardCheck size={13} /> {L('Open close & control', 'সমাপনী ও নিয়ন্ত্রণ খুলুন')}
             </button>
             <div className="grid grid-cols-2 gap-1.5">
-              <button type="button" className="lv-btn lv-btn-ghost !py-1 text-[10px]" onClick={() => navigate('W08')}>
+              <button type="button" className="ql-btn ql-btn-ghost !py-1 text-[10px]" onClick={() => navigate('W08')}>
                 <FileCheck2 size={11} /> {L('Statements', 'বিবরণী')}
               </button>
-              <button type="button" className="lv-btn lv-btn-ghost !py-1 text-[10px]" onClick={() => navigate('W11')}>
+              <button type="button" className="ql-btn ql-btn-ghost !py-1 text-[10px]" onClick={() => navigate('W11')}>
                 <Gavel size={11} /> {L('Notices', 'নোটিশ')}
               </button>
             </div>
             {active.persona && (
-              <button type="button" className="lv-btn lv-btn-secondary !py-1 text-[10px]" onClick={() => loadLedger(active)}>
+              <button type="button" className="ql-btn ql-btn-secondary !py-1 text-[10px]" onClick={() => loadLedger(active)}>
                 <ArrowUpRight size={11} /> {L('Load this client ledger', 'এই ক্লায়েন্টের খতিয়ান লোড')}
               </button>
             )}
@@ -508,21 +508,21 @@ export function RuleImpactSimulator() {
   ];
 
   return (
-    <section className="lv-card overflow-hidden">
-      <div className="lv-card-header">
+    <section className="ql-card overflow-hidden">
+      <div className="ql-card-header">
         <div>
-          <p className="lv-kicker flex items-center gap-1.5"><Sparkles size={12} /> {L('What changed?', 'কী পরিবর্তন হলো?')}</p>
+          <p className="ql-kicker flex items-center gap-1.5"><Sparkles size={12} /> {L('What changed?', 'কী পরিবর্তন হলো?')}</p>
           <h2 className="mt-1 text-base font-semibold text-ink-900">
             {PRIOR_PACK} → {RULE_PACK_VERSION} {L('impact simulator', 'প্রভাব সিমুলেটর')}
           </h2>
-          <p className="lv-hint mt-1">
+          <p className="ql-hint mt-1">
             {L(
               'Priced against a real client book: filing frequency, cash timing and the no-TIN upscale.',
               'বাস্তব ক্লায়েন্ট বইয়ের বিপরীতে মূল্যায়িত: ফাইলিং হার, নগদ সময় ও টিআইএন-বিহীন জরিমানা।',
             )}
           </p>
         </div>
-        <span className="lv-chip lv-chip-gold"><BadgeCheck size={12} /> {activeRules('2026-11-02').length} {L('active rules', 'সক্রিয় নিয়ম')}</span>
+        <span className="ql-badge ql-badge-warn"><BadgeCheck size={12} /> {activeRules('2026-11-02').length} {L('active rules', 'সক্রিয় নিয়ম')}</span>
       </div>
 
       <div className="grid gap-0 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
@@ -530,7 +530,7 @@ export function RuleImpactSimulator() {
           <div className="grid gap-2 sm:grid-cols-2">
             {inputs.map((input) => (
               <label key={input.label_en} className="block">
-                <span className="lv-kicker">{L(input.label_en, input.label_bn)}</span>
+                <span className="ql-kicker">{L(input.label_en, input.label_bn)}</span>
                 <input
                   type="number"
                   min={0}
@@ -541,12 +541,12 @@ export function RuleImpactSimulator() {
                     const next = Number(event.target.value);
                     input.setValue(Number.isFinite(next) ? Math.max(0, next) : 0);
                   }}
-                  className="lv-input mt-0.5 w-full !py-1 text-right font-mono text-[11px]"
+                  className="ql-input mt-0.5 w-full !py-1 text-right font-mono text-[11px]"
                 />
               </label>
             ))}
             <label className="block sm:col-span-2">
-              <span className="lv-kicker">{L('Working-capital cost of money (bps)', 'কার্যকরী মূলধন ব্যয় (বেসিস পয়েন্ট)')}</span>
+              <span className="ql-kicker">{L('Working-capital cost of money (bps)', 'কার্যকরী মূলধন ব্যয় (বেসিস পয়েন্ট)')}</span>
               <input
                 type="range"
                 min={0}
@@ -554,14 +554,14 @@ export function RuleImpactSimulator() {
                 step={25}
                 value={discountBps}
                 onChange={(event) => setDiscountBps(Number(event.target.value))}
-                className="lv-range mt-1 w-full"
+                className="ql-range mt-1 w-full"
               />
               <span className="font-money text-[10px] text-ink-500">{(discountBps / 100).toFixed(2)}%</span>
             </label>
           </div>
 
           <div className="rounded-xl border border-ink-200 bg-ink-50 px-3 py-2.5">
-            <p className="lv-kicker">{L('Annualised cost of the change', 'পরিবর্তনের বার্ষিক ব্যয়')}</p>
+            <p className="ql-kicker">{L('Annualised cost of the change', 'পরিবর্তনের বার্ষিক ব্যয়')}</p>
             <p className="font-money mt-1 border-b-4 border-double border-ink-900 pb-0.5 text-lg font-semibold text-ink-900">
               {vault.money(totalCost)}
             </p>
@@ -593,7 +593,7 @@ export function RuleImpactSimulator() {
             <article key={change.title_en} className="rounded-xl border border-ink-100 bg-white px-3 py-2.5">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-[11px] font-semibold text-ink-900">{L(change.title_en, change.title_bn)}</p>
-                <span className="lv-chip lv-chip-neutral !px-1.5 !py-0 text-[8px]">{change.domain}</span>
+                <span className="ql-badge ql-badge-neutral !px-1.5 !py-0 text-[8px]">{change.domain}</span>
               </div>
               <div className="mt-1.5 grid gap-1 sm:grid-cols-2">
                 <p className="rounded-md bg-ink-50 px-2 py-1 text-[9px] leading-relaxed text-ink-500">

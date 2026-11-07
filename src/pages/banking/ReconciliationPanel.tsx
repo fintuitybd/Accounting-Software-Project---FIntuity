@@ -166,10 +166,10 @@ export function ReconciliationPanel({
 
   return (
     <div className="space-y-4">
-      <section className="lv-card p-4 sm:p-5">
+      <section className="ql-card p-4 sm:p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="lv-kicker">Account and period control</p>
+            <p className="ql-kicker">Account and period control</p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink-900">{bankName}</h2>
             <p className="mt-1 text-[13px] leading-relaxed text-ink-500">
               A reconciliation is prepared from imported statement lines and posted GL movement. The preparer and reviewer must be
@@ -178,7 +178,7 @@ export function ReconciliationPanel({
           </div>
           <label className="min-w-[260px] text-[12px] font-semibold text-ink-600">
             Accounting period
-            <select className="lv-select mt-1 min-h-11 w-full text-[13px]" value={periodId} onChange={(event) => onPeriodChange(event.target.value)}>
+            <select className="ql-select mt-1 min-h-11 w-full text-[13px]" value={periodId} onChange={(event) => onPeriodChange(event.target.value)}>
               <option value="">Choose period</option>
               {periodOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -270,21 +270,21 @@ export function ReconciliationPanel({
 
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
               <div className="rounded-xl border border-line bg-surface-2/40 p-3">
-                <p className="lv-kicker flex items-center gap-1.5"><ShieldCheck size={13} /> Preparer</p>
+                <p className="ql-kicker flex items-center gap-1.5"><ShieldCheck size={13} /> Preparer</p>
                 <p className="mt-1 text-[13px] font-semibold text-ink-900">{reconciliation.preparedByName ?? 'Not prepared'}</p>
                 <p className="mt-1 text-[12px] text-ink-500">{reconciliation.preparedAt ? formatDate(reconciliation.preparedAt) : 'Prepare the reconciliation to record the maker.'}</p>
                 <button
                   type="button"
                   onClick={() => void prepare()}
                   disabled={busy || !canPrepare || reconciliation.status === 'REVIEWED' || reconciliation.status === 'LOCKED'}
-                  className="lv-btn lv-btn-secondary mt-3 min-h-11 w-full text-[13px]"
+                  className="ql-btn ql-btn-secondary mt-3 min-h-11 w-full text-[13px]"
                 >
                   {busy ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                   {reconciliation.status === 'DRAFT' ? 'Prepare reconciliation' : 'Re-prepare reconciliation'}
                 </button>
               </div>
               <div className="rounded-xl border border-line bg-surface-2/40 p-3">
-                <p className="lv-kicker flex items-center gap-1.5"><LockKeyhole size={13} /> Reviewer sign-off</p>
+                <p className="ql-kicker flex items-center gap-1.5"><LockKeyhole size={13} /> Reviewer sign-off</p>
                 <p className="mt-1 text-[13px] font-semibold text-ink-900">{reconciliation.reviewedByName ?? 'Awaiting review'}</p>
                 <p className="mt-1 text-[12px] text-ink-500">{reconciliation.reviewedAt ? formatDate(reconciliation.reviewedAt) : 'A different controller or administrator must review.'}</p>
                 {reconciliation.status === 'PREPARED' ? (
@@ -295,7 +295,7 @@ export function ReconciliationPanel({
                     <Field label="Evidence reference">
                       <input className={INPUT_CLASS} value={evidenceReference} onChange={(event) => setEvidenceReference(event.target.value)} maxLength={500} />
                     </Field>
-                    <button type="button" onClick={() => void review()} disabled={busy || !canSelfReview} className="lv-btn lv-btn-primary min-h-11 w-full text-[13px]">
+                    <button type="button" onClick={() => void review()} disabled={busy || !canSelfReview} className="ql-btn ql-btn-primary min-h-11 w-full text-[13px]">
                       {busy ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={15} />} Review and sign off
                     </button>
                     {!canSelfReview ? (
@@ -317,7 +317,7 @@ export function ReconciliationPanel({
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={() => void download()} disabled={busy || !canExport || !reconciliation.id} className="lv-btn lv-btn-secondary min-h-11 text-[13px]">
+              <button type="button" onClick={() => void download()} disabled={busy || !canExport || !reconciliation.id} className="ql-btn ql-btn-secondary min-h-11 text-[13px]">
                 <Download size={15} /> Export reconciliation report (CSV)
               </button>
               {!canExport ? <span className="self-center text-[12px] text-ink-400">Export permission is required.</span> : null}
@@ -328,13 +328,13 @@ export function ReconciliationPanel({
         )}
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker">Sign-off history</p>
+            <p className="ql-kicker">Sign-off history</p>
             <h2 className="mt-1 text-[18px] font-semibold text-ink-900">{bankName}</h2>
           </div>
-          <span className="lv-chip lv-chip-neutral">{history.length} reconciliation(s)</span>
+          <span className="ql-badge ql-badge-neutral">{history.length} reconciliation(s)</span>
         </div>
         {history.length === 0 ? (
           <p className="px-4 py-6 text-[13px] text-ink-500">No reconciliation has been prepared for this account.</p>

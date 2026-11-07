@@ -1,4 +1,4 @@
-﻿// LedgerVault — shell entry.
+﻿// Fintuity Accounting Suite — shell entry.
 //
 // Production loads only the server-backed shell. The synthetic demo is an explicit, separately
 // loaded chunk used when VITE_DEMO_MODE=true; it is never the default and cannot share real books.

@@ -1,4 +1,4 @@
-// LedgerVault — Phase 2 dynamic IAS 1 / IFRS 18 / IAS 7 financial statements.
+// Fintuity Accounting Suite — Phase 2 dynamic IAS 1 / IFRS 18 / IAS 7 financial statements.
 //
 // Single-ledger derivation invariant (SPEC §0.4): NOTHING in this file is a hard-coded statement
 // amount. Every trial balance, balance sheet, profit-or-loss line, equity movement, cash flow and

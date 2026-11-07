@@ -1,4 +1,4 @@
-// LedgerVault — W06 Banking, MFS & reconciliation.
+// Fintuity Accounting Suite — W06 Banking, MFS & reconciliation.
 //
 // City Bank, BRAC Bank, bKash Merchant, Nagad Merchant and petty cash on one ledger. The workbench
 // pairs imported statement lines with the exact GL journal (or the nearest invoice/bill), separates
@@ -268,8 +268,8 @@ export default function W06_BankingMfsReconcile() {
         isBn={isBn}
         chips={
           <>
-            <span className="lv-chip lv-chip-gold"><Coins size={12} /> {L('Synthetic demo · fee rate is not a policy', 'কৃত্রিম ডেমো · ফি হার কোনো নীতি নয়')}</span>
-            <span className={`lv-chip ${counts.unmatched ? 'lv-chip-rose' : 'lv-chip-emerald'}`}>
+            <span className="ql-badge ql-badge-warn"><Coins size={12} /> {L('Synthetic demo · fee rate is not a policy', 'কৃত্রিম ডেমো · ফি হার কোনো নীতি নয়')}</span>
+            <span className={`ql-badge ${counts.unmatched ? 'ql-badge-danger' : 'ql-badge-success'}`}>
               {counts.unmatched ? <TriangleAlert size={12} /> : <ShieldCheck size={12} />} {counts.unmatched} {L('unmatched', 'অমিলিত')}
             </span>
           </>
@@ -294,11 +294,11 @@ export default function W06_BankingMfsReconcile() {
                 key={account.id}
                 type="button"
                 onClick={() => { setActiveAccount(active ? 'ALL' : account.account_code); setSelectedLineId(null); }}
-                className={`lv-card group relative overflow-hidden border bg-gradient-to-br p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lift ${accent.card} ${active ? 'ring-2 ring-vault-400' : ''}`}
+                className={`ql-card group relative overflow-hidden border bg-gradient-to-br p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lift ${accent.card} ${active ? 'ring-2 ring-vault-400' : ''}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className={`grid h-8 w-8 place-items-center rounded-lg ${accent.icon}`}>{iconFor(account.kind)}</span>
-                  <span className="lv-chip lv-chip-neutral">{account.kind}</span>
+                  <span className="ql-badge ql-badge-neutral">{account.kind}</span>
                 </div>
                 <p className="mt-2 truncate text-[11px] font-semibold text-ink-900">{isBn ? account.name_bn : account.name_en}</p>
                 <p className="font-mono text-[9px] text-ink-400">{account.provider} · {account.masked_number}</p>
@@ -320,37 +320,37 @@ export default function W06_BankingMfsReconcile() {
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="lv-card lv-card-pad">
-            <p className="lv-kicker">{L('Total cash & bank', 'মোট নগদ ও ব্যাংক')}</p>
+          <article className="ql-card ql-card-pad">
+            <p className="ql-kicker">{L('Total cash & bank', 'মোট নগদ ও ব্যাংক')}</p>
             <p className="font-money mt-2 text-lg font-semibold text-ink-900">{money(cashTotal)}</p>
           </article>
-          <article className="lv-card lv-card-pad">
-            <p className="lv-kicker">{L('Reconciled', 'মিলিত')}</p>
+          <article className="ql-card ql-card-pad">
+            <p className="ql-kicker">{L('Reconciled', 'মিলিত')}</p>
             <p className="font-money mt-2 text-lg font-semibold text-emerald-700">{counts.matched}</p>
             <p className="text-[9.5px] text-ink-400">{statementLines.length ? `${Math.round((counts.matched / statementLines.length) * 100)}%` : '0%'} {L('of statement lines', 'স্টেটমেন্ট লাইন')}</p>
           </article>
-          <article className="lv-card lv-card-pad">
-            <p className="lv-kicker">{L('MFS fees in view', 'ভিউতে এমএফএস ফি')}</p>
+          <article className="ql-card ql-card-pad">
+            <p className="ql-kicker">{L('MFS fees in view', 'ভিউতে এমএফএস ফি')}</p>
             <p className="font-money mt-2 text-lg font-semibold text-rose-600">{money(feeControl.fee)}</p>
             <p className="text-[9.5px] text-ink-400">{feeControl.count} {L('settlements at 1.5%', 'নিষ্পত্তি ১.৫% হারে')}</p>
           </article>
-          <article className="lv-card lv-card-pad">
-            <p className="lv-kicker">{L('Categorised for review', 'পর্যালোচনার জন্য শ্রেণিবদ্ধ')}</p>
+          <article className="ql-card ql-card-pad">
+            <p className="ql-kicker">{L('Categorised for review', 'পর্যালোচনার জন্য শ্রেণিবদ্ধ')}</p>
             <p className="font-money mt-2 text-lg font-semibold text-amber-600">{counts.categorized}</p>
           </article>
         </section>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="lv-seg">
+          <div className="ql-seg">
             {(['ALL', 'UNMATCHED', 'MATCHED'] as StatusFilter[]).map((value) => (
-              <button key={value} type="button" className="lv-seg-item" data-active={statusFilter === value} onClick={() => setStatusFilter(value)}>
+              <button key={value} type="button" className="ql-seg-item" data-active={statusFilter === value} onClick={() => setStatusFilter(value)}>
                 {value === 'ALL' ? L('All', 'সব') : value === 'UNMATCHED' ? L('Unmatched', 'অমিলিত') : L('Matched', 'মিলিত')}
               </button>
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[10px] text-ink-400">{activeLabel} · {visible.length} {L('lines', 'লাইন')}</span>
-            <button type="button" className="lv-btn lv-btn-primary !py-1.5" onClick={reconcileAllMatched} disabled={busy}>
+            <button type="button" className="ql-btn ql-btn-primary !py-1.5" onClick={reconcileAllMatched} disabled={busy}>
               <RefreshCw size={13} /> {busy ? L('Reconciling…', 'মিলছে…') : L('Reconcile all matched', 'সব মিলিত মেলান')} ({visible.filter((line) => line.status === 'UNMATCHED' && exactCandidates(line).length > 0).length})
             </button>
           </div>
@@ -364,16 +364,16 @@ export default function W06_BankingMfsReconcile() {
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           {/* Left: statement lines */}
-          <section className="lv-card overflow-hidden">
-            <div className="lv-card-header">
+          <section className="ql-card overflow-hidden">
+            <div className="ql-card-header">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5"><ScanLine size={12} /> {L('Imported statement lines', 'আমদানি করা স্টেটমেন্ট লাইন')}</p>
+                <p className="ql-kicker flex items-center gap-1.5"><ScanLine size={12} /> {L('Imported statement lines', 'আমদানি করা স্টেটমেন্ট লাইন')}</p>
                 <h2 className="mt-1 text-base font-semibold text-ink-900">{activeLabel}</h2>
               </div>
-              <span className="lv-chip lv-chip-neutral">{visible.length} {L('lines', 'লাইন')}</span>
+              <span className="ql-badge ql-badge-neutral">{visible.length} {L('lines', 'লাইন')}</span>
             </div>
             <div className="max-h-[640px] overflow-auto">
-              <table className="lv-table min-w-[660px]">
+              <table className="ql-table min-w-[660px]">
                 <thead>
                   <tr>
                     <th>{L('Date', 'তারিখ')}</th>
@@ -412,7 +412,7 @@ export default function W06_BankingMfsReconcile() {
                           ) : <span className="text-ink-300">—</span>}
                         </td>
                         <td>
-                          <span className={`lv-chip ${line.status === 'MATCHED' ? 'lv-chip-emerald' : line.status === 'CATEGORIZED' ? 'lv-chip-gold' : 'lv-chip-rose'}`}>{line.status}</span>
+                          <span className={`ql-badge ${line.status === 'MATCHED' ? 'ql-badge-success' : line.status === 'CATEGORIZED' ? 'ql-badge-warn' : 'ql-badge-danger'}`}>{line.status}</span>
                         </td>
                       </tr>
                     );
@@ -430,7 +430,7 @@ export default function W06_BankingMfsReconcile() {
           </section>
 
           {/* Right: reconciliation workbench */}
-          <section className="lv-card overflow-hidden xl:sticky xl:top-24 xl:self-start">
+          <section className="ql-card overflow-hidden xl:sticky xl:top-24 xl:self-start">
             <div className="border-b border-ink-100 bg-gradient-to-r from-ink-900 via-vault-950 to-vault-900 px-4 py-3 text-white">
               <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-vault-200">{L('Reconciliation workbench', 'মিলকরণ ওয়ার্কবেঞ্চ')}</p>
               <h2 className="mt-0.5 text-sm font-semibold">{L('Statement line ↔ GL entry', 'স্টেটমেন্ট লাইন ↔ জিএল এন্ট্রি')}</h2>
@@ -450,7 +450,7 @@ export default function W06_BankingMfsReconcile() {
                       <p className="truncate text-[10.5px] font-semibold text-ink-800">{selectedLine.description}</p>
                       <p className="font-mono text-[9px] text-ink-400">{selectedLine.reference} · {formatDate(selectedLine.date, locale)}</p>
                     </div>
-                    <span className={`lv-chip ${selectedLine.status === 'MATCHED' ? 'lv-chip-emerald' : selectedLine.status === 'CATEGORIZED' ? 'lv-chip-gold' : 'lv-chip-rose'}`}>{selectedLine.status}</span>
+                    <span className={`ql-badge ${selectedLine.status === 'MATCHED' ? 'ql-badge-success' : selectedLine.status === 'CATEGORIZED' ? 'ql-badge-warn' : 'ql-badge-danger'}`}>{selectedLine.status}</span>
                   </div>
                   <div className="mt-2 grid grid-cols-3 gap-2 text-center">
                     <div className="rounded-lg bg-white px-2 py-1 ring-1 ring-ink-100">
@@ -470,7 +470,7 @@ export default function W06_BankingMfsReconcile() {
 
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="lv-kicker flex items-center gap-1.5"><ArrowRightLeft size={11} /> {L('GL candidates', 'জিএল প্রার্থী')}</p>
+                    <p className="ql-kicker flex items-center gap-1.5"><ArrowRightLeft size={11} /> {L('GL candidates', 'জিএল প্রার্থী')}</p>
                     <span className="text-[9px] text-ink-400">{exact.length ? L('exact amount match', 'হুবহু অঙ্ক মিল') : L('nearest entries', 'নিকটতম এন্ট্রি')}</span>
                   </div>
                   <div className="mt-1.5 space-y-1.5">
@@ -480,7 +480,7 @@ export default function W06_BankingMfsReconcile() {
                         <div key={journal.id} className={`rounded-xl border px-2.5 py-2 ${index === 0 ? 'border-emerald-200 bg-emerald-50/60' : 'border-ink-100 bg-white'}`}>
                           <div className="flex items-center justify-between gap-2">
                             <p className="font-mono text-[10px] font-semibold text-ink-900">{journal.journal_number}</p>
-                            <span className={`lv-chip ${index === 0 ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}>{index === 0 ? L('Best match', 'সেরা মিল') : L('Nearby', 'নিকটবর্তী')}</span>
+                            <span className={`ql-badge ${index === 0 ? 'ql-badge-success' : 'ql-badge-neutral'}`}>{index === 0 ? L('Best match', 'সেরা মিল') : L('Nearby', 'নিকটবর্তী')}</span>
                           </div>
                           <p className="mt-0.5 truncate text-[9.5px] text-ink-500">{isBn ? journal.narration_bn : journal.narration_en}</p>
                           <div className="mt-1 flex items-center justify-between gap-2 text-[9px] text-ink-400">
@@ -498,7 +498,7 @@ export default function W06_BankingMfsReconcile() {
 
                 {documents.length > 0 ? (
                   <div>
-                    <p className="lv-kicker flex items-center gap-1.5"><CreditCard size={11} /> {L('Invoice / bill candidates', 'চালান / বিল প্রার্থী')}</p>
+                    <p className="ql-kicker flex items-center gap-1.5"><CreditCard size={11} /> {L('Invoice / bill candidates', 'চালান / বিল প্রার্থী')}</p>
                     <div className="mt-1.5 space-y-1">
                       {documents.map((doc) => (
                         <div key={doc.id} className="flex items-center justify-between gap-2 rounded-lg border border-ink-100 bg-white px-2.5 py-1.5">
@@ -514,7 +514,7 @@ export default function W06_BankingMfsReconcile() {
                 ) : null}
 
                 <div className="rounded-xl border border-ink-100 bg-ink-50/60 p-2.5">
-                  <p className="lv-kicker flex items-center gap-1.5"><CircleDollarSign size={11} /> {L('Fee journal preview', 'ফি খতিয়ান প্রাকদর্শন')}</p>
+                  <p className="ql-kicker flex items-center gap-1.5"><CircleDollarSign size={11} /> {L('Fee journal preview', 'ফি খতিয়ান প্রাকদর্শন')}</p>
                   <p className="mt-1 flex items-center justify-between gap-2 font-mono text-[9.5px] text-ink-600">
                     <span>Dr 5820 · {L('Finance cost', 'অর্থ ব্যয়')}</span>
                     <span className="font-money">{money(selectedSplit.fee, { symbol: false })}</span>
@@ -532,7 +532,7 @@ export default function W06_BankingMfsReconcile() {
                   type="button"
                   onClick={() => { setBusy(true); reconcile(selectedLine); setBusy(false); }}
                   disabled={selectedLine.status === 'MATCHED' || busy}
-                  className="lv-btn lv-btn-primary w-full"
+                  className="ql-btn ql-btn-primary w-full"
                 >
                   <ArrowRightLeft size={14} />
                   {selectedLine.status === 'MATCHED' ? L('Reconciled', 'মিলিত') : selectedSplit.fee > 0n ? L('Reconcile & post fee', 'মিলান ও ফি পোস্ট করুন') : L('Reconcile line', 'লাইন মিলান')}
@@ -546,10 +546,10 @@ export default function W06_BankingMfsReconcile() {
         </div>
 
         <section className="grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <div className="lv-card lv-card-pad">
+          <div className="ql-card ql-card-pad">
             <div className="flex items-center justify-between gap-2">
-              <p className="lv-kicker flex items-center gap-1.5"><CircleDollarSign size={12} /> {L('MFS fee control', 'এমএফএস ফি নিয়ন্ত্রণ')}</p>
-              <span className="lv-chip lv-chip-gold">1.50%</span>
+              <p className="ql-kicker flex items-center gap-1.5"><CircleDollarSign size={12} /> {L('MFS fee control', 'এমএফএস ফি নিয়ন্ত্রণ')}</p>
+              <span className="ql-badge ql-badge-warn">1.50%</span>
             </div>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               <div className="rounded-xl bg-ink-50 p-3">
@@ -565,11 +565,11 @@ export default function W06_BankingMfsReconcile() {
                 <p className="font-money mt-1 text-sm font-semibold text-vault-800">{money(feeControl.net)}</p>
               </div>
             </div>
-            <p className="lv-hint mt-3">{L('Fee is separated on every MFS settlement line before matching; posted fees are sealed as a Dr 5820 / Cr MFS journal.', 'মিলকরণের আগে প্রতিটি এমএফএস নিষ্পত্তি লাইনে ফি বিভক্ত হয়; পোস্টেড ফি ডেবিট ৫৮২০ / ক্রেডিট এমএফএস খতিয়ান হিসেবে সিল হয়।')}</p>
+            <p className="ql-hint mt-3">{L('Fee is separated on every MFS settlement line before matching; posted fees are sealed as a Dr 5820 / Cr MFS journal.', 'মিলকরণের আগে প্রতিটি এমএফএস নিষ্পত্তি লাইনে ফি বিভক্ত হয়; পোস্টেড ফি ডেবিট ৫৮২০ / ক্রেডিট এমএফএস খতিয়ান হিসেবে সিল হয়।')}</p>
           </div>
 
-          <div className="lv-card lv-card-pad">
-            <p className="lv-kicker flex items-center gap-1.5"><Wallet size={12} /> {L('Reconciliation status', 'মিলকরণ অবস্থা')}</p>
+          <div className="ql-card ql-card-pad">
+            <p className="ql-kicker flex items-center gap-1.5"><Wallet size={12} /> {L('Reconciliation status', 'মিলকরণ অবস্থা')}</p>
             <div className="mt-3 space-y-2">
               {[
                 { label: L('Matched', 'মিলিত'), value: counts.matched, tone: 'bg-vault-100 text-vault-800' },
@@ -577,12 +577,12 @@ export default function W06_BankingMfsReconcile() {
                 { label: L('Unmatched', 'অমিলিত'), value: counts.unmatched, tone: 'bg-rose-50 text-rose-700' },
               ].map((row) => (
                 <div key={row.label} className="flex items-center justify-between gap-2 rounded-lg bg-ink-50 px-2.5 py-2">
-                  <span className="flex items-center gap-1.5 text-[10px] text-ink-700"><span className={`lv-chip ${row.tone}`}>{row.value}</span>{row.label}</span>
+                  <span className="flex items-center gap-1.5 text-[10px] text-ink-700"><span className={`ql-badge ${row.tone}`}>{row.value}</span>{row.label}</span>
                   <span className="text-[9px] text-ink-400">{statementLines.length ? `${Math.round((row.value / statementLines.length) * 100)}%` : '0%'}</span>
                 </div>
               ))}
             </div>
-            <button type="button" className="lv-btn lv-btn-secondary mt-3 w-full" onClick={() => publishToast({ tone: 'info', title: L('Statement import ready', 'স্টেটমেন্ট আমদানি প্রস্তুত'), message: L('Import the next bank statement from the import studio.', 'ইমপোর্ট স্টুডিও থেকে পরবর্তী স্টেটমেন্ট আমদানি করুন।') })}>
+            <button type="button" className="ql-btn ql-btn-secondary mt-3 w-full" onClick={() => publishToast({ tone: 'info', title: L('Statement import ready', 'স্টেটমেন্ট আমদানি প্রস্তুত'), message: L('Import the next bank statement from the import studio.', 'ইমপোর্ট স্টুডিও থেকে পরবর্তী স্টেটমেন্ট আমদানি করুন।') })}>
               <Layers size={14} /> {L('Import next statement', 'পরবর্তী স্টেটমেন্ট আমদানি')}
             </button>
           </div>

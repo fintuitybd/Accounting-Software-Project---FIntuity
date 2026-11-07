@@ -1,4 +1,4 @@
-// LedgerVault — workspace navigation context.
+// Fintuity Accounting Suite — workspace navigation context.
 //
 // The shell owns routing, so a flagship workspace (the cockpit, the Sankey drill-downs, the
 // compliance rings) can ask to open Banking or the IFRS pack without prop-drilling through the

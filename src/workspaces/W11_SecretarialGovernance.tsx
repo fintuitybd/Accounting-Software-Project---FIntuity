@@ -53,9 +53,9 @@ const ENTITY_LABEL: Record<EntityType, { en: string; bn: string }> = {
 };
 
 const RISK_TONE: Record<Notice['risk'], string> = {
-  HIGH: 'lv-chip-rose',
-  MEDIUM: 'lv-chip-gold',
-  LOW: 'lv-chip-neutral',
+  HIGH: 'ql-badge-danger',
+  MEDIUM: 'ql-badge-warn',
+  LOW: 'ql-badge-neutral',
 };
 
 const LICENCE_ICON: Record<string, typeof Flame> = {
@@ -366,20 +366,20 @@ export default function W11_SecretarialGovernance() {
 
   return (
     <div className="space-y-5">
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Building2 size={12} /> {L('RJSC corporate register', 'আরজেএসসি কর্পোরেট রেজিস্টার')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Building2 size={12} /> {L('RJSC corporate register', 'আরজেএসসি কর্পোরেট রেজিস্টার')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">{isBn ? tenant.name_bn : tenant.name_en}</h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {L(ENTITY_LABEL[tenant.entity_type].en, ENTITY_LABEL[tenant.entity_type].bn)} · RJSC {tenant.rjsc_reg_no} · TIN {tenant.tin_number}
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <span className="lv-chip lv-chip-neutral">
+            <span className="ql-badge ql-badge-neutral">
               <Landmark size={12} /> {isBn ? tenant.address_bn : tenant.address_en}
             </span>
-            <span className="lv-chip lv-chip-emerald">
+            <span className="ql-badge ql-badge-success">
               <ShieldCheck size={12} /> {L('Incorporated', 'নিবন্ধিত')} {formatDate('2019-04-18', locale)}
             </span>
           </div>
@@ -394,7 +394,7 @@ export default function W11_SecretarialGovernance() {
             { label: L('Statutory filings', 'বিধিবদ্ধ দাখিল'), value: `${FILINGS.filter((filing) => filing.filed_on).length} / ${FILINGS.length}`, note: L('filed for FY 2025-26', '২০২৫-২৬ অর্থবছরে দাখিল') },
           ].map((card) => (
             <div key={card.label} className="rounded-xl bg-ink-50/70 px-3 py-2.5">
-              <p className="lv-kicker">{card.label}</p>
+              <p className="ql-kicker">{card.label}</p>
               <p className="font-money mt-1 text-[13px] font-semibold text-ink-900">{card.value}</p>
               <p className="text-[10px] text-ink-400">{card.note}</p>
             </div>
@@ -403,15 +403,15 @@ export default function W11_SecretarialGovernance() {
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker flex items-center gap-1.5"><Users size={12} /> {L('Share capital ledger', 'শেয়ার মূলধন খতিয়ান')}</p>
+              <p className="ql-kicker flex items-center gap-1.5"><Users size={12} /> {L('Share capital ledger', 'শেয়ার মূলধন খতিয়ান')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Members and shareholding schedule', 'সদস্য ও শেয়ারহোল্ডিং সূচি')}</h2>
             </div>
-            <span className="lv-chip lv-chip-neutral">{shareholders.length} {L('members', 'সদস্য')}</span>
+            <span className="ql-badge ql-badge-neutral">{shareholders.length} {L('members', 'সদস্য')}</span>
           </div>
-          <table className="lv-table">
+          <table className="ql-table">
             <thead>
               <tr>
                 <th>{L('Member', 'সদস্য')}</th>
@@ -444,7 +444,7 @@ export default function W11_SecretarialGovernance() {
           </table>
 
           <div className="border-t border-ink-100 px-5 py-3">
-            <p className="lv-kicker flex items-center gap-1.5"><ClipboardList size={12} /> {L('Capital movement', 'মূলধন চলাচল')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><ClipboardList size={12} /> {L('Capital movement', 'মূলধন চলাচল')}</p>
             <div className="mt-2 space-y-1.5">
               {[
                 { label: L('Opening paid-up capital', 'প্রারম্ভিক পরিশোধিত মূলধন'), value: shareRow ? shareRow.opening_credit_poisha - shareRow.opening_debit_poisha : 0n },
@@ -461,13 +461,13 @@ export default function W11_SecretarialGovernance() {
           </div>
         </section>
 
-        <section className="lv-card overflow-hidden">
-          <div className="lv-card-header">
+        <section className="ql-card overflow-hidden">
+          <div className="ql-card-header">
             <div>
-              <p className="lv-kicker flex items-center gap-1.5"><FileCheck2 size={12} /> {L('RJSC filings', 'আরজেএসসি দাখিল')}</p>
+              <p className="ql-kicker flex items-center gap-1.5"><FileCheck2 size={12} /> {L('RJSC filings', 'আরজেএসসি দাখিল')}</p>
               <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Annual compliance calendar', 'বার্ষিক কমপ্লায়েন্স ক্যালেন্ডার')}</h2>
             </div>
-            <span className="lv-chip lv-chip-gold">
+            <span className="ql-badge ql-badge-warn">
               <CalendarClock size={12} /> {L('AGM by', 'এজিএমের সময়')} {formatDate('2026-12-31', locale)}
             </span>
           </div>
@@ -482,7 +482,7 @@ export default function W11_SecretarialGovernance() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[12px] font-semibold text-ink-900">{filing.form}</p>
-                    <p className="lv-hint mt-0.5 leading-relaxed">{isBn ? filing.description_bn : filing.description_en}</p>
+                    <p className="ql-hint mt-0.5 leading-relaxed">{isBn ? filing.description_bn : filing.description_en}</p>
                     <p className="mt-1 text-[10px] text-ink-400">
                       {filed
                         ? `${L('Filed', 'দাখিল')} ${formatDate(filing.filed_on, locale)}`
@@ -492,7 +492,7 @@ export default function W11_SecretarialGovernance() {
                       {filing.fee_poisha > 0n ? ` · ${L('fee', 'ফি')} ${money(filing.fee_poisha)}` : ''}
                     </p>
                   </div>
-                  <span className={`lv-chip ${filed ? 'lv-chip-emerald' : days < 0 ? 'lv-chip-rose' : 'lv-chip-gold'}`}>
+                  <span className={`ql-badge ${filed ? 'ql-badge-success' : days < 0 ? 'ql-badge-danger' : 'ql-badge-warn'}`}>
                     {filed ? L('Filed', 'দাখিল') : days < 0 ? L('Overdue', 'বিলম্বিত') : L('Upcoming', 'আসন্ন')}
                   </span>
                 </div>
@@ -502,12 +502,12 @@ export default function W11_SecretarialGovernance() {
         </section>
       </div>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><Stamp size={12} /> {L('Licence renewal tracker', 'লাইসেন্স নবায়ন ট্র্যাকার')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><Stamp size={12} /> {L('Licence renewal tracker', 'লাইসেন্স নবায়ন ট্র্যাকার')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Trade · Fire · Environment · DIFE', 'ট্রেড · ফায়ার · পরিবেশ · ডিআইএফই')}</h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {licenceSummary.valid} {L('valid', 'বৈধ')} · {licenceSummary.expiring.length} {L('expiring', 'মেয়াদোন্নত')} · {licenceSummary.expired.length} {L('expired', 'মেয়াদোত্তীর্ণ')} ·{' '}
               {L('renewal fees', 'নবায়ন ফি')} {money(licenceSummary.fees)}
             </p>
@@ -518,7 +518,7 @@ export default function W11_SecretarialGovernance() {
                 key={filter}
                 type="button"
                 onClick={() => setLicenceFilter(filter)}
-                className={`lv-chip ${licenceFilter === filter ? 'lv-chip-emerald' : 'lv-chip-neutral'}`}
+                className={`ql-badge ${licenceFilter === filter ? 'ql-badge-success' : 'ql-badge-neutral'}`}
               >
                 {filter === 'ALL' ? L('All', 'সব') : filter === 'EXPIRING' ? L('Expiring', 'মেয়াদোন্নত') : L('Expired', 'মেয়াদোত্তীর্ণ')}
               </button>
@@ -527,7 +527,7 @@ export default function W11_SecretarialGovernance() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="lv-table min-w-[860px]">
+          <table className="ql-table min-w-[860px]">
             <thead>
               <tr>
                 <th>{L('Licence', 'লাইসেন্স')}</th>
@@ -560,7 +560,7 @@ export default function W11_SecretarialGovernance() {
                     </td>
                     <td className="font-money text-right text-[12px]">{money(record.amount_poisha)}</td>
                     <td>
-                      <span className={`lv-chip ${renewed ? 'lv-chip-emerald' : status === 'EXPIRED' ? 'lv-chip-rose' : status === 'EXPIRING' ? 'lv-chip-gold' : 'lv-chip-emerald'}`}>
+                      <span className={`ql-badge ${renewed ? 'ql-badge-success' : status === 'EXPIRED' ? 'ql-badge-danger' : status === 'EXPIRING' ? 'ql-badge-warn' : 'ql-badge-success'}`}>
                         {renewed ? L('Renewal filed', 'নবায়ন দাখিল') : status}
                       </span>
                     </td>
@@ -570,7 +570,7 @@ export default function W11_SecretarialGovernance() {
                       ) : (
                         <button
                           type="button"
-                          className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]"
+                          className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]"
                           onClick={() => requestRenewal(record.id, isBn ? record.title_bn : record.title_en)}
                         >
                           <RefreshCcw size={12} /> {L('Renew', 'নবায়ন')}
@@ -603,20 +603,20 @@ export default function W11_SecretarialGovernance() {
         </div>
       </section>
 
-      <section className="lv-card overflow-hidden">
-        <div className="lv-card-header">
+      <section className="ql-card overflow-hidden">
+        <div className="ql-card-header">
           <div>
-            <p className="lv-kicker flex items-center gap-1.5"><MailWarning size={12} /> {L('NBR notices & appeals', 'এনবিআর নোটিশ ও আপিল')}</p>
+            <p className="ql-kicker flex items-center gap-1.5"><MailWarning size={12} /> {L('NBR notices & appeals', 'এনবিআর নোটিশ ও আপিল')}</p>
             <h2 className="mt-1 text-base font-semibold text-ink-900">{L('Tax notice and appeals manager', 'কর নোটিশ ও আপিল ব্যবস্থাপক')}</h2>
-            <p className="lv-hint mt-1">
+            <p className="ql-hint mt-1">
               {openNotices.length} {L('open', 'খোলা')} · {highRiskOpen.length} {L('high risk', 'উচ্চ ঝুঁকি')} · {L('response dates tracked against the statutory clock', 'জবাবের তারিখ বিধিবদ্ধ সময় অনুযায়ী')}
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <span className={`lv-chip ${highRiskOpen.length ? 'lv-chip-rose' : 'lv-chip-emerald'}`}>
+            <span className={`ql-badge ${highRiskOpen.length ? 'ql-badge-danger' : 'ql-badge-success'}`}>
               <Gavel size={12} /> {notices.length} {L('notices on file', 'নোটিশ নথিতে')}
             </span>
-            <button type="button" className="lv-btn lv-btn-primary !px-2.5 !py-1.5 text-[11px]" onClick={() => setLogOpen(true)}>
+            <button type="button" className="ql-btn ql-btn-primary !px-2.5 !py-1.5 text-[11px]" onClick={() => setLogOpen(true)}>
               <Plus size={13} /> {L('Log notice', 'নোটিশ নথিভুক্ত')}
             </button>
           </div>
@@ -642,7 +642,7 @@ export default function W11_SecretarialGovernance() {
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5">
                       <span className="truncate text-[12px] font-semibold text-ink-900">{isBn ? notice.title_bn : notice.title_en}</span>
-                      <span className={`lv-chip ${RISK_TONE[notice.risk]} shrink-0 !px-1.5 !py-0 text-[9px]`}>{notice.risk}</span>
+                      <span className={`ql-badge ${RISK_TONE[notice.risk]} shrink-0 !px-1.5 !py-0 text-[9px]`}>{notice.risk}</span>
                     </span>
                     <span className="mt-0.5 block truncate font-mono text-[10px] text-ink-400">{notice.reference} · {notice.authority}</span>
                     <span className={`mt-0.5 block text-[10px] ${days < 0 ? 'text-rose-600' : 'text-ink-500'}`}>
@@ -651,7 +651,7 @@ export default function W11_SecretarialGovernance() {
                         : `${L('Respond in', 'জবাব')} ${days} ${L('days', 'দিন')}`}
                     </span>
                   </span>
-                  <span className={`lv-chip shrink-0 ${status === 'CLOSED' ? 'lv-chip-neutral' : status === 'RESPONDED' ? 'lv-chip-emerald' : 'lv-chip-gold'}`}>{status}</span>
+                  <span className={`ql-badge shrink-0 ${status === 'CLOSED' ? 'ql-badge-neutral' : status === 'RESPONDED' ? 'ql-badge-success' : 'ql-badge-warn'}`}>{status}</span>
                 </button>
               );
             })}
@@ -662,27 +662,27 @@ export default function W11_SecretarialGovernance() {
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-vault-600">{selectedNotice.reference}</p>
-                  <span className={`lv-chip ${RISK_TONE[selectedNotice.risk]}`}>{selectedNotice.risk} {L('risk', 'ঝুঁকি')}</span>
+                  <span className={`ql-badge ${RISK_TONE[selectedNotice.risk]}`}>{selectedNotice.risk} {L('risk', 'ঝুঁকি')}</span>
                 </div>
                 <h3 className="mt-1 text-sm font-semibold text-ink-900">{isBn ? selectedNotice.title_bn : selectedNotice.title_en}</h3>
                 <p className="mt-1 text-[11px] leading-relaxed text-ink-600">{isBn ? selectedNotice.notes_bn : selectedNotice.notes_en}</p>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
                   <div>
-                    <p className="lv-kicker">{L('Received', 'প্রাপ্তি')}</p>
+                    <p className="ql-kicker">{L('Received', 'প্রাপ্তি')}</p>
                     <p className="text-[11px] text-ink-800">{formatDate(selectedNotice.issued_date, locale)}</p>
                   </div>
                   <div>
-                    <p className="lv-kicker">{L('Response due', 'জবাবের তারিখ')}</p>
+                    <p className="ql-kicker">{L('Response due', 'জবাবের তারিখ')}</p>
                     <p className="text-[11px] text-ink-800">{formatDate(selectedNotice.due_or_expiry, locale)}</p>
                   </div>
                   <div>
-                    <p className="lv-kicker">{L('Amount at stake', 'বিতর্কিত পরিমাণ')}</p>
+                    <p className="ql-kicker">{L('Amount at stake', 'বিতর্কিত পরিমাণ')}</p>
                     <p className="font-money text-[11px] text-ink-800">{money(selectedNotice.amount_poisha)}</p>
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <p className="lv-kicker flex items-center gap-1.5"><Gavel size={11} /> {L('Appeal route', 'আপিল পথ')}</p>
+                  <p className="ql-kicker flex items-center gap-1.5"><Gavel size={11} /> {L('Appeal route', 'আপিল পথ')}</p>
                   <ol className="mt-2 space-y-1.5">
                     {appealStages.map((stage, index) => {
                       const done = index <= selectedWorkflow.stage;
@@ -702,7 +702,7 @@ export default function W11_SecretarialGovernance() {
                 </div>
 
                 <label className="mt-4 block">
-                  <span className="lv-kicker">{L('Response draft', 'জবাবের খসড়া')}</span>
+                  <span className="ql-kicker">{L('Response draft', 'জবাবের খসড়া')}</span>
                   <textarea
                     value={selectedWorkflow.draft}
                     onChange={(event) => setDraft(selectedNotice, event.target.value)}
@@ -711,35 +711,35 @@ export default function W11_SecretarialGovernance() {
                       'Reference the register extracts, challans and evidence attached to the reply…',
                       'জবাবে সংযুক্ত রেজিস্টার নির্যাস, চালান ও প্রমাণ উল্লেখ করুন…',
                     )}
-                    className="lv-input mt-1 w-full text-[11px]"
+                    className="ql-input mt-1 w-full text-[11px]"
                   />
                 </label>
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className="lv-btn lv-btn-primary !px-2 !py-1 text-[11px]"
+                    className="ql-btn ql-btn-primary !px-2 !py-1 text-[11px]"
                     onClick={() => updateNotice(selectedNotice, { status: 'RESPONDED', stage: 1 }, L('Response marked filed', 'জবাব দাখিল চিহ্নিত'))}
                   >
                     <Send size={12} /> {L('Mark responded', 'জবাব দাখিল')}
                   </button>
                   <button
                     type="button"
-                    className="lv-btn lv-btn-secondary !px-2 !py-1 text-[11px]"
+                    className="ql-btn ql-btn-secondary !px-2 !py-1 text-[11px]"
                     onClick={() => updateNotice(selectedNotice, { stage: 2 }, L('Escalated to Commissioner (Appeals)', 'কমিশনার (আপিল)-এ উত্তোলিত'))}
                   >
                     <Gavel size={12} /> {L('Escalate appeal', 'আপিল উত্তোলন')}
                   </button>
                   <button
                     type="button"
-                    className="lv-btn lv-btn-ghost !px-2 !py-1 text-[11px]"
+                    className="ql-btn ql-btn-ghost !px-2 !py-1 text-[11px]"
                     onClick={() => updateNotice(selectedNotice, { status: 'CLOSED', stage: 3 }, L('Notice closed', 'নোটিশ নিষ্পত্তি'))}
                   >
                     <Lock size={12} /> {L('Close notice', 'নোটিশ বন্ধ')}
                   </button>
                   <button
                     type="button"
-                    className="lv-btn lv-btn-secondary !px-2 !py-1 text-[11px]"
+                    className="ql-btn ql-btn-secondary !px-2 !py-1 text-[11px]"
                     onClick={() => setPackOpen(true)}
                   >
                     <FileDown size={12} /> {L('Generate response pack', 'জবাব প্যাক তৈরি')}
@@ -765,7 +765,7 @@ export default function W11_SecretarialGovernance() {
           <div className="my-8 w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5 text-vault-700"><Plus size={12} /> {L('Statutory notice log', 'বিধিবদ্ধ নোটিশ নিবন্ধন')}</p>
+                <p className="ql-kicker flex items-center gap-1.5 text-vault-700"><Plus size={12} /> {L('Statutory notice log', 'বিধিবদ্ধ নোটিশ নিবন্ধন')}</p>
                 <h3 className="mt-1 text-sm font-semibold text-ink-900">{L('Log an NBR notice or appeal', 'এনবিআর নোটিশ বা আপিল নথিভুক্ত করুন')}</h3>
               </div>
               <button type="button" className="rounded-lg p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700" onClick={() => setLogOpen(false)} aria-label={L('Close', 'বন্ধ')}>
@@ -774,49 +774,49 @@ export default function W11_SecretarialGovernance() {
             </div>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <label className="block">
-                <span className="lv-kicker">{L('Notice reference', 'নোটিশ নম্বর')}</span>
-                <input value={logForm.reference} onChange={(event) => setLogForm((current) => ({ ...current, reference: event.target.value }))} className="lv-input mt-0.5 w-full text-[11px]" />
+                <span className="ql-kicker">{L('Notice reference', 'নোটিশ নম্বর')}</span>
+                <input value={logForm.reference} onChange={(event) => setLogForm((current) => ({ ...current, reference: event.target.value }))} className="ql-input mt-0.5 w-full text-[11px]" />
               </label>
               <label className="block">
-                <span className="lv-kicker">{L('Authority', 'কর্তৃপক্ষ')}</span>
-                <input value={logForm.authority} onChange={(event) => setLogForm((current) => ({ ...current, authority: event.target.value }))} className="lv-input mt-0.5 w-full text-[11px]" />
+                <span className="ql-kicker">{L('Authority', 'কর্তৃপক্ষ')}</span>
+                <input value={logForm.authority} onChange={(event) => setLogForm((current) => ({ ...current, authority: event.target.value }))} className="ql-input mt-0.5 w-full text-[11px]" />
               </label>
               <label className="block sm:col-span-2">
-                <span className="lv-kicker">{L('Subject', 'বিষয়')}</span>
-                <input value={logForm.title_en} onChange={(event) => setLogForm((current) => ({ ...current, title_en: event.target.value }))} placeholder={L('e.g. Mushak 9.1 reconciliation query for October 2026', 'যেমন: অক্টোবর ২০২৬-এর মূসক ৯.১ মিলন জিজ্ঞাসা')} className="lv-input mt-0.5 w-full text-[11px]" />
+                <span className="ql-kicker">{L('Subject', 'বিষয়')}</span>
+                <input value={logForm.title_en} onChange={(event) => setLogForm((current) => ({ ...current, title_en: event.target.value }))} placeholder={L('e.g. Mushak 9.1 reconciliation query for October 2026', 'যেমন: অক্টোবর ২০২৬-এর মূসক ৯.১ মিলন জিজ্ঞাসা')} className="ql-input mt-0.5 w-full text-[11px]" />
               </label>
               <label className="block sm:col-span-2">
-                <span className="lv-kicker">{L('Subject (Bangla)', 'বিষয় (বাংলা)')}</span>
-                <input value={logForm.title_bn} onChange={(event) => setLogForm((current) => ({ ...current, title_bn: event.target.value }))} className="lv-input mt-0.5 w-full font-bangla text-[11px]" />
+                <span className="ql-kicker">{L('Subject (Bangla)', 'বিষয় (বাংলা)')}</span>
+                <input value={logForm.title_bn} onChange={(event) => setLogForm((current) => ({ ...current, title_bn: event.target.value }))} className="ql-input mt-0.5 w-full font-bangla text-[11px]" />
               </label>
               <label className="block">
-                <span className="lv-kicker">{L('Received', 'প্রাপ্তি')}</span>
-                <input type="date" value={logForm.received} onChange={(event) => setLogForm((current) => ({ ...current, received: event.target.value }))} className="lv-input mt-0.5 w-full text-[11px]" />
+                <span className="ql-kicker">{L('Received', 'প্রাপ্তি')}</span>
+                <input type="date" value={logForm.received} onChange={(event) => setLogForm((current) => ({ ...current, received: event.target.value }))} className="ql-input mt-0.5 w-full text-[11px]" />
               </label>
               <label className="block">
-                <span className="lv-kicker">{L('Response due', 'জবাবের তারিখ')}</span>
-                <input type="date" value={logForm.due} onChange={(event) => setLogForm((current) => ({ ...current, due: event.target.value }))} className="lv-input mt-0.5 w-full text-[11px]" />
+                <span className="ql-kicker">{L('Response due', 'জবাবের তারিখ')}</span>
+                <input type="date" value={logForm.due} onChange={(event) => setLogForm((current) => ({ ...current, due: event.target.value }))} className="ql-input mt-0.5 w-full text-[11px]" />
               </label>
               <label className="block">
-                <span className="lv-kicker">{L('Risk', 'ঝুঁকি')}</span>
-                <select value={logForm.risk} onChange={(event) => setLogForm((current) => ({ ...current, risk: event.target.value as Notice['risk'] }))} className="lv-input mt-0.5 w-full text-[11px]">
+                <span className="ql-kicker">{L('Risk', 'ঝুঁকি')}</span>
+                <select value={logForm.risk} onChange={(event) => setLogForm((current) => ({ ...current, risk: event.target.value as Notice['risk'] }))} className="ql-input mt-0.5 w-full text-[11px]">
                   <option value="HIGH">HIGH</option>
                   <option value="MEDIUM">MEDIUM</option>
                   <option value="LOW">LOW</option>
                 </select>
               </label>
               <label className="block">
-                <span className="lv-kicker">{L('Amount at stake (BDT)', 'বিতর্কিত পরিমাণ (টাকা)')}</span>
-                <input value={logForm.amount} onChange={(event) => setLogForm((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" className="lv-input mt-0.5 w-full font-mono text-[11px]" />
+                <span className="ql-kicker">{L('Amount at stake (BDT)', 'বিতর্কিত পরিমাণ (টাকা)')}</span>
+                <input value={logForm.amount} onChange={(event) => setLogForm((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" className="ql-input mt-0.5 w-full font-mono text-[11px]" />
               </label>
               <label className="block sm:col-span-2">
-                <span className="lv-kicker">{L('Notes', 'মন্তব্য')}</span>
-                <textarea value={logForm.notes} onChange={(event) => setLogForm((current) => ({ ...current, notes: event.target.value }))} rows={2} className="lv-input mt-0.5 w-full text-[11px]" />
+                <span className="ql-kicker">{L('Notes', 'মন্তব্য')}</span>
+                <textarea value={logForm.notes} onChange={(event) => setLogForm((current) => ({ ...current, notes: event.target.value }))} rows={2} className="ql-input mt-0.5 w-full text-[11px]" />
               </label>
             </div>
             <div className="mt-4 flex items-center justify-end gap-2">
-              <button type="button" className="lv-btn lv-btn-ghost" onClick={() => setLogOpen(false)}>{L('Cancel', 'বাতিল')}</button>
-              <button type="button" className="lv-btn lv-btn-primary" onClick={logNotice}>
+              <button type="button" className="ql-btn ql-btn-ghost" onClick={() => setLogOpen(false)}>{L('Cancel', 'বাতিল')}</button>
+              <button type="button" className="ql-btn ql-btn-primary" onClick={logNotice}>
                 <Plus size={14} /> {L('Save to statutory register', 'বিধিবদ্ধ নিবন্ধনে সংরক্ষণ')}
               </button>
             </div>
@@ -835,7 +835,7 @@ export default function W11_SecretarialGovernance() {
           <div className="my-8 w-full max-w-3xl rounded-2xl bg-white p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="lv-kicker flex items-center gap-1.5 text-vault-700"><FileDown size={12} /> {L('Response pack generator', 'জবাব প্যাক জেনারেটর')}</p>
+                <p className="ql-kicker flex items-center gap-1.5 text-vault-700"><FileDown size={12} /> {L('Response pack generator', 'জবাব প্যাক জেনারেটর')}</p>
                 <h3 className="mt-1 text-sm font-semibold text-ink-900">{selectedNotice.reference}</h3>
                 <p className="mt-0.5 text-[10px] text-ink-500">
                   {isBn ? selectedNotice.title_bn : selectedNotice.title_en} · {L('due', 'জবাবের তারিখ')} {formatDate(selectedNotice.due_or_expiry, locale)}
@@ -847,7 +847,7 @@ export default function W11_SecretarialGovernance() {
             </div>
 
             <div className="mt-3 max-h-[52vh] overflow-y-auto rounded-xl border border-ink-100">
-              <table className="lv-table">
+              <table className="ql-table">
                 <thead>
                   <tr>
                     <th className="w-64">{L('Section', 'অংশ')}</th>
@@ -875,8 +875,8 @@ export default function W11_SecretarialGovernance() {
                 )}
               </p>
               <div className="flex gap-2">
-                <button type="button" className="lv-btn lv-btn-ghost" onClick={() => setPackOpen(false)}>{L('Close', 'বন্ধ')}</button>
-                <button type="button" className="lv-btn lv-btn-primary" onClick={downloadResponsePack}>
+                <button type="button" className="ql-btn ql-btn-ghost" onClick={() => setPackOpen(false)}>{L('Close', 'বন্ধ')}</button>
+                <button type="button" className="ql-btn ql-btn-primary" onClick={downloadResponsePack}>
                   <Download size={14} /> {L('Download response pack', 'জবাব প্যাক ডাউনলোড')}
                 </button>
               </div>

@@ -8,7 +8,7 @@ export interface SavedTableView {
   state: Record<string, string>;
 }
 
-const STORAGE_PREFIX = 'ledgervault.v2.tableviews.';
+const STORAGE_PREFIX = 'fintuity.v2.tableviews.';
 
 export function loadSavedViews(key: string): SavedTableView[] {
   if (typeof window === 'undefined') return [];
@@ -170,7 +170,7 @@ export function ColumnPicker<T extends string>({
 export function loadVisibleColumns<T extends string>(key: string, fallback: readonly T[]): T[] {
   if (typeof window === 'undefined') return [...fallback];
   try {
-    const raw = window.localStorage.getItem(`ledgervault.v2.columns.${key}`);
+    const raw = window.localStorage.getItem(`fintuity.v2.columns.${key}`);
     if (!raw) return [...fallback];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [...fallback];
@@ -184,7 +184,7 @@ export function loadVisibleColumns<T extends string>(key: string, fallback: read
 export function saveVisibleColumns<T extends string>(key: string, columns: readonly T[]): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(`ledgervault.v2.columns.${key}`, JSON.stringify(columns));
+    window.localStorage.setItem(`fintuity.v2.columns.${key}`, JSON.stringify(columns));
   } catch {
     // Display preference only.
   }
