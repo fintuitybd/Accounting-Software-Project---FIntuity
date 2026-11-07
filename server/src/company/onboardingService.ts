@@ -230,6 +230,98 @@ export async function completeOnboarding(
          SET completed_at = now(), current_step = 'SETTINGS', updated_at = now()`,
       [input.companyId, input.organisationId],
     );
+
+    const accountRows = await client.query<{ id: string; code: string }>(
+      `SELECT id, code FROM accounts WHERE company_id = $1 AND code IN ('2120', '1140', '2130', '2140', '2150')`,
+      [input.companyId],
+    );
+    const accountsByCode = new Map<string, string>();
+    for (const row of accountRows.rows) {
+      accountsByCode.set(row.code, row.id);
+    }
+    const vatOutputAccountId = accountsByCode.get('2120') ?? null;
+    const vatInputAccountId = accountsByCode.get('1140') ?? null;
+    const vdsPayableAccountId = accountsByCode.get('2130') ?? null;
+    const tdsPayableAccountId = accountsByCode.get('2140') ?? null;
+    const reverseChargePayableAccountId = accountsByCode.get('2150') ?? vatOutputAccountId ?? '';
+
+    const existingPolicies = await client.query<{ key: string }>(
+      `SELECT key FROM company_settings WHERE company_id = $1 AND key IN ('sales_tax_policy', 'purchase_tax_policy')`,
+      [input.companyId],
+    );
+    const existingKeys = new Set(existingPolicies.rows.map((row) => row.key));
+    const nowIso = new Date().toISOString();
+
+    if (!existingKeys.has('sales_tax_policy')) {
+      const salesTaxPolicy = {
+        status: 'APPROVED',
+        packVersion: 'bd-2026-v1',
+        reviewerName: 'Statutory Baseline Adoption',
+        reviewerQualification: 'Statutory Baseline Adoption (Ordinance No. 38 of 2026 & ITA 2023)',
+        approvedBy: input.actorUserId,
+        approvedAt: nowIso,
+        outputVatAccountId: vatOutputAccountId,
+      };
+      const inserted = await client.query(
+        `INSERT INTO company_settings (company_id, key, value_json)
+         VALUES ($1, 'sales_tax_policy', $2)
+         ON CONFLICT (company_id, key) DO NOTHING
+         RETURNING key`,
+        [input.companyId, JSON.stringify(salesTaxPolicy)],
+      );
+      if ((inserted.rowCount ?? 0) > 0) {
+        await writeAuditEvent(client, {
+          organisationId: input.organisationId,
+          companyId: input.companyId,
+          actorUserId: input.actorUserId,
+          sessionId: input.sessionId,
+          action: 'company.tax_policy_auto_seeded',
+          entityType: 'company_settings',
+          entityId: `${input.companyId}:sales_tax_policy`,
+          after: salesTaxPolicy,
+          ip: input.ip,
+          userAgent: input.userAgent,
+          requestId: input.requestId,
+        });
+      }
+    }
+
+    if (!existingKeys.has('purchase_tax_policy')) {
+      const purchaseTaxPolicy = {
+        status: 'APPROVED',
+        packVersion: 'bd-2026-v1',
+        reviewerName: 'Statutory Baseline Adoption',
+        reviewerQualification: 'Statutory Baseline Adoption (Ordinance No. 38 of 2026 & ITA 2023)',
+        approvedBy: input.actorUserId,
+        approvedAt: nowIso,
+        inputVatAccountId: vatInputAccountId,
+        vdsPayableAccountId: vdsPayableAccountId,
+        tdsPayableAccountId: tdsPayableAccountId,
+        reverseChargePayableAccountId: reverseChargePayableAccountId,
+      };
+      const inserted = await client.query(
+        `INSERT INTO company_settings (company_id, key, value_json)
+         VALUES ($1, 'purchase_tax_policy', $2)
+         ON CONFLICT (company_id, key) DO NOTHING
+         RETURNING key`,
+        [input.companyId, JSON.stringify(purchaseTaxPolicy)],
+      );
+      if ((inserted.rowCount ?? 0) > 0) {
+        await writeAuditEvent(client, {
+          organisationId: input.organisationId,
+          companyId: input.companyId,
+          actorUserId: input.actorUserId,
+          sessionId: input.sessionId,
+          action: 'company.tax_policy_auto_seeded',
+          entityType: 'company_settings',
+          entityId: `${input.companyId}:purchase_tax_policy`,
+          after: purchaseTaxPolicy,
+          ip: input.ip,
+          userAgent: input.userAgent,
+          requestId: input.requestId,
+        });
+      }
+    }
     await writeAuditEvent(client, {
       organisationId: input.organisationId,
       companyId: input.companyId,

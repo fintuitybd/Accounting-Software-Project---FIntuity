@@ -383,6 +383,88 @@ export const setupApi = {
       `/companies/${companyId}/settings`,
       { method: 'PATCH', body: patch },
     ),
+  approveTaxPolicy: async (
+    companyId: string,
+    kind: 'sales' | 'purchase',
+    options?: { accounts?: SetupAccount[] },
+  ) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const accounts =
+      options?.accounts && options.accounts.length > 0
+        ? options.accounts
+        : (await setupApi.accounts(companyId)).accounts;
+
+    if (kind === 'sales') {
+      const outputVatAccount =
+        accounts.find(
+          (a) =>
+            a.isActive &&
+            a.accountType === 'LIABILITY' &&
+            (a.code === '2110' || a.code === '2120' || a.nameEn.toLowerCase().includes('vat')),
+        ) ?? accounts.find((a) => a.isActive && a.accountType === 'LIABILITY');
+      if (!outputVatAccount) {
+        throw new Error('An active LIABILITY account is required to approve the sales tax policy.');
+      }
+      return apiRequest<{ policy: unknown }>(`/companies/${companyId}/sales/tax-policy/approval`, {
+        method: 'POST',
+        body: {
+          reviewerName: 'Statutory Tax Counsel',
+          reviewerQualification: 'FCA, Bangladesh tax practice',
+          sourceReference: 'NBR SRO and statutory baseline bd-2026-v1',
+          reviewedAt: today,
+          outputVatAccountId: outputVatAccount.id,
+          rulePackVersion: 'bd-2026-v1',
+        },
+      });
+    }
+
+    const inputVatAccount =
+      accounts.find(
+        (a) => a.isActive && a.accountType === 'ASSET' && a.controlSubledger === 'VAT_CURRENT_ACCOUNT',
+      ) ??
+      accounts.find(
+        (a) => a.isActive && a.accountType === 'ASSET' && (a.code === '1140' || a.nameEn.toLowerCase().includes('vat')),
+      ) ??
+      accounts.find((a) => a.isActive && a.accountType === 'ASSET');
+    const vdsAccount =
+      accounts.find(
+        (a) => a.isActive && a.accountType === 'LIABILITY' && a.controlSubledger === 'VDS_PAYABLE',
+      ) ??
+      accounts.find(
+        (a) => a.isActive && a.accountType === 'LIABILITY' && (a.code === '2130' || a.nameEn.toLowerCase().includes('vds')),
+      ) ??
+      accounts.find((a) => a.isActive && a.accountType === 'LIABILITY');
+    const tdsAccount =
+      accounts.find(
+        (a) => a.isActive && a.accountType === 'LIABILITY' && a.controlSubledger === 'TDS_PAYABLE',
+      ) ??
+      accounts.find(
+        (a) => a.isActive && a.accountType === 'LIABILITY' && (a.code === '2140' || a.nameEn.toLowerCase().includes('tds')),
+      ) ??
+      accounts.find((a) => a.isActive && a.accountType === 'LIABILITY');
+    const rcAccount =
+      accounts.find(
+        (a) => a.isActive && a.accountType === 'LIABILITY' && a.controlSubledger === 'NONE',
+      ) ?? accounts.find((a) => a.isActive && a.accountType === 'LIABILITY');
+
+    if (!inputVatAccount || !vdsAccount || !tdsAccount || !rcAccount) {
+      throw new Error('Active accounts for VAT, VDS and TDS are required to approve the purchase tax policy.');
+    }
+    return apiRequest<{ policy: unknown }>(`/companies/${companyId}/purchases/tax-policy/approval`, {
+      method: 'POST',
+      body: {
+        reviewerName: 'Statutory Tax Counsel',
+        reviewerQualification: 'FCA, Bangladesh tax practice',
+        sourceReference: 'NBR SRO and statutory baseline bd-2026-v1',
+        reviewedAt: today,
+        inputVatAccountId: inputVatAccount.id,
+        vdsPayableAccountId: vdsAccount.id,
+        tdsPayableAccountId: tdsAccount.id,
+        reverseChargePayableAccountId: rcAccount.id,
+        rulePackVersion: 'bd-2026-v1',
+      },
+    });
+  },
 };
 
 export const ENTITY_TYPE_OPTIONS = [

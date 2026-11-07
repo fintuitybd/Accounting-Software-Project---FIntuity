@@ -1,23 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowUpRight,
-  Building2,
   Calculator,
-  CalendarClock,
   CheckCircle2,
-  CircleAlert,
   Clock,
-  Coins,
-  FileText,
-  Filter,
   Landmark,
-  Layers,
   Plus,
   RefreshCw,
   Scale,
   Search,
   ShieldCheck,
-  TrendingDown,
   X,
 } from 'lucide-react';
 import { localized } from '../../core/i18n';
@@ -26,10 +18,9 @@ import {
   bdtToPoisha,
   formatPoisha,
   bpsToPercent,
-  POISHA_PER_TAKA,
 } from '../../core/money';
-import { formatDate, dateToday, poishaToBdtString } from './ledgerUi';
-import { apiErrorMessage, ErrorBanner, Field, INPUT_CLASS, Notice } from '../setup/setupUi';
+import { formatDate, dateToday } from './ledgerUi';
+import { apiErrorMessage, ErrorBanner, Field, Notice } from '../setup/setupUi';
 import type { FiscalPeriod, SetupAccount } from '../../setup/api';
 import {
   ledgerApi,
@@ -37,7 +28,6 @@ import {
   type DepreciationMethod,
   type FixedAsset,
   type FixedAssetCategory,
-  type FixedAssetSummary,
 } from '../../ledger/api';
 
 // Statutory ITA 2023 Third Schedule WDV Rates and Default Useful Life
@@ -88,125 +78,6 @@ const CATEGORY_STATUTORY_DEFAULTS: Record<
     codePrefix: 'FA-CMP',
   },
 };
-
-// Seed baseline sample assets when backend has no active records or before initial migration
-function getInitialSampleAssets(companyId: string, accounts: SetupAccount[]): FixedAsset[] {
-  const assetAcc = accounts.find((a) => a.code === '1610' || a.code === '1510') ?? accounts[0];
-  const accDepAcc = accounts.find((a) => a.code === '1619' || a.code === '1520') ?? accounts[1] ?? accounts[0];
-  const expAcc = accounts.find((a) => a.code === '5400' || a.code === '5810') ?? accounts[2] ?? accounts[0];
-
-  const assetAccId = assetAcc?.id ?? '00000000-0000-0000-0000-000000000001';
-  const accDepAccId = accDepAcc?.id ?? '00000000-0000-0000-0000-000000000002';
-  const expAccId = expAcc?.id ?? '00000000-0000-0000-0000-000000000003';
-
-  return [
-    {
-      id: 'fa-sample-01',
-      companyId,
-      branchId: null,
-      assetCode: 'FA-BLD-001',
-      nameEn: 'Corporate Head Office (Tejgaon Commercial Area)',
-      nameBn: 'প্রধান কার্যালয় ভবন (তেজগাঁও বাণিজ্যিক এলাকা)',
-      assetCategory: 'BUILDING',
-      acquisitionDate: '2024-01-01',
-      originalCostPoisha: '5000000000', // 50,000,000.00 BDT (5 Crore)
-      originalCostBdt: '50000000.00',
-      salvageValuePoisha: '500000000', // 5,000,000.00 BDT
-      salvageValueBdt: '5000000.00',
-      usefulLifeMonths: 240,
-      monthsDepreciated: 24,
-      depreciationMethod: 'STRAIGHT_LINE',
-      depreciationRateBps: 500, // 5.00%
-      taxWdvRateBps: 1000, // 10.00%
-      taxWdvPoisha: '4050000000', // 40,500,000.00 BDT
-      taxWdvBdt: '40500000.00',
-      assetAccountId: assetAccId,
-      accumulatedDepreciationAccountId: accDepAccId,
-      depreciationExpenseAccountId: expAccId,
-      status: 'ACTIVE',
-      accumulatedDepreciationPoisha: '450000000', // 4,500,000.00 BDT
-      accumulatedDepreciationBdt: '4500000.00',
-      carryingAmountPoisha: '4550000000', // 45,500,000.00 BDT
-      carryingAmountBdt: '45500000.00',
-      disposedAt: null,
-      disposalProceedsPoisha: null,
-      disposalProceedsBdt: null,
-      disposalJournalId: null,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2025-01-01T00:00:00Z',
-    },
-    {
-      id: 'fa-sample-02',
-      companyId,
-      branchId: null,
-      assetCode: 'FA-PLM-001',
-      nameEn: 'High-Speed Automated Industrial Weaving Loom',
-      nameBn: 'স্বয়ংক্রিয় শিল্প বয়ন মেশিন',
-      assetCategory: 'PLANT_MACHINERY',
-      acquisitionDate: '2024-06-15',
-      originalCostPoisha: '1250000000', // 12,500,000.00 BDT (1.25 Crore)
-      originalCostBdt: '12500000.00',
-      salvageValuePoisha: '50000000', // 500,000.00 BDT
-      salvageValueBdt: '500000.00',
-      usefulLifeMonths: 120,
-      monthsDepreciated: 18,
-      depreciationMethod: 'STRAIGHT_LINE',
-      depreciationRateBps: 1000, // 10.00%
-      taxWdvRateBps: 2000, // 20.00%
-      taxWdvPoisha: '911250000', // 9,112,500.00 BDT
-      taxWdvBdt: '9112500.00',
-      assetAccountId: assetAccId,
-      accumulatedDepreciationAccountId: accDepAccId,
-      depreciationExpenseAccountId: expAccId,
-      status: 'ACTIVE',
-      accumulatedDepreciationPoisha: '180000000', // 1,800,000.00 BDT
-      accumulatedDepreciationBdt: '1800000.00',
-      carryingAmountPoisha: '1070000000', // 10,700,000.00 BDT
-      carryingAmountBdt: '10700000.00',
-      disposedAt: null,
-      disposalProceedsPoisha: null,
-      disposalProceedsBdt: null,
-      disposalJournalId: null,
-      createdAt: '2024-06-15T00:00:00Z',
-      updatedAt: '2025-01-01T00:00:00Z',
-    },
-    {
-      id: 'fa-sample-03',
-      companyId,
-      branchId: null,
-      assetCode: 'FA-CMP-001',
-      nameEn: 'On-Premise ERP Database Server Rack (High-Availability)',
-      nameBn: 'উচ্চ সক্ষমতার অন-প্রিমিস ইআরপি ডাটাবেজ সার্ভার র্যাক',
-      assetCategory: 'COMPUTERS',
-      acquisitionDate: '2024-03-10',
-      originalCostPoisha: '180000000', // 1,800,000.00 BDT
-      originalCostBdt: '1800000.00',
-      salvageValuePoisha: '0',
-      salvageValueBdt: '0.00',
-      usefulLifeMonths: 36,
-      monthsDepreciated: 22,
-      depreciationMethod: 'REDUCING_BALANCE',
-      depreciationRateBps: 3000, // 30.00%
-      taxWdvRateBps: 3000, // 30.00%
-      taxWdvPoisha: '98450000', // 984,500.00 BDT
-      taxWdvBdt: '984500.00',
-      assetAccountId: assetAccId,
-      accumulatedDepreciationAccountId: accDepAccId,
-      depreciationExpenseAccountId: expAccId,
-      status: 'ACTIVE',
-      accumulatedDepreciationPoisha: '81550000', // 815,500.00 BDT
-      accumulatedDepreciationBdt: '815500.00',
-      carryingAmountPoisha: '98450000', // 984,500.00 BDT
-      carryingAmountBdt: '984500.00',
-      disposedAt: null,
-      disposalProceedsPoisha: null,
-      disposalProceedsBdt: null,
-      disposalJournalId: null,
-      createdAt: '2024-03-10T00:00:00Z',
-      updatedAt: '2025-01-01T00:00:00Z',
-    },
-  ];
-}
 
 // Compute deterministic IAS 16 monthly charge with final-month absorption
 function calculateMonthlyBookDepreciationPoisha(asset: FixedAsset): bigint {
@@ -359,19 +230,14 @@ export function FixedAssetsPanel({
     setError(null);
     try {
       const response = await ledgerApi.fixedAssets(companyId);
-      if (response && response.assets && response.assets.length > 0) {
-        setAssets(response.assets);
-      } else {
-        // Fall back to sample enterprise assets
-        setAssets((current) => (current.length > 0 ? current : getInitialSampleAssets(companyId, accounts)));
-      }
-    } catch {
-      // In offline / preview / demo mode, preserve or initialize sample assets
-      setAssets((current) => (current.length > 0 ? current : getInitialSampleAssets(companyId, accounts)));
+      setAssets(response?.assets ?? []);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+      setAssets([]);
     } finally {
       setLoading(false);
     }
-  }, [companyId, accounts]);
+  }, [companyId]);
 
   useEffect(() => {
     void loadAssets();
@@ -470,49 +336,11 @@ export function FixedAssetsPanel({
         depreciationExpenseAccountId: regDepExpAccountId,
       };
 
-      try {
-        const res = await ledgerApi.createFixedAsset(companyId, input);
-        if (res && res.asset) {
-          setAssets((prev) => [res.asset, ...prev]);
-        }
-      } catch {
-        // Local state fallback
-        const newAsset: FixedAsset = {
-          id: `fa-${Date.now()}`,
-          companyId,
-          branchId: null,
-          assetCode: input.assetCode,
-          nameEn: input.nameEn,
-          nameBn: input.nameBn ?? null,
-          assetCategory: input.assetCategory,
-          acquisitionDate: input.acquisitionDate,
-          originalCostPoisha: costPoisha.toString(),
-          originalCostBdt: regCostBdt,
-          salvageValuePoisha: salvagePoisha.toString(),
-          salvageValueBdt: regSalvageBdt,
-          usefulLifeMonths: input.usefulLifeMonths,
-          monthsDepreciated: 0,
-          depreciationMethod: input.depreciationMethod,
-          depreciationRateBps: input.depreciationRateBps,
-          taxWdvRateBps: input.taxWdvRateBps ?? 2000,
-          taxWdvPoisha: costPoisha.toString(),
-          taxWdvBdt: regCostBdt,
-          assetAccountId: input.assetAccountId,
-          accumulatedDepreciationAccountId: input.accumulatedDepreciationAccountId,
-          depreciationExpenseAccountId: input.depreciationExpenseAccountId,
-          status: 'ACTIVE',
-          accumulatedDepreciationPoisha: '0',
-          accumulatedDepreciationBdt: '0.00',
-          carryingAmountPoisha: costPoisha.toString(),
-          carryingAmountBdt: regCostBdt,
-          disposedAt: null,
-          disposalProceedsPoisha: null,
-          disposalProceedsBdt: null,
-          disposalJournalId: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        setAssets((prev) => [newAsset, ...prev]);
+      const res = await ledgerApi.createFixedAsset(companyId, input);
+      if (res && res.asset) {
+        setAssets((prev) => [res.asset, ...prev]);
+      } else {
+        await loadAssets();
       }
 
       setShowRegisterModal(false);
@@ -569,45 +397,23 @@ export function FixedAssetsPanel({
     setBusy(true);
     setError(null);
     try {
-      try {
-        await ledgerApi.runDepreciation(companyId, {
-          periodId: selectedPeriodId || (openPeriods[0]?.id ?? 'period-01'),
-          runDate,
-        });
-      } catch {
-        // Apply deterministic calculation locally
-        setAssets((prev) =>
-          prev.map((asset) => {
-            if (asset.status !== 'ACTIVE') return asset;
-            const bookCharge = calculateMonthlyBookDepreciationPoisha(asset);
-            const taxCharge = calculateMonthlyTaxDepreciationPoisha(asset);
-            const newAccDep = BigInt(asset.accumulatedDepreciationPoisha) + bookCharge;
-            const newCarrying = BigInt(asset.carryingAmountPoisha) - bookCharge;
-            const newTaxWdv = BigInt(asset.taxWdvPoisha) - taxCharge;
-
-            return {
-              ...asset,
-              monthsDepreciated: asset.monthsDepreciated + 1,
-              accumulatedDepreciationPoisha: newAccDep.toString(),
-              accumulatedDepreciationBdt: poishaToBdtString(newAccDep),
-              carryingAmountPoisha: newCarrying.toString(),
-              carryingAmountBdt: poishaToBdtString(newCarrying),
-              taxWdvPoisha: newTaxWdv.toString(),
-              taxWdvBdt: poishaToBdtString(newTaxWdv),
-              updatedAt: new Date().toISOString(),
-            };
-          }),
-        );
-      }
+      const res = await ledgerApi.runDepreciation(companyId, {
+        periodId: selectedPeriodId || (openPeriods[0]?.id ?? 'period-01'),
+        runDate,
+      });
 
       setShowDepreciationModal(false);
+      const totalPoisha = res?.totalDepreciationPoisha
+        ? BigInt(res.totalDepreciationPoisha)
+        : deprPreview.totalDeprPoisha;
       setFeedback(
         L(
-          `Monthly depreciation run executed: ${formatPoisha(deprPreview.totalDeprPoisha)} posted to GL.`,
-          `মাসিক অবচয় সম্পন্ন হয়েছে: লেজারে ${formatPoisha(deprPreview.totalDeprPoisha)} পোস্ট হয়েছে।`,
+          `Monthly depreciation run executed: ${formatPoisha(totalPoisha)} posted to GL.`,
+          `মাসিক অবচয় সম্পন্ন হয়েছে: লেজারে ${formatPoisha(totalPoisha)} পোস্ট হয়েছে।`,
         ),
       );
       onChanged?.(L('Monthly depreciation posted to General Ledger', 'সাধারণ লেজারে মাসিক অবচয় পোস্ট হয়েছে'));
+      await loadAssets();
     } catch (err) {
       setError(apiErrorMessage(err));
     } finally {
@@ -675,35 +481,19 @@ export function FixedAssetsPanel({
         throw new Error(L('Proceeds cannot be negative.', 'বিক্রয়লব্ধ অর্থ ঋণাত্মক হতে পারে না।'));
       }
 
-      try {
-        await ledgerApi.disposeFixedAsset(companyId, disposingAsset.id, {
-          disposalDate: dispDate,
-          proceedsBdt: dispProceedsBdt,
-          bankAccountId: dispBankAccountId,
-          gainAccountId: dispGainAccountId,
-          lossAccountId: dispLossAccountId,
-          notes: dispNotes,
-        });
-      } catch {
-        // Update local state
-        setAssets((prev) =>
-          prev.map((a) =>
-            a.id === disposingAsset.id
-              ? {
-                  ...a,
-                  status: 'DISPOSED' as const,
-                  disposedAt: dispDate,
-                  disposalProceedsPoisha: proceeds.toString(),
-                  disposalProceedsBdt: dispProceedsBdt,
-                  carryingAmountPoisha: '0',
-                  carryingAmountBdt: '0.00',
-                  taxWdvPoisha: '0',
-                  taxWdvBdt: '0.00',
-                  updatedAt: new Date().toISOString(),
-                }
-              : a,
-          ),
-        );
+      const res = await ledgerApi.disposeFixedAsset(companyId, disposingAsset.id, {
+        disposalDate: dispDate,
+        proceedsBdt: dispProceedsBdt,
+        bankAccountId: dispBankAccountId,
+        gainAccountId: dispGainAccountId,
+        lossAccountId: dispLossAccountId,
+        notes: dispNotes,
+      });
+
+      if (res?.asset) {
+        setAssets((prev) => prev.map((a) => (a.id === res.asset.id ? res.asset : a)));
+      } else {
+        await loadAssets();
       }
 
       setDisposingAsset(null);
@@ -753,7 +543,10 @@ export function FixedAssetsPanel({
               <>
                 <button
                   type="button"
-                  onClick={() => setShowDepreciationModal(true)}
+                  onClick={() => {
+                    setError(null);
+                    setShowDepreciationModal(true);
+                  }}
                   disabled={loading || busy || kpis.activeCount === 0}
                   className="ql-btn ql-btn-secondary min-h-9 text-[13px]"
                 >
@@ -763,6 +556,7 @@ export function FixedAssetsPanel({
                 <button
                   type="button"
                   onClick={() => {
+                    setError(null);
                     handleCategoryChange('PLANT_MACHINERY');
                     setShowRegisterModal(true);
                   }}
@@ -999,6 +793,7 @@ export function FixedAssetsPanel({
                           <button
                             type="button"
                             onClick={() => {
+                              setError(null);
                               setDisposingAsset(asset);
                               setDispProceedsBdt(asset.carryingAmountBdt || '0.00');
                               setDispDate(dateToday());
@@ -1043,12 +838,21 @@ export function FixedAssetsPanel({
               </div>
               <button
                 type="button"
-                onClick={() => setShowRegisterModal(false)}
+                onClick={() => {
+                  setShowRegisterModal(false);
+                  setError(null);
+                }}
                 className="text-ink-400 hover:text-ink-700"
               >
                 <X size={18} />
               </button>
             </div>
+
+            {error ? (
+              <div className="mt-3">
+                <ErrorBanner message={error} />
+              </div>
+            ) : null}
 
             <form onSubmit={handleRegisterSubmit} className="mt-4 space-y-4">
               {/* Category Picker */}
@@ -1270,7 +1074,10 @@ export function FixedAssetsPanel({
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowRegisterModal(false)}
+                  onClick={() => {
+                    setShowRegisterModal(false);
+                    setError(null);
+                  }}
                   className="ql-btn ql-btn-secondary text-[13px]"
                 >
                   {L('Cancel', 'বাতিল')}
@@ -1307,12 +1114,21 @@ export function FixedAssetsPanel({
               </div>
               <button
                 type="button"
-                onClick={() => setShowDepreciationModal(false)}
+                onClick={() => {
+                  setShowDepreciationModal(false);
+                  setError(null);
+                }}
                 className="text-ink-400 hover:text-ink-700"
               >
                 <X size={18} />
               </button>
             </div>
+
+            {error ? (
+              <div className="mt-3">
+                <ErrorBanner message={error} />
+              </div>
+            ) : null}
 
             <div className="mt-4 space-y-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1430,7 +1246,10 @@ export function FixedAssetsPanel({
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowDepreciationModal(false)}
+                  onClick={() => {
+                    setShowDepreciationModal(false);
+                    setError(null);
+                  }}
                   className="ql-btn ql-btn-secondary text-[13px]"
                 >
                   {L('Cancel', 'বাতিল')}
@@ -1462,12 +1281,21 @@ export function FixedAssetsPanel({
               </div>
               <button
                 type="button"
-                onClick={() => setDisposingAsset(null)}
+                onClick={() => {
+                  setDisposingAsset(null);
+                  setError(null);
+                }}
                 className="text-ink-400 hover:text-ink-700"
               >
                 <X size={18} />
               </button>
             </div>
+
+            {error ? (
+              <div className="mt-3">
+                <ErrorBanner message={error} />
+              </div>
+            ) : null}
 
             <div className="mt-4 space-y-4">
               {/* Asset Snapshot Card */}
@@ -1569,6 +1397,16 @@ export function FixedAssetsPanel({
                 </Field>
               </div>
 
+              <Field label={L('Disposal Notes / Reason', 'নিষ্পত্তির কারণ / বিবরণ')}>
+                <input
+                  type="text"
+                  value={dispNotes}
+                  onChange={(e) => setDispNotes(e.target.value)}
+                  className="ql-input text-[13px]"
+                  placeholder={L('e.g. Replaced due to obsolescence / wear and tear', 'যেমন: অপ্রচলিত বা ক্ষয়জনিত কারণে প্রতিস্থাপন')}
+                />
+              </Field>
+
               {/* Accounting & Tax Disclosure Preview */}
               <div className="rounded-xl border border-line bg-surface-2/30 p-3 space-y-2 text-[12px]">
                 <div className="flex items-center justify-between">
@@ -1665,7 +1503,10 @@ export function FixedAssetsPanel({
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setDisposingAsset(null)}
+                  onClick={() => {
+                    setDisposingAsset(null);
+                    setError(null);
+                  }}
                   className="ql-btn ql-btn-secondary text-[13px]"
                 >
                   {L('Cancel', 'বাতিল')}

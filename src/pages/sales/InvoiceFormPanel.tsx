@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Save, Trash2, X } from 'lucide-react';
+import { Plus, Save, ShieldAlert, ShieldCheck, Trash2, X } from 'lucide-react';
+import { ApiError } from '../../auth/api';
 import { localized } from '../../core/i18n';
 import { usePreferences } from '../../preferences/AppPreferences';
 import type { SalesDocument, SalesDocumentType, SalesDraftInput } from '../../sales/api';
 import { salesApi } from '../../sales/api';
+import { setupApi } from '../../setup/api';
 import { apiErrorMessage, ErrorBanner, Notice } from '../setup/setupUi';
 import { DraftSaveIndicator, ValidationSummary, useUnsavedChangesGuard, type DraftSaveState } from '../forms/draftSupport';
 import { SALES_INPUT, SALES_SELECT, addDaysIso, newIdempotencyKey, todayIso } from './salesUi';
@@ -104,6 +106,8 @@ export function InvoiceFormPanel({
   const [loading, setLoading] = useState(false);
   const [loadingOriginal, setLoadingOriginal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [adoptingTax, setAdoptingTax] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [savedDocumentId, setSavedDocumentId] = useState<string | null>(initialDocument?.id ?? null);
   const [saveState, setSaveState] = useState<DraftSaveState>('IDLE');
@@ -141,6 +145,7 @@ export function InvoiceFormPanel({
     async (id: string) => {
       setLoadingOriginal(true);
       setError(null);
+      setErrorCode(null);
       try {
         const response = await salesApi.document(companyId, id);
         const document = response.document;
@@ -157,6 +162,9 @@ export function InvoiceFormPanel({
         );
       } catch (caught) {
         setError(apiErrorMessage(caught));
+        if (caught instanceof ApiError) {
+          setErrorCode(caught.code);
+        }
       } finally {
         setLoadingOriginal(false);
       }
@@ -283,7 +291,12 @@ export function InvoiceFormPanel({
       setSaveState('SAVED');
     } catch (caught) {
       setSaveState('ERROR');
-      setSaveError(apiErrorMessage(caught));
+      const msg = apiErrorMessage(caught);
+      setSaveError(msg);
+      if (caught instanceof ApiError && caught.code === 'SALES_TAX_POLICY_NOT_APPROVED') {
+        setErrorCode(caught.code);
+        setError(msg);
+      }
     } finally {
       savingRef.current = false;
     }
@@ -331,6 +344,7 @@ export function InvoiceFormPanel({
 
   const save = async () => {
     setError(null);
+    setErrorCode(null);
     setNotice(null);
     setShowErrors(true);
     setSummaryErrors(
@@ -359,8 +373,43 @@ export function InvoiceFormPanel({
       onSaved(response.document);
     } catch (caught) {
       setError(apiErrorMessage(caught));
+      if (caught instanceof ApiError) {
+        setErrorCode(caught.code);
+      } else if (caught && typeof (caught as { code?: unknown }).code === 'string') {
+        setErrorCode((caught as { code: string }).code);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const isTaxPolicyError =
+    errorCode === 'SALES_TAX_POLICY_NOT_APPROVED' ||
+    Boolean(error?.includes('SALES_TAX_POLICY_NOT_APPROVED')) ||
+    Boolean(saveError?.includes('SALES_TAX_POLICY_NOT_APPROVED')) ||
+    Boolean(error && /tax policy approval is required|No reviewer approval is recorded for tax pack/i.test(error));
+
+  const adoptTaxBaseline = async () => {
+    setAdoptingTax(true);
+    try {
+      await setupApi.approveTaxPolicy(companyId, 'sales', { accounts: refs.accounts });
+      setError(null);
+      setErrorCode(null);
+      setSaveError(null);
+      setNotice(
+        L(
+          'Bangladesh statutory tax baseline (bd-2026-v1) adopted and approved. Resaving draft…',
+          'বাংলাদেশ সংবিধিবদ্ধ কর বেসলাইন (bd-2026-v1) গৃহীত ও অনুমোদিত হয়েছে। খসড়া পুনরায় সংরক্ষণ হচ্ছে…',
+        ),
+      );
+      await save();
+    } catch (caught) {
+      setError(apiErrorMessage(caught));
+      if (caught instanceof ApiError) {
+        setErrorCode(caught.code);
+      }
+    } finally {
+      setAdoptingTax(false);
     }
   };
 
@@ -410,7 +459,42 @@ export function InvoiceFormPanel({
         </div>
       </div>
 
-      {error ? <div className="mt-4"><ErrorBanner message={error} /></div> : null}
+      {isTaxPolicyError ? (
+        <div
+          role="alert"
+          className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-[13px] text-amber-900 dark:text-amber-200"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2.5">
+              <ShieldAlert className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" size={18} />
+              <div>
+                <p className="font-semibold text-amber-900 dark:text-amber-100">
+                  {L(
+                    'The Bangladesh statutory tax baseline (bd-2026-v1) is required before posting sales invoices.',
+                    'বিক্রয় চালান পোস্ট করার আগে বাংলাদেশ সংবিধিবদ্ধ কর বেসলাইন (bd-2026-v1) অনুমোদন আবশ্যক।',
+                  )}
+                </p>
+                {error && !error.includes('SALES_TAX_POLICY_NOT_APPROVED') ? (
+                  <p className="mt-1 text-[12px] opacity-90">{error}</p>
+                ) : null}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void adoptTaxBaseline()}
+              disabled={adoptingTax || loading}
+              className="ql-btn ql-btn-primary shrink-0 text-[13px]"
+            >
+              <ShieldCheck size={15} />
+              {adoptingTax
+                ? L('Adopting…', 'অনুমোদন হচ্ছে…')
+                : L('Adopt & Approve Tax Baseline (bd-2026-v1)', 'Adopt & Approve Tax Baseline (bd-2026-v1)')}
+            </button>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="mt-4"><ErrorBanner message={error} /></div>
+      ) : null}
       {notice ? <div className="mt-4"><Notice message={notice} tone="info" /></div> : null}
       <div className="mt-4">
         <ValidationSummary

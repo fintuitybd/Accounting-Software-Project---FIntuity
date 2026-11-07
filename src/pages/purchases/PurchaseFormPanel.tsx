@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Save, Trash2, X } from 'lucide-react';
+import { Plus, Save, ShieldAlert, ShieldCheck, Trash2, X } from 'lucide-react';
+import { ApiError } from '../../auth/api';
 import { usePreferences } from '../../preferences/AppPreferences';
 import { DraftSaveIndicator, ValidationSummary, useUnsavedChangesGuard, type DraftSaveState } from '../forms/draftSupport';
 import type {
@@ -10,6 +11,7 @@ import type {
   PurchaseTdsNature,
 } from '../../purchases/api';
 import { purchaseApi } from '../../purchases/api';
+import { setupApi } from '../../setup/api';
 import { apiErrorMessage, ErrorBanner, Field, INPUT_CLASS, Notice } from '../setup/setupUi';
 import type { PurchaseRefs } from './purchasesRefs';
 import { addDaysIso, newKey, todayIso } from './purchasesUi';
@@ -148,6 +150,8 @@ export function PurchaseFormPanel({
   const addLine = () => setLines((current) => [...current, blankLine()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [adoptingTax, setAdoptingTax] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [savedDocumentId, setSavedDocumentId] = useState<string | null>(initialDocument?.id ?? null);
   const [saveState, setSaveState] = useState<DraftSaveState>('IDLE');
@@ -353,7 +357,12 @@ export function PurchaseFormPanel({
       setSaveState('SAVED');
     } catch (caught) {
       setSaveState('ERROR');
-      setSaveError(apiErrorMessage(caught));
+      const msg = apiErrorMessage(caught);
+      setSaveError(msg);
+      if (caught instanceof ApiError && caught.code === 'PURCHASE_TAX_POLICY_NOT_APPROVED') {
+        setErrorCode(caught.code);
+        setError(msg);
+      }
     } finally {
       savingRef.current = false;
     }
@@ -398,6 +407,7 @@ export function PurchaseFormPanel({
 
   const save = async () => {
     setError(null);
+    setErrorCode(null);
     setNotice(null);
     setSummaryErrors(validationErrors.map((entry) => ({ message: entry.message })));
     if (validationErrors.length > 0) return;
@@ -416,8 +426,38 @@ export function PurchaseFormPanel({
       onSaved(result.document);
     } catch (caught) {
       setError(apiErrorMessage(caught));
+      if (caught instanceof ApiError) {
+        setErrorCode(caught.code);
+      } else if (caught && typeof (caught as { code?: unknown }).code === 'string') {
+        setErrorCode((caught as { code: string }).code);
+      }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const isTaxPolicyError =
+    errorCode === 'PURCHASE_TAX_POLICY_NOT_APPROVED' ||
+    Boolean(error?.includes('PURCHASE_TAX_POLICY_NOT_APPROVED')) ||
+    Boolean(saveError?.includes('PURCHASE_TAX_POLICY_NOT_APPROVED')) ||
+    Boolean(error && /tax policy approval is required|No reviewer approval is recorded for tax pack/i.test(error));
+
+  const adoptTaxBaseline = async () => {
+    setAdoptingTax(true);
+    try {
+      await setupApi.approveTaxPolicy(companyId, 'purchase', { accounts: refs.accounts });
+      setError(null);
+      setErrorCode(null);
+      setSaveError(null);
+      setNotice('Bangladesh statutory tax baseline (bd-2026-v1) adopted and approved. Resaving draft…');
+      await save();
+    } catch (caught) {
+      setError(apiErrorMessage(caught));
+      if (caught instanceof ApiError) {
+        setErrorCode(caught.code);
+      }
+    } finally {
+      setAdoptingTax(false);
     }
   };
 
@@ -457,7 +497,37 @@ export function PurchaseFormPanel({
         </div>
       </div>
 
-      {error ? <div className="mt-4"><ErrorBanner message={error} /></div> : null}
+      {isTaxPolicyError ? (
+        <div
+          role="alert"
+          className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-[13px] text-amber-900 dark:text-amber-200"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2.5">
+              <ShieldAlert className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" size={18} />
+              <div>
+                <p className="font-semibold text-amber-900 dark:text-amber-100">
+                  The Bangladesh statutory tax baseline (bd-2026-v1) is required before posting purchase bills.
+                </p>
+                {error && !error.includes('PURCHASE_TAX_POLICY_NOT_APPROVED') ? (
+                  <p className="mt-1 text-[12px] opacity-90">{error}</p>
+                ) : null}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void adoptTaxBaseline()}
+              disabled={adoptingTax || saving}
+              className="ql-btn ql-btn-primary shrink-0 text-[13px]"
+            >
+              <ShieldCheck size={15} />
+              {adoptingTax ? 'Adopting…' : 'Adopt & Approve Purchase Tax Baseline (bd-2026-v1)'}
+            </button>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="mt-4"><ErrorBanner message={error} /></div>
+      ) : null}
       {notice ? <div className="mt-4"><Notice message={notice} tone="success" /></div> : null}
       <div className="mt-4">
         <ValidationSummary errors={summaryErrors} title="Fix the following before saving" />

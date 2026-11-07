@@ -165,6 +165,11 @@ const FIXED_ACTIONS: readonly ActionDefinition[] = [
 ];
 
 export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
+  return <CommandPaletteModal onClose={onClose} />;
+}
+
+function CommandPaletteModal({ onClose }: { onClose: () => void }) {
   const auth = useAuth();
   const navigate = useNavigate();
   const { locale } = usePreferences();
@@ -213,16 +218,14 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   );
 
   useEffect(() => {
-    if (!open) return;
     setQuery('');
     setEntityRows([]);
     setActiveIndex(0);
     const timer = window.setTimeout(() => inputRef.current?.focus(), 20);
     return () => window.clearTimeout(timer);
-  }, [open]);
+  }, []);
 
   useEffect(() => {
-    if (!open) return undefined;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -239,10 +242,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       // Return focus to the control that opened the palette.
       previous?.focus();
     };
-  }, [onClose, open]);
+  }, [onClose]);
 
   useEffect(() => {
-    if (!open || !companyId) return undefined;
+    if (!companyId) return undefined;
     const term = query.trim();
     if (term.length < 2) {
       setEntityRows([]);
@@ -268,7 +271,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     return () => window.clearTimeout(timer);
     // `searchEntities` is intentionally recreated only when its permission scope or company changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId, open, query, auth, locale]);
+  }, [companyId, query, auth, locale]);
 
   async function searchEntities(term: string): Promise<PaletteRow[]> {
     if (!companyId) return [];
@@ -410,8 +413,6 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       inputRef.current?.focus();
     }
   };
-
-  if (!open) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[110] flex items-start justify-center p-3 pt-[8vh] sm:p-6 sm:pt-[12vh]">
