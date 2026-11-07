@@ -632,7 +632,6 @@ export async function processMfsWebhook(
     });
 
     // If an invoice is attached, also record a sales_receipts & sales_receipt_allocations entry
-    let receiptId: string | null = null;
     if (invoiceRow) {
       const receiptNumber = await allocateSalesNumber(
         client,
@@ -641,7 +640,7 @@ export async function processMfsWebhook(
         period.fiscal_start,
         'RECEIPT',
       );
-      receiptId = crypto.randomUUID();
+      const receiptId = crypto.randomUUID();
       await client.query(
         `INSERT INTO sales_receipts (
            id, company_id, branch_id, status, receipt_number, receipt_date,

@@ -949,7 +949,7 @@ export async function getCashFlowReport(
     }
   }
 
-  let pnlProfitBeforeTax = 0n;
+  let pnlProfitBeforeTax: bigint;
   try {
     const pnl = await getProfitAndLossReport(database, companyId, input);
     pnlProfitBeforeTax = BigInt(pnl.totals.profitBeforeTaxPoisha);

@@ -1120,13 +1120,6 @@ export function downloadWorkbookFile(
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  } else {
-    try {
-      const fs = require('node:fs');
-      fs.writeFileSync(fileName, content, 'utf8');
-    } catch {
-      // ignore in non-filesystem environments
-    }
   }
 }
 

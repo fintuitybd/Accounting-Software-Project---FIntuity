@@ -695,11 +695,11 @@ export async function generateNineTabAuditPackBuffer(
 
   let companyName = 'Fintuity Corporate Suite Ltd.';
   let companyBin = '002248173-0101';
-  let companyTin = '130958472638';
+  const companyTin = '130958472638';
   let fromDate = '2025-07-01';
   let toDate = '2026-06-30';
-  let comparativeFrom = '2024-07-01';
-  let comparativeTo = '2025-06-30';
+  const comparativeFrom = '2024-07-01';
+  const comparativeTo = '2025-06-30';
   let fiscalYearLabel = 'FY 2025-2026';
 
   let pnl: ProfitAndLossDto | null = null;

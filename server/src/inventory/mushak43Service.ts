@@ -1134,7 +1134,7 @@ export async function executeProductionBatch(
         randomUUID(),
         input.companyId,
         batchId,
-        movementNo++,
+        movementNo,
         input.idempotencyKey,
         input.batchDate,
         decl.finished_item_id,

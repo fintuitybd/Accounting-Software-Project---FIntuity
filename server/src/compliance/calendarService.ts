@@ -131,7 +131,7 @@ export function advanceDeadline(
   statutoryDate: string,
   holidays: Set<string>,
 ): { adjustedDate: string; shiftDays: number; shiftCallout: string | null } {
-  let current = parseIsoDate(statutoryDate);
+  const current = parseIsoDate(statutoryDate);
   let shiftDays = 0;
 
   while (isBangladeshWeekend(current) || holidays.has(toIsoDate(current))) {

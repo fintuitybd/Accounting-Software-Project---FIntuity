@@ -391,6 +391,21 @@ export default function DashboardPage() {
     return items;
   }, [L, canApprove, data, numeralScript]);
 
+  const todayFormatted = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat(locale === 'bn-BD' ? 'bn-BD' : 'en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+        .format(new Date())
+        .toUpperCase();
+    } catch {
+      return todayIso();
+    }
+  }, [locale]);
+
   const periodLabel = data?.period
     ? `${data.period.label || data.period.code} · ${formatDate(data.period.startDate, locale)} – ${formatDate(data.period.endDate, locale)}`
     : L('No accounting period configured', 'কোনো হিসাবকাল নির্ধারিত নেই');
@@ -459,21 +474,6 @@ export default function DashboardPage() {
   const cashValue = data?.cash ? money(data.cash.totalPoisha) : null;
   const arValue = data?.receivables ? money(data.receivables.overduePoisha) : null;
   const apValue = data?.payables ? money(data.payables.overduePoisha) : null;
-
-  const todayFormatted = useMemo(() => {
-    try {
-      return new Intl.DateTimeFormat(locale === 'bn-BD' ? 'bn-BD' : 'en-GB', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-        .format(new Date())
-        .toUpperCase();
-    } catch {
-      return todayIso();
-    }
-  }, [locale]);
 
   const firstName = auth.user?.name ? auth.user.name.split(' ')[0] : null;
   const greeting = (

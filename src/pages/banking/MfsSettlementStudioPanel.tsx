@@ -162,8 +162,8 @@ export function MfsSettlementStudioPanel({
         if (!Array.isArray(parsedTransactions) || parsedTransactions.length === 0) {
           throw new Error('Transactions must be a non-empty JSON array.');
         }
-      } catch (err: any) {
-        throw new Error(`Invalid JSON in transactions list: ${err.message}`);
+      } catch (err) {
+        throw new Error(`Invalid JSON in transactions list: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
       }
 
       const res = await bankingApi.reconcilePgwBatch(companyId, {
