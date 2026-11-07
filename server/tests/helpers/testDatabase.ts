@@ -55,8 +55,12 @@ export async function createTestDatabase(): Promise<TestDatabase> {
     name,
     cleanup: async () => {
       await pool.end().catch(() => undefined);
-      await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
-      await admin.end();
+      try {
+        await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+      } catch {
+        // ignore
+      }
+      await admin.end().catch(() => undefined);
     },
   };
 }
