@@ -41,7 +41,7 @@ export interface BankAccountRow {
 export interface BankStatementLineRow {
   id: string;
   company_id: string;
-  statement_id: string;
+  statement_id: string | null;
   bank_account_id: string;
   line_no: number;
   value_date: Date;
@@ -66,7 +66,7 @@ export interface BankStatementLineRow {
 export interface BankStatementLineDto {
   id: string;
   companyId: string;
-  statementId: string;
+  statementId: string | null;
   bankAccountId: string;
   lineNo: number;
   valueDate: string;

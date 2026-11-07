@@ -48,6 +48,43 @@ import {
   prepareReconciliation,
   reviewReconciliation,
 } from '../banking/reconciliationService.ts';
+import {
+  listMfsWebhookEvents,
+  processMfsWebhook,
+  reconcilePgwBatch,
+} from '../banking/mfsWebhookService.ts';
+
+const mfsWebhookParams = z.object({
+  companyId: z.string().uuid(),
+  provider: z.string().trim(),
+});
+
+const mfsWebhookQuery = z.object({
+  provider: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+const pgwBatchReconcileSchema = z.object({
+  provider: z.enum(['SSLCOMMERZ', 'AAMARPAY']),
+  batchReference: z.string().trim().min(1).max(100),
+  settlementDate: z.string().min(10).max(10),
+  transactions: z
+    .array(
+      z.object({
+        externalTrxId: z.string().trim().min(1),
+        invoiceId: z.string().uuid().optional().nullable(),
+        grossAmountPoisha: z.union([z.string(), z.number()]).optional(),
+        amount: z.union([z.string(), z.number()]).optional(),
+        mdrFeeBps: z.coerce.number().int().min(0).max(10000).optional(),
+        valueDate: z.string().optional(),
+      }),
+    )
+    .min(1),
+});
+
 
 const companyParams = z.object({ companyId: z.string().uuid() });
 const bankAccountParams = z.object({ companyId: z.string().uuid(), bankAccountId: z.string().uuid() });
@@ -790,5 +827,107 @@ export const bankingRoutes: FastifyPluginAsync = async (app) => {
         reconciliationId: params.reconciliationId,
       });
     },
+  );
+
+  // MFS & PGW Webhooks (bKash, Nagad, SSLCommerz, AamarPay)
+  const webhookHandler = async (request: any, reply: any) => {
+    const params = parseInput(mfsWebhookParams, request.params);
+    const providerUpper = params.provider.toUpperCase();
+
+    const signature =
+      (request.headers['x-bkash-signature'] as string) ||
+      (request.headers['x-nagad-signature'] as string) ||
+      (request.headers['x-sslcommerz-signature'] as string) ||
+      (request.headers['x-aamarpay-signature'] as string) ||
+      (request.headers['x-signature'] as string) ||
+      (typeof request.headers.signature === 'string' ? request.headers.signature : undefined);
+
+    const rawPayload =
+      typeof request.body === 'string'
+        ? request.body
+        : JSON.stringify(request.body ?? {});
+    const bodyObj =
+      typeof request.body === 'object' && request.body !== null
+        ? (request.body as Record<string, unknown>)
+        : {};
+
+    const result = await processMfsWebhook(app.db, {
+      companyId: params.companyId,
+      provider: providerUpper,
+      signature,
+      rawPayload,
+      payload: bodyObj,
+      audit: {
+        ip: request.ip,
+        userAgent: truncateUserAgent(request.headers['user-agent']),
+        requestId: request.id,
+      },
+    });
+
+    reply.code(result.replayed ? 200 : 201);
+    return {
+      success: true,
+      event: result.event,
+      replayed: result.replayed,
+      journalId: result.journalId,
+      statementLineId: result.statementLineId,
+    };
+  };
+
+  app.post(
+    '/companies/:companyId/banking/mfs/webhooks/:provider',
+    { config: { auth: { mode: 'public' } } },
+    webhookHandler,
+  );
+  app.post(
+    '/companies/:companyId/mfs/webhooks/:provider',
+    { config: { auth: { mode: 'public' } } },
+    webhookHandler,
+  );
+
+  // List MFS & PGW Webhook Events
+  const listWebhooksHandler = async (request: any) => {
+    const params = parseInput(companyParams, request.params);
+    const query = parseInput(mfsWebhookQuery, request.query);
+    return listMfsWebhookEvents(app.db, params.companyId, query);
+  };
+
+  app.get(
+    '/companies/:companyId/banking/mfs/webhooks',
+    { config: { auth: { mode: 'company', permission: 'VIEW_REPORTS' } } },
+    listWebhooksHandler,
+  );
+  app.get(
+    '/companies/:companyId/mfs/webhooks',
+    { config: { auth: { mode: 'company', permission: 'VIEW_REPORTS' } } },
+    listWebhooksHandler,
+  );
+
+  // PGW Batch Settlement Reconciliation
+  const pgwBatchHandler = async (request: any) => {
+    const ctx = context(request);
+    requireVerifiedEmail(ctx.auth);
+    const params = parseInput(companyParams, request.params);
+    const body = parseInput(pgwBatchReconcileSchema, request.body);
+    const result = await reconcilePgwBatch(app.db, {
+      ...ctx.audit,
+      companyId: params.companyId,
+      provider: body.provider,
+      batchReference: body.batchReference,
+      settlementDate: body.settlementDate,
+      transactions: body.transactions,
+    });
+    return { success: true, result };
+  };
+
+  app.post(
+    '/companies/:companyId/banking/mfs/settlements/reconcile',
+    { config: { auth: { mode: 'company', permission: 'POST_TO_GL' } } },
+    pgwBatchHandler,
+  );
+  app.post(
+    '/companies/:companyId/mfs/settlements/reconcile',
+    { config: { auth: { mode: 'company', permission: 'POST_TO_GL' } } },
+    pgwBatchHandler,
   );
 };

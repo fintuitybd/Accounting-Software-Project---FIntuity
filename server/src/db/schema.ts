@@ -1402,7 +1402,7 @@ export const bankStatementLines = pgTable(
     companyId: uuid('company_id')
       .notNull()
       .references(() => companies.id, { onDelete: 'restrict' }),
-    statementId: uuid('statement_id').notNull(),
+    statementId: uuid('statement_id'),
     bankAccountId: uuid('bank_account_id').notNull(),
     lineNo: integer('line_no').notNull(),
     valueDate: date('value_date').notNull(),
@@ -2122,5 +2122,31 @@ export const productionBatches = pgTable(
     index('production_batches_company_date_idx').on(t.companyId, t.batchDate),
   ],
 );
+
+// 6. MFS WEBHOOKS & PAYMENT GATEWAY SETTLEMENTS
+export const mfsWebhookEvents = pgTable(
+  'mfs_webhook_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'restrict' }),
+    provider: text('provider').notNull(), // 'BKASH' | 'NAGAD' | 'SSLCOMMERZ' | 'AAMARPAY'
+    externalTrxId: text('external_trx_id').notNull(),
+    invoiceId: uuid('invoice_id').references(() => salesDocuments.id, { onDelete: 'restrict' }),
+    grossAmountPoisha: bigint('gross_amount_poisha', { mode: 'bigint' }).notNull(),
+    mdrFeeBps: integer('mdr_fee_bps').notNull(),
+    mdrFeePoisha: bigint('mdr_fee_poisha', { mode: 'bigint' }).notNull(),
+    netSettledPoisha: bigint('net_settled_poisha', { mode: 'bigint' }).notNull(),
+    signatureVerified: boolean('signature_verified').notNull().default(false),
+    journalId: uuid('journal_id').references(() => journals.id, { onDelete: 'restrict' }),
+    rawPayload: text('raw_payload').notNull(),
+    processedAt: timestamp('processed_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('mfs_webhook_provider_trx_uniq').on(t.companyId, t.provider, t.externalTrxId),
+    index('mfs_webhook_events_company_invoice_idx').on(t.companyId, t.invoiceId),
+    index('mfs_webhook_events_company_provider_idx').on(t.companyId, t.provider),
+  ]
+);
+
 
 

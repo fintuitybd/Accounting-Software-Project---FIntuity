@@ -13,9 +13,10 @@ import { LineWorkbenchPanel } from './LineWorkbenchPanel';
 import { ReconciliationPanel } from './ReconciliationPanel';
 import { FeeRulesPanel } from './FeeRulesPanel';
 import { TransfersPanel } from './TransfersPanel';
+import { MfsSettlementStudioPanel } from './MfsSettlementStudioPanel';
 import { formatDate, statusChip } from './bankingUi';
 
-type TabKey = 'QUEUE' | 'IMPORT' | 'RECONCILIATION' | 'FEES' | 'TRANSFERS' | 'ACCOUNTS';
+type TabKey = 'QUEUE' | 'IMPORT' | 'RECONCILIATION' | 'FEES' | 'TRANSFERS' | 'ACCOUNTS' | 'MFS_STUDIO';
 
 function iconFor(kind: string) {
   if (kind === 'MFS') return <Smartphone size={15} />;
@@ -102,6 +103,7 @@ export default function BankingPage() {
       { key: 'RECONCILIATION', en: 'Reconciliation', bn: 'মিলকরণ', icon: ShieldCheck, visible: canViewReports },
       { key: 'FEES', en: 'Fee rules', bn: 'ফি নিয়ম', icon: Settings2, visible: canViewReports },
       { key: 'TRANSFERS', en: 'Transfers', bn: 'স্থানান্তর', icon: Banknote },
+      { key: 'MFS_STUDIO', en: 'MFS & PGW Settlement Studio', bn: 'এমএফএস ও পিজিডব্লিউ নিষ্পত্তি স্টুডিও', icon: Smartphone },
       { key: 'ACCOUNTS', en: 'Bank accounts', bn: 'ব্যাংক হিসাব', icon: Landmark },
     ],
     [canPost, canViewReports],
@@ -265,6 +267,13 @@ export default function BankingPage() {
           banks={banks}
           canPost={canPost}
           canReverse={canReverse}
+          refreshKey={refreshKey}
+          onChanged={refresh}
+        />
+      ) : tab === 'MFS_STUDIO' ? (
+        <MfsSettlementStudioPanel
+          companyId={companyId}
+          canPost={canPost}
           refreshKey={refreshKey}
           onChanged={refresh}
         />

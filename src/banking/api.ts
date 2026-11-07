@@ -16,7 +16,7 @@ export type BankReconciliationStatus = 'DRAFT' | 'PREPARED' | 'REVIEWED' | 'LOCK
 export interface BankStatementLine {
   id: string;
   companyId: string;
-  statementId: string;
+  statementId: string | null;
   bankAccountId: string;
   lineNo: number;
   valueDate: string;
@@ -579,4 +579,85 @@ export const bankingApi = {
     apiRequest<{ filename: string; content: string }>(
       `/companies/${companyId}/bank-reconciliations/${reconciliationId}/report`,
     ),
+  mfsWebhooks: (
+    companyId: string,
+    query: {
+      provider?: string;
+      from?: string;
+      to?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) =>
+    apiRequest<{ events: MfsWebhookEvent[]; total: number }>(
+      `/companies/${companyId}/mfs/webhooks${queryString(query)}`,
+    ),
+  reconcilePgwBatch: (
+    companyId: string,
+    input: {
+      provider: 'SSLCOMMERZ' | 'AAMARPAY';
+      batchReference: string;
+      settlementDate: string;
+      transactions: Array<{
+        externalTrxId: string;
+        invoiceId?: string | null;
+        grossAmountPoisha?: string | number;
+        amount?: string | number;
+        mdrFeeBps?: number;
+        valueDate?: string;
+      }>;
+    },
+  ) =>
+    apiRequest<{ success: boolean; result: PgwBatchReconciliationResult }>(
+      `/companies/${companyId}/mfs/settlements/reconcile`,
+      { method: 'POST', body: input },
+    ),
+  simulateMfsWebhook: (
+    companyId: string,
+    provider: string,
+    payload: Record<string, unknown>,
+    headers: Record<string, string> = {},
+  ) =>
+    apiRequest<{ success: boolean; event: MfsWebhookEvent; replayed: boolean; journalId?: string }>(
+      `/companies/${companyId}/mfs/webhooks/${provider}`,
+      { method: 'POST', body: payload, headers },
+    ),
 };
+
+export interface MfsWebhookEvent {
+  id: string;
+  companyId: string;
+  provider: 'BKASH' | 'NAGAD' | 'SSLCOMMERZ' | 'AAMARPAY';
+  externalTrxId: string;
+  invoiceId: string | null;
+  invoiceNumber: string | null;
+  customerName: string | null;
+  grossAmountPoisha: string;
+  grossAmountBdt: string;
+  mdrFeeBps: number;
+  mdrFeePoisha: string;
+  mdrFeeBdt: string;
+  netSettledPoisha: string;
+  netSettledBdt: string;
+  signatureVerified: boolean;
+  journalId: string | null;
+  rawPayload: string;
+  processedAt: string;
+}
+
+export interface PgwBatchReconciliationResult {
+  batchReference: string;
+  provider: 'BKASH' | 'NAGAD' | 'SSLCOMMERZ' | 'AAMARPAY';
+  settlementDate: string;
+  totalTransactions: number;
+  reconciledCount: number;
+  replayedCount: number;
+  totalGrossPoisha: string;
+  totalGrossBdt: string;
+  totalMdrFeePoisha: string;
+  totalMdrFeeBdt: string;
+  totalNetSettledPoisha: string;
+  totalNetSettledBdt: string;
+  events: MfsWebhookEvent[];
+}
+

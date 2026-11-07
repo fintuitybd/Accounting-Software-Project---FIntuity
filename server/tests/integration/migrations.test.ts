@@ -34,6 +34,7 @@ describe.skipIf(!databaseAvailable)('foundation migrations against PostgreSQL', 
       '0014_withholding_returns_and_sequences',
       '0015_payroll_labour_act',
       '0016_manufacturing_mushak43',
+      '0017_mfs_webhooks_settlements',
     ]);
     expect(first.alreadyApplied).toBe(0);
 
@@ -110,6 +111,7 @@ describe.skipIf(!databaseAvailable)('foundation migrations against PostgreSQL', 
         'demo_requests',
         'bd_gazetted_holidays',
         'compliance_calendar_events',
+        'mfs_webhook_events',
       ]),
     );
 
@@ -126,7 +128,7 @@ describe.skipIf(!databaseAvailable)('foundation migrations against PostgreSQL', 
 
     const second = await migrateUp({ pool: database.pool, nodeEnv: 'test' });
     expect(second.applied).toEqual([]);
-    expect(second.alreadyApplied).toBe(16);
+    expect(second.alreadyApplied).toBe(17);
   });
 
   it('enforces status checks, foreign keys and append-only audit events', async () => {
@@ -183,8 +185,9 @@ describe.skipIf(!databaseAvailable)('foundation migrations against PostgreSQL', 
   });
 
   it('rolls back on a development database and can reapply cleanly', async () => {
-    const down = await migrateDown({ pool: database.pool, nodeEnv: 'test', steps: 16 });
+    const down = await migrateDown({ pool: database.pool, nodeEnv: 'test', steps: 17 });
     expect(down.rolledBack).toEqual([
+      '0017_mfs_webhooks_settlements',
       '0016_manufacturing_mushak43',
       '0015_payroll_labour_act',
       '0014_withholding_returns_and_sequences',
@@ -205,7 +208,7 @@ describe.skipIf(!databaseAvailable)('foundation migrations against PostgreSQL', 
 
     const remaining = await database.pool.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name IN ('organisations', 'users', 'memberships', 'companies', 'audit_events', 'accounts', 'periods', 'journals', 'journal_lines', 'items', 'stock_movements', 'stock_balances', 'sales_documents', 'sales_document_lines', 'sales_document_taxes', 'sales_tax_decisions', 'sales_document_events', 'sales_receipts', 'sales_receipt_allocations', 'purchase_documents', 'purchase_document_lines', 'purchase_document_taxes', 'purchase_tax_decisions', 'purchase_document_events', 'purchase_payments', 'purchase_payment_allocations', 'purchase_withholding_liabilities', 'purchase_payment_approval_requests', 'treasury_challans', 'treasury_challan_items', 'treasury_certificates', 'bank_statements', 'bank_statement_lines', 'bank_statement_line_matches', 'bank_gl_requests', 'bank_fee_rules', 'bank_fee_postings', 'bank_transfers', 'bank_reconciliations', 'close_runs', 'close_run_events', 'suspense_resolutions', 'demo_requests', 'bd_gazetted_holidays', 'compliance_calendar_events', 'document_sequences', 'withholding_tax_returns', 'withholding_return_lines', 'payroll_employees', 'payroll_runs', 'payroll_run_lines', 'mushak_43_declarations', 'mushak_43_ingredients', 'production_batches')`,
+        WHERE table_schema = 'public' AND table_name IN ('organisations', 'users', 'memberships', 'companies', 'audit_events', 'accounts', 'periods', 'journals', 'journal_lines', 'items', 'stock_movements', 'stock_balances', 'sales_documents', 'sales_document_lines', 'sales_document_taxes', 'sales_tax_decisions', 'sales_document_events', 'sales_receipts', 'sales_receipt_allocations', 'purchase_documents', 'purchase_document_lines', 'purchase_document_taxes', 'purchase_tax_decisions', 'purchase_document_events', 'purchase_payments', 'purchase_payment_allocations', 'purchase_withholding_liabilities', 'purchase_payment_approval_requests', 'treasury_challans', 'treasury_challan_items', 'treasury_certificates', 'bank_statements', 'bank_statement_lines', 'bank_statement_line_matches', 'bank_gl_requests', 'bank_fee_rules', 'bank_fee_postings', 'bank_transfers', 'bank_reconciliations', 'close_runs', 'close_run_events', 'suspense_resolutions', 'demo_requests', 'bd_gazetted_holidays', 'compliance_calendar_events', 'document_sequences', 'withholding_tax_returns', 'withholding_return_lines', 'payroll_employees', 'payroll_runs', 'payroll_run_lines', 'mushak_43_declarations', 'mushak_43_ingredients', 'production_batches', 'mfs_webhook_events')`,
     );
     expect(remaining.rows).toEqual([]);
 
@@ -227,6 +230,7 @@ describe.skipIf(!databaseAvailable)('foundation migrations against PostgreSQL', 
       '0014_withholding_returns_and_sequences',
       '0015_payroll_labour_act',
       '0016_manufacturing_mushak43',
+      '0017_mfs_webhooks_settlements',
     ]);
   });
 });
