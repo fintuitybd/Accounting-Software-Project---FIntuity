@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ClipboardCheck, History, PackageSearch, Warehouse } from 'lucide-react';
+import { ClipboardCheck, Factory, History, PackageSearch, Warehouse } from 'lucide-react';
 import { localized } from '../../core/i18n';
 import { usePreferences } from '../../preferences/AppPreferences';
 import { useAuth } from '../../auth/AuthContext';
@@ -11,13 +11,15 @@ import { MovementFormPanel } from './MovementFormPanel';
 import { StockLedgerPanel } from './StockLedgerPanel';
 import { ValuationPanel } from './ValuationPanel';
 import { ControlProofPanel } from './ControlProofPanel';
+import { Mushak43Page } from './Mushak43Page';
 import type { InventoryRefs } from './inventoryUi';
 
-type TabKey = 'LEDGER' | 'VALUATION' | 'PROOF' | 'RECORD';
+type TabKey = 'LEDGER' | 'VALUATION' | 'PROOF' | 'RECORD' | 'MUSHAK43';
 
 const TABS: Array<{ key: TabKey; en: string; bn: string; icon: typeof History }> = [
   { key: 'LEDGER', en: 'Stock ledger', bn: 'স্টক লেজার', icon: History },
   { key: 'VALUATION', en: 'Valuation', bn: 'মূল্যায়ন', icon: PackageSearch },
+  { key: 'MUSHAK43', en: 'Mushak 4.3 & BOM', bn: 'মূসক ৪.৩ ও বিওএম', icon: Factory },
   { key: 'PROOF', en: 'Control proof', bn: 'নিয়ন্ত্রণ প্রমাণ', icon: ClipboardCheck },
   { key: 'RECORD', en: 'Record movement', bn: 'মুভমেন্ট রেকর্ড', icon: Warehouse },
 ];
@@ -119,6 +121,16 @@ export default function InventoryPage() {
         <StockLedgerPanel companyId={companyId} refs={refs} canDispatch={canDispatch} canOverride={canOverride} refreshKey={refreshKey} onChanged={onChanged} />
       ) : null}
       {tab === 'VALUATION' ? <ValuationPanel companyId={companyId} refs={refs} refreshKey={refreshKey} /> : null}
+      {tab === 'MUSHAK43' ? (
+        <Mushak43Page
+          companyId={companyId}
+          refs={refs}
+          canDispatch={canDispatch}
+          canOverride={canOverride}
+          refreshKey={refreshKey}
+          onChanged={onChanged}
+        />
+      ) : null}
       {tab === 'PROOF' && canViewProof ? <ControlProofPanel companyId={companyId} refreshKey={refreshKey} /> : null}
       {tab === 'RECORD' ? (
         <MovementFormPanel companyId={companyId} refs={refs} canDispatch={canDispatch} canOverride={canOverride} onRecorded={onChanged} />

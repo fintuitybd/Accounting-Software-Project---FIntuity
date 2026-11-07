@@ -24,6 +24,7 @@ import {
 } from './navigation';
 
 const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage'));
+const PayrollPage = lazy(() => import('../pages/payroll/PayrollPage'));
 const SalesPage = lazy(() => import('../pages/sales/SalesPage'));
 const PurchasesPage = lazy(() => import('../pages/purchases/PurchasesPage'));
 const BankingPage = lazy(() => import('../pages/banking/BankingPage'));
@@ -41,6 +42,7 @@ const AccountPage = lazy(() => import('../pages/AccountPage'));
 
 const PAGES: Record<SectionKey, LazyExoticComponent<ComponentType>> = {
   HOME: DashboardPage,
+  PAYROLL: PayrollPage,
   SALES: SalesPage,
   PURCHASES: PurchasesPage,
   BANKING: BankingPage,

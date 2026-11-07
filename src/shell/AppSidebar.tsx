@@ -20,6 +20,7 @@ import {
   ShoppingCart,
   UserCog,
   Users,
+  Wallet,
   X,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
@@ -37,6 +38,7 @@ import {
 
 const ICONS: Record<NavigationIcon, typeof LayoutDashboard> = {
   home: LayoutDashboard,
+  payroll: Wallet,
   sales: Receipt,
   purchases: ShoppingCart,
   banking: Banknote,

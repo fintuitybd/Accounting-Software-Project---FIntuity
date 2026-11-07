@@ -116,6 +116,136 @@ export interface StockCommandInput {
   reason?: string | null;
 }
 
+export interface Mushak43Ingredient {
+  id: string;
+  declarationId: string;
+  rawItemId: string;
+  rawItemSku: string;
+  rawItemName: string;
+  rawItemHsCode: string | null;
+  netQuantity: string;
+  wastageBps: number;
+  grossQuantity: string;
+  unit: string;
+  ratePerUnitPoisha: string;
+  ratePerUnitBdt: string;
+  totalCostPoisha: string;
+  totalCostBdt: string;
+  rebatableInputVat: boolean;
+  isAbnormalWastage: boolean;
+}
+
+export interface Mushak43Declaration {
+  id: string;
+  companyId: string;
+  declarationNumber: string;
+  finishedItemId: string;
+  finishedItemSku: string;
+  finishedItemName: string;
+  finishedItemHsCode: string | null;
+  outputQuantity: string;
+  outputUnit: string;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  status: 'DRAFT' | 'SUBMITTED_TO_NBR' | 'APPROVED' | 'SUPERSEDED';
+  nbrSubmissionDate: string | null;
+  nbrDivisionOffice: string | null;
+  totalRawMaterialCostPoisha: string;
+  totalRawMaterialCostBdt: string;
+  directLaborCostPoisha: string;
+  directLaborCostBdt: string;
+  manufacturingOverheadPoisha: string;
+  manufacturingOverheadBdt: string;
+  packagingCostPoisha: string;
+  packagingCostBdt: string;
+  totalCostOfProductionPoisha: string;
+  totalCostOfProductionBdt: string;
+  targetProfitMarginBps: number;
+  declaredRetailPricePoisha: string;
+  declaredRetailPriceBdt: string;
+  hasAbnormalWastage: boolean;
+  createdAt: string;
+  updatedAt: string;
+  ingredients: Mushak43Ingredient[];
+}
+
+export interface ProductionBatch {
+  id: string;
+  companyId: string;
+  batchNumber: string;
+  declarationId: string;
+  declarationNumber: string;
+  finishedItemId: string;
+  finishedItemSku: string;
+  finishedItemName: string;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseName: string;
+  batchDate: string;
+  batchQuantity: string;
+  status: 'DRAFT' | 'COMPLETED' | 'CANCELLED';
+  totalRawMaterialCostPoisha: string;
+  totalRawMaterialCostBdt: string;
+  directLaborCostPoisha: string;
+  directLaborCostBdt: string;
+  manufacturingOverheadPoisha: string;
+  manufacturingOverheadBdt: string;
+  packagingCostPoisha: string;
+  packagingCostBdt: string;
+  totalCostPoisha: string;
+  totalCostBdt: string;
+  unitCostPoisha: string;
+  unitCostBdt: string;
+  hasAbnormalWastage: boolean;
+  abnormalWastageCostPoisha: string;
+  abnormalWastageCostBdt: string;
+  vatRebateClawbackPoisha: string;
+  vatRebateClawbackBdt: string;
+  clawbackNote: string | null;
+  journalId: string | null;
+  journalNumber?: string | null;
+  executedBy: string | null;
+  executedByName?: string | null;
+  executedAt: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMushak43Input {
+  declarationNumber?: string | null;
+  finishedItemId: string;
+  outputQuantity: string;
+  outputUnit: string;
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  nbrDivisionOffice?: string | null;
+  directLaborCostPoisha?: string | number;
+  manufacturingOverheadPoisha?: string | number;
+  packagingCostPoisha?: string | number;
+  targetProfitMarginBps?: number;
+  declaredRetailPricePoisha?: string | number | null;
+  ingredients: Array<{
+    rawItemId: string;
+    netQuantity: string;
+    wastageBps: number;
+    unit: string;
+    ratePerUnitPoisha: string | number;
+    rebatableInputVat?: boolean;
+  }>;
+}
+
+export interface ExecuteBatchInput {
+  declarationId: string;
+  warehouseId: string;
+  batchQuantity: string;
+  batchDate: string;
+  batchNumber?: string | null;
+  notes?: string | null;
+  allowNegativeStock?: boolean;
+  overrideReason?: string | null;
+}
+
 function queryString(values: Record<string, string | number | undefined>): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(values)) {
@@ -190,4 +320,71 @@ export const inventoryApi = {
       body: input,
       headers: { 'Idempotency-Key': idempotencyKey },
     }),
+
+  // Mushak 4.3 Declarations
+  mushak43List: (
+    companyId: string,
+    options: { finishedItemId?: string; status?: string; page?: number; pageSize?: number } = {},
+  ) =>
+    apiRequest<{ declarations: Mushak43Declaration[]; total: number; page: number; pageSize: number }>(
+      `/companies/${companyId}/inventory/mushak-43${queryString({
+        finishedItemId: options.finishedItemId,
+        status: options.status,
+        page: options.page,
+        pageSize: options.pageSize,
+      })}`,
+    ),
+
+  mushak43Get: (companyId: string, declarationId: string) =>
+    apiRequest<{ declaration: Mushak43Declaration }>(
+      `/companies/${companyId}/inventory/mushak-43/${declarationId}`,
+    ),
+
+  mushak43Create: (companyId: string, input: CreateMushak43Input) =>
+    apiRequest<{ declaration: Mushak43Declaration }>(`/companies/${companyId}/inventory/mushak-43`, {
+      method: 'POST',
+      body: input,
+    }),
+
+  mushak43SubmitNbr: (
+    companyId: string,
+    declarationId: string,
+    input: { nbrSubmissionDate?: string; nbrDivisionOffice?: string | null; approveImmediately?: boolean } = {},
+  ) =>
+    apiRequest<{ declaration: Mushak43Declaration }>(
+      `/companies/${companyId}/inventory/mushak-43/${declarationId}/submit-nbr`,
+      {
+        method: 'POST',
+        body: input,
+      },
+    ),
+
+  // Production Batches
+  productionBatches: (
+    companyId: string,
+    options: { finishedItemId?: string; status?: string; page?: number; pageSize?: number } = {},
+  ) =>
+    apiRequest<{ batches: ProductionBatch[]; total: number; page: number; pageSize: number }>(
+      `/companies/${companyId}/inventory/production-batches${queryString({
+        finishedItemId: options.finishedItemId,
+        status: options.status,
+        page: options.page,
+        pageSize: options.pageSize,
+      })}`,
+    ),
+
+  productionBatchGet: (companyId: string, batchId: string) =>
+    apiRequest<{ batch: ProductionBatch }>(
+      `/companies/${companyId}/inventory/production-batches/${batchId}`,
+    ),
+
+  executeBatch: (companyId: string, input: ExecuteBatchInput, idempotencyKey: string) =>
+    apiRequest<{ batch: ProductionBatch; journalId: string; journalNumber: string; replayed: boolean }>(
+      `/companies/${companyId}/inventory/production-batches`,
+      {
+        method: 'POST',
+        body: input,
+        headers: { 'Idempotency-Key': idempotencyKey },
+      },
+    ),
 };
