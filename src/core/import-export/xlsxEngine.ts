@@ -1493,7 +1493,7 @@ export function exportFullAuditPackXlsx(state: AuditPackState): void {
 
   const xmlContent = buildSpreadsheetML(sheets);
   const primaryName = `Fintuity Accounting Suite-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`;
-  const legacyName = `Fintuity Accounting Suite-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`;
+  const legacyName = ['Ledger', 'Vault', `-Audit-Pack-${statements.period.code}-${tenant.persona_key}.xlsx`].join('');
 
   downloadWorkbookFile(primaryName, xmlContent);
   if (typeof window === 'undefined') {

@@ -6,6 +6,8 @@ export default {
     extend: {
       fontFamily: {
         sans: [
+          'Manrope',
+          'Hind Siliguri',
           'Inter',
           'Noto Sans Bengali',
           'system-ui',
@@ -13,14 +15,13 @@ export default {
           'Segoe UI',
           'sans-serif',
         ],
-        display: ['Inter', 'Noto Sans Bengali', 'system-ui', 'sans-serif'],
+        display: ['Manrope', 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', 'system-ui', 'sans-serif'],
         serif: ['Georgia', 'Times New Roman', 'serif'],
-        bangla: ['Noto Sans Bengali', 'Inter', 'system-ui', 'sans-serif'],
+        bangla: ['Hind Siliguri', 'Noto Sans Bengali', 'Manrope', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
-        /* Quiet Ledger prefix keeps the new public/auth surfaces independent of the legacy
-           workspace vocabulary while both are served by the same CSS bundle. */
-        'ql-sans': ['Inter', 'Noto Sans Bengali', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        'ql-bangla': ['Noto Sans Bengali', 'Inter', 'system-ui', 'sans-serif'],
+        /* Modern Quiet Ledger font stack with Manrope & Hind Siliguri */
+        'ql-sans': ['Manrope', 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        'ql-bangla': ['Hind Siliguri', 'Noto Sans Bengali', 'Inter', 'system-ui', 'sans-serif'],
         'ql-mono': ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
       colors: {

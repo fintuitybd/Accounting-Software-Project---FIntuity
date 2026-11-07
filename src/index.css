@@ -62,46 +62,46 @@
 
 @layer base {
   :root {
-    --ql-paper: 246 249 250;
+    --ql-paper: 248 250 249;
     --ql-surface: 255 255 255;
-    --ql-surface-muted: 237 244 246;
+    --ql-surface-muted: 243 247 246;
     --ql-surface-raised: 255 255 255;
 
-    --ql-ink: 10 30 48;
-    --ql-ink-muted: 62 82 99;
-    --ql-ink-subtle: 88 108 123;
+    --ql-ink: 8 43 82;
+    --ql-ink-muted: 83 106 126;
+    --ql-ink-subtle: 113 136 154;
     --ql-ink-inverse: 255 255 255;
 
-    --ql-border: 219 232 235;
-    --ql-border-strong: 191 214 220;
+    --ql-border: 231 238 237;
+    --ql-border-strong: 220 232 233;
 
-    /* Logo navy is the action/identity colour; logo teal is the accessible accent. */
-    --ql-brand: 0 45 96;
-    --ql-brand-hover: 0 59 122;
-    --ql-brand-soft: 230 246 248;
+    /* Deep Corporate Navy (#082d58) is the action/identity colour; vibrant teal (#00b9a8) is the accent. */
+    --ql-brand: 8 45 88;
+    --ql-brand-hover: 11 65 109;
+    --ql-brand-soft: 231 247 245;
     --ql-brand-ink: 255 255 255;
 
-    --ql-accent: 0 122 112;
-    --ql-accent-soft: 222 247 243;
+    --ql-accent: 0 185 168;
+    --ql-accent-soft: 228 246 241;
 
-    --ql-success: 6 118 71;
-    --ql-success-soft: 236 253 243;
+    --ql-success: 7 159 134;
+    --ql-success-soft: 231 247 242;
     --ql-warning: 181 71 8;
     --ql-warning-soft: 255 250 235;
-    --ql-danger: 180 35 24;
+    --ql-danger: 217 56 62;
     --ql-danger-soft: 254 242 242;
-    --ql-info: 23 92 211;
-    --ql-info-soft: 239 248 255;
+    --ql-info: 18 141 132;
+    --ql-info-soft: 236 249 248;
 
-    --ql-focus: 29 78 216;
+    --ql-focus: 0 185 168;
 
     --ql-radius-control: 6px;
-    --ql-radius-card: 8px;
-    --ql-radius-modal: 10px;
+    --ql-radius-card: 10px;
+    --ql-radius-modal: 12px;
 
-    --ql-shadow-card: 0 1px 2px rgb(10 30 48 / 0.04), 0 3px 10px -4px rgb(10 30 48 / 0.08);
-    --ql-shadow-popover: 0 18px 45px -18px rgb(10 30 48 / 0.28), 0 2px 8px rgb(10 30 48 / 0.08);
-    --ql-shadow-brand: 0 0 0 1px rgb(0 176 160 / 0.18), 0 22px 55px -28px rgb(0 45 96 / 0.5);
+    --ql-shadow-card: 0 2px 6px rgba(6, 43, 82, 0.04), 0 20px 45px -12px rgba(6, 43, 82, 0.12);
+    --ql-shadow-popover: 0 24px 60px -15px rgba(6, 43, 82, 0.28), 0 2px 8px rgba(6, 43, 82, 0.08);
+    --ql-shadow-brand: 0 0 0 1px rgb(0 185 168 / 0.2), 0 14px 32px rgba(8, 45, 88, 0.18);
 
     --ql-space-1: 4px;
     --ql-space-2: 8px;
@@ -116,25 +116,25 @@
     --ql-motion-fast: 120ms;
     --ql-motion-base: 180ms;
     --ql-motion-slow: 220ms;
-    --ql-canvas: 246 249 250;
+    --ql-canvas: 248 250 249;
     --ql-surface-2: 250 253 253;
-    --ql-surface-3: 237 244 246;
-    --ql-line: 219 232 235;
-    --ql-line-strong: 191 214 220;
+    --ql-surface-3: 243 247 246;
+    --ql-line: 231 238 237;
+    --ql-line-strong: 220 232 233;
     --ql-sidebar: 255 255 255;
-    --ql-sidebar-2: 237 244 246;
+    --ql-sidebar-2: 243 247 246;
     --ql-glass: 255 255 255;
-    --ql-emerald: 0 45 96;
-    --ql-emerald-deep: 0 31 66;
-    --ql-emerald-bright: 0 122 112;
-    --ql-emerald-soft: 0 176 160;
-    --ql-saffron: 0 176 160;
+    --ql-emerald: 8 45 88;
+    --ql-emerald-deep: 6 32 64;
+    --ql-emerald-bright: 0 185 168;
+    --ql-emerald-soft: 0 185 168;
+    --ql-saffron: 0 185 168;
     --ql-saffron-soft: 77 207 195;
-    --ql-saffron-deep: 0 122 112;
-    --ql-brand-from: 0 45 96;
-    --ql-brand-via: 0 90 126;
-    --ql-brand-to: 0 176 160;
-    --ql-mint: 0 176 160;
+    --ql-saffron-deep: 0 160 146;
+    --ql-brand-from: 8 45 88;
+    --ql-brand-via: 8 65 109;
+    --ql-brand-to: 0 185 168;
+    --ql-mint: 0 185 168;
     --ql-range-fill: 50%;
   }
 
@@ -256,12 +256,11 @@
     color: rgb(var(--ql-ink));
     background-color: rgb(var(--ql-canvas));
     background-image:
-      radial-gradient(1180px 680px at 6% -12%, rgba(99, 102, 241, 0.11), transparent 60%),
-      radial-gradient(980px 620px at 100% -4%, rgba(168, 85, 247, 0.09), transparent 56%),
-      radial-gradient(1100px 800px at 50% 118%, rgba(16, 185, 129, 0.045), transparent 60%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 320px);
+      radial-gradient(circle at 84% 9%, rgba(0, 185, 168, 0.08) 0, transparent 35%),
+      radial-gradient(circle at 12% 0%, rgba(8, 45, 88, 0.04) 0, transparent 40%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent 320px);
     background-attachment: fixed;
-    font-family: 'Inter', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'Manrope', 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-feature-settings: 'ss01' 1, 'cv11' 1;
     font-variant-numeric: tabular-nums lining-nums;
     -webkit-font-smoothing: antialiased;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { ClipboardCheck, Factory, History, PackageSearch, Warehouse } from 'lucide-react';
 import { localized } from '../../core/i18n';
 import { usePreferences } from '../../preferences/AppPreferences';
@@ -7,12 +7,16 @@ import { setupApi } from '../../setup/api';
 import { masterApi } from '../../masters/api';
 import { apiErrorMessage, ErrorBanner, Notice } from '../setup/setupUi';
 import { PageHeader } from '../../shell/PageHeader';
+import { RouteLoading } from '../../shell/RouteStates';
 import { MovementFormPanel } from './MovementFormPanel';
 import { StockLedgerPanel } from './StockLedgerPanel';
 import { ValuationPanel } from './ValuationPanel';
 import { ControlProofPanel } from './ControlProofPanel';
-import { Mushak43Page } from './Mushak43Page';
 import type { InventoryRefs } from './inventoryUi';
+
+const Mushak43Page = lazy(() =>
+  import('./Mushak43Page').then((m) => ({ default: m.Mushak43Page }))
+);
 
 type TabKey = 'LEDGER' | 'VALUATION' | 'PROOF' | 'RECORD' | 'MUSHAK43';
 
@@ -122,14 +126,16 @@ export default function InventoryPage() {
       ) : null}
       {tab === 'VALUATION' ? <ValuationPanel companyId={companyId} refs={refs} refreshKey={refreshKey} /> : null}
       {tab === 'MUSHAK43' ? (
-        <Mushak43Page
-          companyId={companyId}
-          refs={refs}
-          canDispatch={canDispatch}
-          canOverride={canOverride}
-          refreshKey={refreshKey}
-          onChanged={onChanged}
-        />
+        <Suspense fallback={<RouteLoading label="Loading Mushak 4.3 Studio..." />}>
+          <Mushak43Page
+            companyId={companyId}
+            refs={refs}
+            canDispatch={canDispatch}
+            canOverride={canOverride}
+            refreshKey={refreshKey}
+            onChanged={onChanged}
+          />
+        </Suspense>
       ) : null}
       {tab === 'PROOF' && canViewProof ? <ControlProofPanel companyId={companyId} refreshKey={refreshKey} /> : null}
       {tab === 'RECORD' ? (

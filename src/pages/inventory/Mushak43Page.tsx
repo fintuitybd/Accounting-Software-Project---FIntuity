@@ -18,7 +18,7 @@ import { localized } from '../../core/i18n';
 import { usePreferences } from '../../preferences/AppPreferences';
 import { inventoryApi, type Mushak43Declaration, type ProductionBatch } from '../../inventory/api';
 import { apiErrorMessage, ErrorBanner, Notice } from '../setup/setupUi';
-import { StatutoryPrintModal } from '../../components/signature/StatutoryPrintModal';
+import { Mushak43PrintModal } from './Mushak43PrintModal';
 import type { InventoryRefs } from './inventoryUi';
 
 interface Mushak43PageProps {
@@ -1144,14 +1144,12 @@ export function Mushak43Page({
 
       {/* Statutory Print Modal */}
       {showPrintModal && selectedDeclarationForPrint ? (
-        <StatutoryPrintModal
+        <Mushak43PrintModal
           open={showPrintModal}
           onClose={() => {
             setShowPrintModal(false);
             setSelectedDeclarationForPrint(null);
           }}
-          mode="MUSHAK_4_3"
-          initialMode="MUSHAK_4_3"
           mushak43={selectedDeclarationForPrint}
         />
       ) : null}
