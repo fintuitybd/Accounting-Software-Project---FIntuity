@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   CalendarClock,
   ChevronDown,
+  ChevronRight,
   CircleHelp,
   Languages,
   LogOut,
@@ -127,15 +128,15 @@ export function AppTopBar({ currentPath, onOpenMenu, onOpenPalette }: AppTopBarP
         </button>
 
         <div className="hidden min-w-0 flex-1 items-center gap-1.5 text-[13px] text-ql-ink-muted sm:flex">
-          <Link to="/app" className="rounded-ql-control px-1.5 py-1 hover:bg-ql-surface-muted hover:text-ql-ink">
+          <Link to="/app" className="rounded-ql-control px-2 py-1 font-medium transition-colors hover:bg-ql-surface-muted hover:text-ql-ink">
             {L('Home', 'হোম')}
           </Link>
           {group && section && section.key !== 'HOME' ? (
             <>
-              <span aria-hidden className="text-ql-ink-subtle">/</span>
-              <span>{L(group.labelEn, group.labelBn)}</span>
-              <span aria-hidden className="text-ql-ink-subtle">/</span>
-              <span className="truncate font-medium text-ql-ink" aria-current="page">
+              <ChevronRight size={13} aria-hidden className="shrink-0 text-ql-ink-subtle" />
+              <span className="font-medium text-ql-ink-muted">{L(group.labelEn, group.labelBn)}</span>
+              <ChevronRight size={13} aria-hidden className="shrink-0 text-ql-ink-subtle" />
+              <span className="truncate font-semibold text-ql-ink" aria-current="page">
                 {L(section.labelEn, section.labelBn)}
               </span>
             </>
@@ -174,62 +175,62 @@ export function AppTopBar({ currentPath, onOpenMenu, onOpenPalette }: AppTopBarP
           <button
             type="button"
             onClick={onOpenPalette}
-            className="flex h-11 items-center gap-2 rounded-ql-control border border-ql-border px-3 text-[13px] text-ql-ink-muted hover:border-ql-border-strong hover:text-ql-ink"
+            className="flex h-10 items-center gap-2 rounded-ql-control border border-ql-border bg-ql-surface-muted/50 px-3 text-[13px] text-ql-ink-muted transition-colors hover:border-ql-border-strong hover:bg-ql-surface hover:text-ql-ink"
           >
-            <Search size={17} aria-hidden />
+            <Search size={15} aria-hidden className="shrink-0 text-ql-accent" />
             <span className="sr-only">{L('Search or jump to', 'খুঁজুন বা যান')}</span>
-            <span className="hidden sm:inline" aria-hidden>{L('Search', 'খুঁজুন')}</span>
-            <kbd className="hidden rounded border border-ql-border px-1.5 py-0.5 font-mono text-[12px] sm:inline">Ctrl K</kbd>
+            <span className="hidden sm:inline" aria-hidden>{L('Search anything…', 'অনুসন্ধান করুন…')}</span>
+            <kbd className="hidden rounded-md border border-ql-border bg-ql-surface px-1.5 py-0.5 font-mono text-[11px] text-ql-ink-subtle sm:inline">⌘ K</kbd>
           </button>
 
           <button
             type="button"
             onClick={() => setLocale(locale === 'bn-BD' ? 'en-BD' : 'bn-BD')}
-            className="flex h-11 items-center gap-1 rounded-ql-control px-2.5 text-[13px] font-medium text-ql-ink-muted hover:bg-ql-surface-muted hover:text-ql-ink"
+            className="flex h-10 items-center gap-1 rounded-ql-control px-2.5 text-[13px] font-medium text-ql-ink-muted transition-colors hover:bg-ql-surface-muted hover:text-ql-ink"
             aria-label={locale === 'bn-BD' ? 'বাংলা — ইংরেজিতে পরিবর্তন করুন' : 'English — switch to Bangla'}
           >
-            <Languages size={17} aria-hidden />
+            <Languages size={16} aria-hidden />
             <span className="hidden sm:inline">{locale === 'bn-BD' ? 'বাংলা' : 'English'}</span>
           </button>
 
           <button
             type="button"
             onClick={toggleTheme}
-            className="grid h-11 w-11 place-items-center rounded-ql-control text-ql-ink-muted hover:bg-ql-surface-muted hover:text-ql-ink"
+            className="grid h-10 w-10 place-items-center rounded-ql-control text-ql-ink-muted transition-colors hover:bg-ql-surface-muted hover:text-ql-ink"
             aria-label={theme === 'DARK' ? L('Use light theme', 'হালকা থিম ব্যবহার করুন') : L('Use dark theme', 'গাঢ় থিম ব্যবহার করুন')}
           >
-            {theme === 'DARK' ? <Sun size={18} aria-hidden /> : <Moon size={18} aria-hidden />}
+            {theme === 'DARK' ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
           </button>
 
           <button
             type="button"
             onClick={() => setHelpOpen(true)}
-            className="grid h-11 w-11 place-items-center rounded-ql-control text-ql-ink-muted hover:bg-ql-surface-muted hover:text-ql-ink"
+            className="grid h-10 w-10 place-items-center rounded-ql-control text-ql-ink-muted transition-colors hover:bg-ql-surface-muted hover:text-ql-ink"
             aria-label={L('Help and keyboard shortcuts', 'সহায়তা ও কীবোর্ড শর্টকাট')}
           >
-            <CircleHelp size={18} aria-hidden />
+            <CircleHelp size={17} aria-hidden />
           </button>
 
           <div className="relative" ref={menuRef}>
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="flex h-11 items-center gap-2 rounded-ql-control px-2 text-left hover:bg-ql-surface-muted"
+              className="flex h-10 items-center gap-2 rounded-ql-control px-2 text-left transition-colors hover:bg-ql-surface-muted"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
             >
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-ql-brand-soft text-[13px] font-semibold text-ql-brand">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-ql-brand text-[12px] font-bold text-white shadow-sm ring-2 ring-ql-brand/20">
                 {initials(auth.user?.name ?? auth.user?.email ?? '?')}
               </span>
               <span className="hidden min-w-0 sm:block">
-                <span className="block max-w-[150px] truncate text-[13px] font-medium leading-4 text-ql-ink">
+                <span className="block max-w-[150px] truncate text-[13px] font-semibold leading-4 text-ql-ink">
                   {auth.user?.name ?? L('Signed in', 'সাইন ইন করা')}
                 </span>
-                <span className="block max-w-[150px] truncate text-[12px] leading-4 text-ql-ink-muted">
+                <span className="block max-w-[150px] truncate text-[11px] leading-4 text-ql-ink-muted">
                   {role ? L(role.label_en, role.label_bn) : auth.activeMembership?.role ?? ''}
                 </span>
               </span>
-              <ChevronDown size={16} aria-hidden className="text-ql-ink-subtle" />
+              <ChevronDown size={15} aria-hidden className="text-ql-ink-subtle" />
             </button>
 
             {menuOpen ? (

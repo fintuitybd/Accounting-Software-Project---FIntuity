@@ -16,6 +16,7 @@ import {
   RefreshCw,
   ShieldCheck,
   ShoppingCart,
+  Sun,
   Users,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
@@ -459,18 +460,41 @@ export default function DashboardPage() {
   const arValue = data?.receivables ? money(data.receivables.overduePoisha) : null;
   const apValue = data?.payables ? money(data.payables.overduePoisha) : null;
 
+  const todayFormatted = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat(locale === 'bn-BD' ? 'bn-BD' : 'en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+        .format(new Date())
+        .toUpperCase();
+    } catch {
+      return todayIso();
+    }
+  }, [locale]);
+
+  const firstName = auth.user?.name ? auth.user.name.split(' ')[0] : null;
+  const greeting = (
+    <span className="inline-flex items-center gap-2">
+      <span>{firstName ? L(`Good day, ${firstName}`, `সুপ্রভাত, ${firstName}`) : L('Home', 'হোম')}</span>
+      <Sun className="shrink-0 text-amber-500" size={24} aria-hidden />
+    </span>
+  );
+
   return (
     <>
       <PageHeader
-        eyebrow={L('What needs attention today', 'আজ কী মনোযোগ প্রয়োজন')}
-        title={L('Home', 'হোম')}
+        eyebrow={todayFormatted}
+        title={greeting}
         description={L(
           'A server-derived view of cash, open items, tax, approvals and close readiness for the selected company and period.',
           'নির্বাচিত কোম্পানি ও হিসাবকালের নগদ, খোলা আইটেম, কর, অনুমোদন ও সমাপনী প্রস্তুতির সার্ভার-ভিত্তিক সারসংক্ষেপ।',
         )}
         meta={
           <>
-            <span className="ql-badge ql-badge-brand">{company.legalName}</span>
+            <span className="ql-badge ql-badge-brand font-semibold">{company.legalName}</span>
             <span className="ql-badge ql-badge-neutral">{periodLabel}</span>
             {data?.period ? (
               <span
@@ -626,13 +650,13 @@ export default function DashboardPage() {
       </section>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
-        <section aria-labelledby="needs-attention" className="rounded-ql border border-ql-border bg-ql-surface">
+        <section aria-labelledby="needs-attention" className="overflow-hidden rounded-2xl border border-ql-border bg-ql-surface shadow-[0_2px_12px_rgba(8,45,88,0.03)]">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ql-border px-4 py-3">
             <div>
-              <h2 id="needs-attention" className="text-[17px] font-semibold text-ql-ink">
+              <h2 id="needs-attention" className="text-[16px] font-bold text-ql-ink">
                 {L('Needs attention', 'মনোযোগ প্রয়োজন')}
               </h2>
-              <p className="text-[13px] text-ql-ink-muted">
+              <p className="text-[12px] text-ql-ink-muted">
                 {L('Exceptions and unfinished work from the server records.', 'সার্ভার রেকর্ড থেকে ব্যতিক্রম ও অসম্পূর্ণ কাজ।')}
               </p>
             </div>
@@ -659,7 +683,7 @@ export default function DashboardPage() {
                 <li key={item.key}>
                   <Link
                     to={item.href}
-                    className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-ql-surface-muted focus-visible:bg-ql-surface-muted"
+                    className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-ql-surface-muted/60 focus-visible:bg-ql-surface-muted"
                   >
                     <AttentionIcon tone={item.tone} />
                     <span className="min-w-0 flex-1">
@@ -673,7 +697,7 @@ export default function DashboardPage() {
                       </span>
                       <span className="mt-0.5 block text-[13px] leading-5 text-ql-ink-muted">{item.detail}</span>
                     </span>
-                    <ArrowRight size={16} className="mt-0.5 shrink-0 text-ql-ink-subtle" aria-hidden />
+                    <ArrowRight size={15} className="mt-1 shrink-0 text-ql-ink-subtle" aria-hidden />
                   </Link>
                 </li>
               ))}
@@ -682,11 +706,11 @@ export default function DashboardPage() {
         </section>
 
         <div className="space-y-4">
-          <section aria-labelledby="quick-actions" className="rounded-ql border border-ql-border bg-ql-surface p-4">
-            <h2 id="quick-actions" className="text-[17px] font-semibold text-ql-ink">
+          <section aria-labelledby="quick-actions" className="rounded-2xl border border-ql-border bg-ql-surface p-4 shadow-[0_2px_12px_rgba(8,45,88,0.03)]">
+            <h2 id="quick-actions" className="text-[16px] font-bold text-ql-ink">
               {L('Quick actions', 'দ্রুত কাজ')}
             </h2>
-            <p className="mt-0.5 text-[13px] text-ql-ink-muted">
+            <p className="mt-0.5 text-[12px] text-ql-ink-muted">
               {role === 'AUDITOR'
                 ? L('Read-only shortcuts to evidence and reports.', 'প্রমাণ ও রিপোর্টের শুধু পাঠযোগ্য শর্টকাট।')
                 : L('Only actions your company role can perform on the server are shown.', 'শুধুমাত্র আপনার কোম্পানি ভূমিকা সার্ভারে যে কাজ করতে পারে তা দেখানো হয়।')}
@@ -718,13 +742,13 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <section aria-labelledby="close-status" className="rounded-ql border border-ql-border bg-ql-surface p-4">
+          <section aria-labelledby="close-status" className="rounded-2xl border border-ql-border bg-ql-surface p-4 shadow-[0_2px_12px_rgba(8,45,88,0.03)]">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 id="close-status" className="text-[17px] font-semibold text-ql-ink">
+                <h2 id="close-status" className="text-[16px] font-bold text-ql-ink">
                   {L('Close readiness', 'সমাপনী প্রস্তুতি')}
                 </h2>
-                <p className="mt-0.5 text-[13px] text-ql-ink-muted">{periodLabel}</p>
+                <p className="mt-0.5 text-[12px] text-ql-ink-muted">{periodLabel}</p>
               </div>
               {data?.closeRun ? (
                 <span
@@ -769,23 +793,23 @@ export default function DashboardPage() {
       </div>
 
       {data?.cash && data.cash.entries.length > 0 ? (
-        <section aria-labelledby="cash-breakdown" className="mt-4 rounded-ql border border-ql-border bg-ql-surface">
+        <section aria-labelledby="cash-breakdown" className="mt-4 overflow-hidden rounded-2xl border border-ql-border bg-ql-surface shadow-[0_2px_12px_rgba(8,45,88,0.03)]">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ql-border px-4 py-3">
-            <h2 id="cash-breakdown" className="text-[17px] font-semibold text-ql-ink">
+            <h2 id="cash-breakdown" className="text-[16px] font-bold text-ql-ink">
               {L('Cash and bank accounts', 'নগদ ও ব্যাংক হিসাব')}
             </h2>
-            <Link to="/app/banking" className="text-[13px] font-semibold text-ql-brand hover:underline">
+            <Link to="/app/banking" className="text-[13px] font-semibold text-ql-accent hover:underline">
               {L('Reconcile accounts', 'হিসাব মিলান')}
             </Link>
           </div>
           <ul className="divide-y divide-ql-border">
             {data.cash.entries.slice(0, 8).map((entry) => (
-              <li key={entry.glAccountId} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-[13px]">
+              <li key={entry.glAccountId} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-[13px] transition-colors hover:bg-ql-surface-muted/40">
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="ql-badge ql-badge-neutral">{entry.kind}</span>
-                  <span className="truncate font-medium text-ql-ink">{entry.name}</span>
+                  <span className="truncate font-semibold text-ql-ink">{entry.name}</span>
                 </span>
-                <span className="ql-money font-semibold text-ql-ink">{money(entry.balancePoisha)}</span>
+                <span className="ql-money font-bold text-ql-ink">{money(entry.balancePoisha)}</span>
               </li>
             ))}
           </ul>
@@ -821,21 +845,32 @@ function KpiCard({
   tone: 'neutral' | 'warning' | 'success';
   notAvailable: string;
 }) {
-  const valueTone = tone === 'warning' ? 'text-ql-warning' : 'text-ql-ink';
+  const valueTone = tone === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-ql-ink';
+  const iconTone =
+    tone === 'warning'
+      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+      : tone === 'success'
+        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+        : 'bg-ql-accent/10 text-ql-accent';
+
   return (
-    <article className="flex flex-col justify-between rounded-ql border border-ql-border bg-ql-surface p-4 shadow-ql-card transition hover:-translate-y-0.5 hover:border-ql-brand/25 hover:shadow-ql-popover">
+    <article className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-ql-border bg-ql-surface p-5 shadow-[0_2px_10px_rgba(8,45,88,0.03)] transition-all duration-300 hover:-translate-y-1 hover:border-ql-accent/40 hover:shadow-[0_12px_28px_rgba(8,45,88,0.08)]">
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-ql-accent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <div>
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-[13px] font-semibold text-ql-ink-muted">{label}</h3>
-          <Icon size={17} className={tone === 'warning' ? 'text-ql-warning' : 'text-ql-brand'} aria-hidden />
+          <h3 className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-ql-ink-muted">{label}</h3>
+          <span className={`grid h-8 w-8 place-items-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${iconTone}`}>
+            <Icon size={16} aria-hidden />
+          </span>
         </div>
-        <p className={`mt-2 text-[26px] font-semibold leading-none tracking-[-0.02em] ${valueTone}`}>
-          {value ?? <span className="text-[18px] text-ql-ink-subtle">{notAvailable}</span>}
+        <p className={`mt-3 text-[28px] font-extrabold leading-tight tracking-[-0.03em] ${valueTone}`}>
+          {value ?? <span className="text-[17px] font-normal text-ql-ink-subtle">{notAvailable}</span>}
         </p>
         <p className="mt-2 text-[12px] leading-5 text-ql-ink-muted">{hint}</p>
       </div>
-      <Link to={href} className="mt-3 inline-flex items-center gap-1 text-[13px] font-semibold text-ql-brand hover:underline">
-        {linkLabel} <ArrowRight size={14} aria-hidden />
+      <Link to={href} className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold text-ql-accent transition-colors hover:text-ql-brand hover:underline">
+        <span>{linkLabel}</span>
+        <ArrowRight size={13} aria-hidden className="transition-transform group-hover:translate-x-0.5" />
       </Link>
     </article>
   );
@@ -845,17 +880,35 @@ function QuickAction({ to, icon: Icon, label }: { to: string; icon: typeof FileP
   return (
     <Link
       to={to}
-      className="flex min-h-11 items-center gap-2 rounded-ql-control border border-ql-border px-3 text-[13px] font-medium text-ql-ink transition-colors hover:border-ql-border-strong hover:bg-ql-surface-muted"
+      className="group flex min-h-11 items-center gap-2.5 rounded-xl border border-ql-border bg-ql-surface px-3.5 py-2 text-[13px] font-medium text-ql-ink transition-all hover:-translate-y-0.5 hover:border-ql-accent/40 hover:bg-ql-surface-muted/50 hover:shadow-sm"
     >
-      <Icon size={16} className="shrink-0 text-ql-brand" aria-hidden />
-      <span className="min-w-0 flex-1">{label}</span>
-      <ArrowRight size={14} className="shrink-0 text-ql-ink-subtle" aria-hidden />
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-ql-accent/10 text-ql-accent transition-colors group-hover:bg-ql-accent group-hover:text-white">
+        <Icon size={14} aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <ArrowRight size={13} className="shrink-0 text-ql-ink-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-ql-accent" aria-hidden />
     </Link>
   );
 }
 
 function AttentionIcon({ tone }: { tone: AttentionTone }) {
-  if (tone === 'danger') return <AlertTriangle size={18} className="mt-0.5 shrink-0 text-ql-danger" aria-hidden />;
-  if (tone === 'warning') return <AlertTriangle size={18} className="mt-0.5 shrink-0 text-ql-warning" aria-hidden />;
-  return <FileText size={18} className="mt-0.5 shrink-0 text-ql-info" aria-hidden />;
+  if (tone === 'danger') {
+    return (
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+        <AlertTriangle size={16} aria-hidden />
+      </span>
+    );
+  }
+  if (tone === 'warning') {
+    return (
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+        <AlertTriangle size={16} aria-hidden />
+      </span>
+    );
+  }
+  return (
+    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/40 dark:text-teal-400">
+      <FileText size={16} aria-hidden />
+    </span>
+  );
 }

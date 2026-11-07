@@ -423,8 +423,8 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
         aria-label={L('Search and commands', 'অনুসন্ধান ও কমান্ড')}
         className="relative w-full max-w-2xl overflow-hidden rounded-ql-modal border border-ql-border bg-ql-surface shadow-ql-popover"
       >
-        <div className="flex items-center gap-2 border-b border-ql-border px-3">
-          <Search size={19} className="shrink-0 text-ql-ink-subtle" aria-hidden />
+        <div className="flex items-center gap-2.5 border-b border-ql-border px-4 py-1">
+          <Search size={19} className="shrink-0 text-ql-accent" aria-hidden />
           <input
             ref={inputRef}
             value={query}
@@ -437,10 +437,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             role="combobox"
             aria-expanded="true"
             aria-autocomplete="list"
-            className="min-h-14 w-full bg-transparent text-[15px] text-ql-ink outline-none placeholder:text-ql-ink-subtle"
+            className="min-h-14 w-full bg-transparent text-[15px] font-medium text-ql-ink outline-none placeholder:text-ql-ink-subtle"
           />
-          {searching ? <Loader2 size={17} className="animate-spin text-ql-ink-subtle" aria-label={L('Searching', 'অনুসন্ধান চলছে')} /> : null}
-          <kbd className="rounded border border-ql-border px-1.5 py-0.5 font-mono text-[12px] text-ql-ink-muted">Esc</kbd>
+          {searching ? <Loader2 size={17} className="animate-spin text-ql-accent" aria-label={L('Searching', 'অনুসন্ধান চলছে')} /> : null}
+          <kbd className="rounded-md border border-ql-border bg-ql-surface px-1.5 py-0.5 font-mono text-[11px] text-ql-ink-muted">Esc</kbd>
         </div>
 
         <div className="max-h-[55vh] overflow-y-auto p-2">
@@ -468,21 +468,21 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                       event.preventDefault();
                       openRow(row);
                     }}
-                    className={`flex cursor-pointer items-center gap-3 rounded-ql-control px-3 py-2.5 ${
-                      index === activeIndex ? 'bg-ql-brand-soft text-ql-ink' : 'text-ql-ink hover:bg-ql-surface-muted'
+                    className={`flex cursor-pointer items-center gap-3 rounded-ql-control px-3 py-2.5 transition-colors ${
+                      index === activeIndex ? 'bg-ql-accent/10 font-medium text-ql-ink dark:bg-ql-accent/20 dark:text-white' : 'text-ql-ink hover:bg-ql-surface-muted'
                     }`}
                   >
-                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-ql-control ${index === activeIndex ? 'bg-ql-surface text-ql-brand' : 'bg-ql-surface-muted text-ql-ink-muted'}`}>
+                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-colors ${index === activeIndex ? 'bg-ql-accent text-white' : 'bg-ql-surface-muted text-ql-ink-muted'}`}>
                       <Icon size={16} aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-medium">{row.label}</span>
+                      <span className="block truncate text-[13px] font-semibold">{row.label}</span>
                       <span className="block truncate text-[12px] text-ql-ink-muted">{row.detail}</span>
                     </span>
-                    <span className="shrink-0 rounded border border-ql-border px-1.5 py-0.5 text-[12px] text-ql-ink-subtle">
+                    <span className="shrink-0 rounded-md border border-ql-border px-1.5 py-0.5 text-[11px] font-medium text-ql-ink-subtle">
                       {row.kind === 'ENTITY' ? L('Record', 'রেকর্ড') : row.kind === 'ACTION' ? L('Action', 'কার্যক্রম') : L('Screen', 'স্ক্রিন')}
                     </span>
-                    {index === activeIndex ? <ArrowRight size={15} className="shrink-0 text-ql-brand" aria-hidden /> : null}
+                    {index === activeIndex ? <ArrowRight size={15} className="shrink-0 text-ql-accent" aria-hidden /> : null}
                   </li>
                 );
               })}

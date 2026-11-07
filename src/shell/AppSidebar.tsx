@@ -132,13 +132,13 @@ export function AppSidebar({
       } ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
     >
       <div className="h-1 w-full shrink-0 ql-brand-gradient" aria-hidden="true" />
-      <div className={`flex items-center gap-2 border-b border-ql-border px-4 py-4 ${rail ? 'lg:justify-center lg:px-0' : ''}`}>
+      <div className={`flex items-center gap-2 border-b border-ql-border px-4 py-3.5 ${rail ? 'lg:justify-center lg:px-0' : ''}`}>
         {rail ? (
           <FintuityMark size={36} className="fintuity-mark-glow" />
         ) : (
           <div className="min-w-0 flex-1">
-            <FintuityLogo height={46} />
-            <p className="mt-1.5 truncate text-[12px] leading-4 text-ql-ink-muted">
+            <FintuityLogo height={42} />
+            <p className="mt-1 truncate text-[11px] font-medium leading-4 text-ql-ink-muted">
               {L('Accounting & tax workspace', 'হিসাব ও কর কার্যস্থান')}
             </p>
           </div>
@@ -148,23 +148,23 @@ export function AppSidebar({
           onClick={onToggleRail}
           aria-label={rail ? L('Expand navigation', 'নেভিগেশন প্রসারিত করুন') : L('Collapse navigation', 'নেভিগেশন সংকুচিত করুন')}
           aria-pressed={rail}
-          className={`hidden h-10 w-10 shrink-0 place-items-center rounded-ql-control text-ql-ink-muted hover:bg-ql-surface-muted hover:text-ql-ink lg:grid ${rail ? 'lg:absolute lg:right-2 lg:top-4' : ''}`}
+          className={`hidden h-9 w-9 shrink-0 place-items-center rounded-ql-control text-ql-ink-muted transition-colors hover:bg-ql-surface-muted hover:text-ql-ink lg:grid ${rail ? 'lg:absolute lg:right-2 lg:top-4' : ''}`}
         >
-          {rail ? <PanelLeftOpen size={18} aria-hidden /> : <PanelLeftClose size={18} aria-hidden />}
+          {rail ? <PanelLeftOpen size={17} aria-hidden /> : <PanelLeftClose size={17} aria-hidden />}
         </button>
         <button
           type="button"
           onClick={onClose}
           aria-label={L('Close navigation', 'নেভিগেশন বন্ধ করুন')}
-          className="grid h-10 w-10 place-items-center rounded-ql-control text-ql-ink-muted hover:bg-ql-surface-muted hover:text-ql-ink lg:hidden"
+          className="grid h-9 w-9 place-items-center rounded-ql-control text-ql-ink-muted transition-colors hover:bg-ql-surface-muted hover:text-ql-ink lg:hidden"
         >
-          <X size={19} aria-hidden />
+          <X size={18} aria-hidden />
         </button>
       </div>
 
       <div className={`border-b border-ql-border px-3 py-3 ${rail ? 'lg:hidden' : ''}`}>
         <label className="block">
-          <span className="mb-1 block text-[12px] font-medium text-ql-ink-muted">{L('Active company', 'সক্রিয় কোম্পানি')}</span>
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.06em] text-ql-ink-muted">{L('Active company', 'সক্রিয় কোম্পানি')}</span>
           {auth.companies.length > 1 ? (
             <select
               value={company?.id ?? ''}
@@ -179,14 +179,14 @@ export function AppSidebar({
               ))}
             </select>
           ) : (
-            <p className="truncate rounded-ql-control border border-ql-border bg-ql-surface-muted px-3 py-2 text-[13px] font-medium text-ql-ink">
+            <p className="truncate rounded-ql-control border border-ql-border bg-ql-surface-muted/60 px-3 py-2 text-[13px] font-semibold text-ql-ink">
               {company?.legalName ?? L('No company access', 'কোম্পানি প্রবেশাধিকার নেই')}
             </p>
           )}
         </label>
         {company && branches.length > 0 ? (
           <label className="mt-2 block">
-            <span className="mb-1 block text-[12px] font-medium text-ql-ink-muted">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.06em] text-ql-ink-muted">
               {L('Default branch for new documents', 'নতুন নথির ডিফল্ট শাখা')}
             </span>
             <select
@@ -202,39 +202,39 @@ export function AppSidebar({
                 </option>
               ))}
             </select>
-            <span className="mt-1 block text-[12px] leading-4 text-ql-ink-subtle">
+            <span className="mt-1 block text-[11px] leading-4 text-ql-ink-subtle">
               {L('Prefills drafts only. It does not restrict what you can see.', 'শুধু খসড়া পূরণ করে। আপনি কী দেখতে পাবেন তা সীমাবদ্ধ করে না।')}
             </span>
           </label>
         ) : null}
         {company && role ? (
           <p className="mt-2 flex items-center gap-1.5 text-[12px] text-ql-ink-muted">
-            <ShieldCheck size={13} aria-hidden className="text-ql-brand" />
-            {L(role.label_en, role.label_bn)}
+            <ShieldCheck size={13} aria-hidden className="text-ql-accent" />
+            <span className="font-medium text-ql-ink">{L(role.label_en, role.label_bn)}</span>
             {company.explicitScope ? <span className="text-ql-ink-subtle">· {L('company scope', 'কোম্পানি পরিধি')}</span> : null}
           </p>
         ) : null}
       </div>
 
-      <div className={`px-3 py-3 ${rail ? 'lg:px-2' : ''}`}>
+      <div className={`px-3 py-2.5 ${rail ? 'lg:px-2' : ''}`}>
         <button
           type="button"
           onClick={onOpenPalette}
-          className={`flex min-h-10 w-full items-center gap-2.5 rounded-ql-control border border-ql-border bg-ql-surface-muted px-3 text-left text-[13px] text-ql-ink-muted hover:border-ql-border-strong hover:text-ql-ink ${
+          className={`flex min-h-10 w-full items-center gap-2.5 rounded-ql-control border border-ql-border bg-ql-surface-muted/60 px-3 text-left text-[13px] text-ql-ink-muted transition-colors hover:border-ql-border-strong hover:bg-ql-surface hover:text-ql-ink ${
             rail ? 'lg:justify-center lg:px-0' : ''
           }`}
         >
-          <Search size={16} aria-hidden />
+          <Search size={15} aria-hidden className="shrink-0 text-ql-accent" />
           <span className="sr-only">{L('Search or jump to', 'খুঁজুন বা যান')}</span>
           <span className={`flex-1 ${rail ? 'lg:hidden' : ''}`} aria-hidden>{L('Search or jump to…', 'খুঁজুন বা যান…')}</span>
-          <kbd className={`rounded border border-ql-border bg-ql-surface px-1.5 py-0.5 font-mono text-[12px] ${rail ? 'lg:hidden' : ''}`} aria-hidden>Ctrl K</kbd>
+          <kbd className={`rounded border border-ql-border bg-ql-surface px-1.5 py-0.5 font-mono text-[11px] text-ql-ink-subtle ${rail ? 'lg:hidden' : ''}`} aria-hidden>⌘ K</kbd>
         </button>
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-4" aria-label={L('Workspace sections', 'কার্যস্থান বিভাগ')}>
         {grouped.map(({ group, items }) => (
           <div key={group.key} className="mb-2">
-            <p className={`px-2 pb-1 pt-2 text-[12px] font-semibold text-ql-ink-subtle ${rail ? 'lg:sr-only' : ''}`}>
+            <p className={`px-2.5 pb-1 pt-3 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ql-ink-subtle ${rail ? 'lg:sr-only' : ''}`}>
               {L(group.labelEn, group.labelBn)}
             </p>
             <ul className="space-y-0.5">
@@ -255,16 +255,16 @@ export function AppSidebar({
       </nav>
 
       <div className={`border-t border-ql-border px-4 py-3 text-[12px] leading-5 text-ql-ink-muted ${rail ? 'lg:hidden' : ''}`}>
-        <p className="flex items-center gap-1.5 font-medium text-ql-ink">
-          <span className="h-2 w-2 rounded-full bg-ql-success" aria-hidden />
+        <p className="flex items-center gap-1.5 font-semibold text-ql-ink">
+          <span className="h-2 w-2 rounded-full bg-ql-accent shadow-[0_0_8px_rgba(0,185,168,0.5)]" aria-hidden />
           {L('Server session active', 'সার্ভার সেশন সক্রিয়')}
         </p>
-        <p className="mt-1">{L('Company-scoped data · server-enforced permissions', 'কোম্পানি-সীমাবদ্ধ ডেটা · সার্ভার-প্রয়োগকৃত অনুমতি')}</p>
+        <p className="mt-0.5 text-[11px] text-ql-ink-subtle">{L('Company-scoped data · server-enforced permissions', 'কোম্পানি-সীমাবদ্ধ ডেটা · সার্ভার-প্রয়োগকৃত অনুমতি')}</p>
       </div>
 
       {rail ? (
         <div className="hidden border-t border-ql-border py-3 lg:flex lg:flex-col lg:items-center lg:gap-2">
-          <span className="h-2 w-2 rounded-full bg-ql-success" aria-hidden />
+          <span className="h-2 w-2 rounded-full bg-ql-accent shadow-[0_0_8px_rgba(0,185,168,0.5)]" aria-hidden />
           <ChevronLeft size={14} className="text-ql-ink-subtle" aria-hidden />
         </div>
       ) : null}
@@ -292,11 +292,23 @@ function NavLinkItem({
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       title={rail ? label : undefined}
-      className={`flex min-h-10 items-center gap-2.5 rounded-ql-control px-2.5 text-[13px] font-medium transition-colors ${
-        active ? 'bg-ql-brand text-ql-brand-ink' : 'text-ql-ink hover:bg-ql-surface-muted'
+      className={`relative flex min-h-10 items-center gap-2.5 rounded-ql-control px-2.5 text-[13px] font-medium transition-all ${
+        active
+          ? 'bg-ql-accent/10 font-semibold text-ql-ink shadow-sm dark:bg-ql-accent/20 dark:text-white'
+          : 'text-ql-ink hover:bg-ql-surface-muted hover:text-ql-ink'
       } ${rail ? 'lg:justify-center lg:px-0' : ''}`}
     >
-      <Icon size={18} aria-hidden className="shrink-0" />
+      {active && (
+        <span
+          aria-hidden="true"
+          className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-ql-accent"
+        />
+      )}
+      <Icon
+        size={18}
+        aria-hidden
+        className={`shrink-0 transition-colors ${active ? 'text-ql-accent' : 'text-ql-ink-muted'}`}
+      />
       <span className={rail ? 'lg:sr-only' : 'truncate'}>{label}</span>
     </Link>
   );

@@ -95,9 +95,9 @@
 
     --ql-focus: 0 185 168;
 
-    --ql-radius-control: 6px;
-    --ql-radius-card: 10px;
-    --ql-radius-modal: 12px;
+    --ql-radius-control: 8px;
+    --ql-radius-card: 14px;
+    --ql-radius-modal: 18px;
 
     --ql-shadow-card: 0 2px 6px rgba(6, 43, 82, 0.04), 0 20px 45px -12px rgba(6, 43, 82, 0.12);
     --ql-shadow-popover: 0 24px 60px -15px rgba(6, 43, 82, 0.28), 0 2px 8px rgba(6, 43, 82, 0.08);

@@ -15,7 +15,11 @@ const BINARY_EXTENSIONS = new Set([
 
 const patterns = [
   { name: 'private key block', regex: /-----BEGIN (?:RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----/ },
-  { name: 'AWS access key id', regex: /\bAKIA[0-9A-Z]{16}\b/ },
+  {
+    name: 'AWS access key id',
+    regex: /\bAKIA[0-9A-Z]{16}\b/g,
+    allow: (match) => match[0] === 'AKIAIOSFODNN7EXAMPLE',
+  },
   { name: 'GitHub token', regex: /\bgh[pousr]_[A-Za-z0-9]{36,}\b/ },
   { name: 'Slack token', regex: /\bxox[baprs]-[A-Za-z0-9-]{20,}\b/ },
   { name: 'Stripe live secret key', regex: /\bsk_live_[A-Za-z0-9]{20,}\b/ },

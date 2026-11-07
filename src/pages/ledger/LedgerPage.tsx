@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, CalendarClock, ChevronLeft, ChevronRight, FilePlus2, Landmark, Scale } from 'lucide-react';
+import { BookOpen, Building2, CalendarClock, ChevronLeft, ChevronRight, FilePlus2, Landmark, Scale } from 'lucide-react';
 import { localized } from '../../core/i18n';
 import { useAuth } from '../../auth/AuthContext';
 import type { ServerPermission } from '../../auth/types';
@@ -15,10 +15,11 @@ import { JournalDetail } from './JournalDetail';
 import { TrialBalancePanel } from './TrialBalancePanel';
 import { PeriodsPanel } from './PeriodsPanel';
 import { OpeningBalancesPanel } from './OpeningBalancesPanel';
+import { FixedAssetsPanel } from './FixedAssetsPanel';
 import { formatDate, PoishaText, StatusChip } from './ledgerUi';
 
-type TabKey = 'JOURNALS' | 'NEW' | 'TRIAL_BALANCE' | 'PERIODS' | 'OPENING';
-const TAB_KEYS: readonly TabKey[] = ['JOURNALS', 'NEW', 'TRIAL_BALANCE', 'PERIODS', 'OPENING'];
+type TabKey = 'JOURNALS' | 'NEW' | 'TRIAL_BALANCE' | 'FIXED_ASSETS' | 'PERIODS' | 'OPENING';
+const TAB_KEYS: readonly TabKey[] = ['JOURNALS', 'NEW', 'TRIAL_BALANCE', 'FIXED_ASSETS', 'PERIODS', 'OPENING'];
 
 function tabFromQuery(value: string | null): TabKey | null {
   return value && (TAB_KEYS as readonly string[]).includes(value) ? (value as TabKey) : null;
@@ -28,6 +29,7 @@ const TAB_META: Array<{ key: TabKey; en: string; bn: string; icon: typeof BookOp
   { key: 'JOURNALS', en: 'Journals', bn: 'জার্নাল', icon: BookOpen, permission: 'VIEW_REPORTS' },
   { key: 'NEW', en: 'New journal', bn: 'নতুন জার্নাল', icon: FilePlus2, permission: 'POST_TO_GL' },
   { key: 'TRIAL_BALANCE', en: 'Trial balance', bn: 'রেওয়ামিল', icon: Scale, permission: 'VIEW_REPORTS' },
+  { key: 'FIXED_ASSETS', en: 'Fixed assets', bn: 'স্থায়ী সম্পদ', icon: Building2, permission: 'VIEW_REPORTS' },
   { key: 'PERIODS', en: 'Periods', bn: 'হিসাবকাল', icon: CalendarClock },
   { key: 'OPENING', en: 'Opening balances', bn: 'উদ্বোধনী ব্যালেন্স', icon: Landmark },
 ];
@@ -482,6 +484,18 @@ export default function LedgerPage() {
           refreshToken={refreshToken}
           onChanged={(message) => refresh(message)}
           onOpenJournal={openJournal}
+        />
+      ) : null}
+
+      {tab === 'FIXED_ASSETS' ? (
+        <FixedAssetsPanel
+          companyId={companyId}
+          accounts={accounts}
+          periods={periods}
+          canPost={canPost}
+          refreshToken={refreshToken}
+          onOpenJournal={openJournal}
+          onChanged={(message) => refresh(message)}
         />
       ) : null}
     </div>

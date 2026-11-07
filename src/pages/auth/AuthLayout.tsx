@@ -156,10 +156,10 @@ export function AuthLayout({
             </aside>
 
             <div className={`w-full ${wide ? 'lg:max-w-2xl' : 'lg:max-w-md'} lg:justify-self-end`}>
-              <div className="relative overflow-hidden rounded-ql border border-ql-border bg-ql-surface p-6 shadow-ql-card sm:p-8">
+              <div className="relative overflow-hidden rounded-2xl border border-ql-border bg-ql-surface p-6 shadow-[0_20px_50px_rgba(8,45,88,0.08)] sm:p-8">
                 <div className="absolute inset-x-0 top-0 h-1 ql-brand-gradient" aria-hidden="true" />
                 <div className="mb-6">
-                  <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.03em] text-ql-ink">
+                  <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.03em] text-ql-ink">
                     {title}
                   </h1>
                   <p className="mt-2 text-[14px] leading-6 text-ql-ink-muted">{subtitle}</p>

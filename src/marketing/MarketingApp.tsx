@@ -93,6 +93,7 @@ function MarketingShell({ children }: { children: ReactNode }) {
   const { t } = useMarketingUi();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isLanding = location.pathname === '/';
 
   useEffect(() => {
     setMenuOpen(false);
@@ -105,6 +106,10 @@ function MarketingShell({ children }: { children: ReactNode }) {
     }
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname, location.hash]);
+
+  if (isLanding) {
+    return <div className="site-wrap">{children}</div>;
+  }
 
   const links = [
     { href: '/#product', label: t(marketingCopy.nav.product) },
